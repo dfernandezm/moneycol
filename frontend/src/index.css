@@ -21,19 +21,20 @@ ol, ul {
   background: #fff;
   border: 1px solid #999;
   float: left;
-  font-size: 24px;
+  font-size: 74px;
   font-weight: bold;
   line-height: 34px;
-  height: 34px;
+  height: 74px;
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
   text-align: center;
-  width: 34px;
+  width: 74px;
 }
 
 .square:focus {
   outline: none;
+  background-color: #fff;
 }
 
 .kbd-navigation .square:focus {
@@ -47,4 +48,11 @@ ol, ul {
 
 .game-info {
   margin-left: 20px;
+}
+
+.btn:hover{background-color: #4c8de1}*/
+.btn{background-color: #4c8de1}
+
+.move {
+  margin-bottom: 3px;
 }

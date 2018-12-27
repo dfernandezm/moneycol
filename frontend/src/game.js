@@ -1,5 +1,6 @@
 import React from 'react';
 import Board from './board';
+import GameInfo from "./gameInfo";
 
 export default class Game extends React.Component {
     constructor(props) {
@@ -23,7 +24,9 @@ export default class Game extends React.Component {
             let current = history[history.length - 1];
             let squares = current.squares.slice() 
             
-            this.exitIfFilledOrWinner(squares, i);
+            if (squares[i] || calculateWinner(squares)) {
+                return;
+            }
         
             squares[i] = this.state.next;
     
@@ -43,12 +46,6 @@ export default class Game extends React.Component {
           return 'O';
       } 
       return 'X';
-    }
-
-    exitIfFilledOrWinner(squares, i) {
-        if (squares[i] || calculateWinner(squares)) {
-            return;
-        }
     }
 
     jumpTo(stepNumber) {
@@ -72,20 +69,17 @@ export default class Game extends React.Component {
             const description = moveIndex ? `Jump to move #${moveIndex}` : "Go to game start"
             return (
                 <li key={moveIndex}> 
-                    <button onClick={() => this.jumpTo(moveIndex)}>{description}</button>
+                    <button className="btn move" onClick={() => this.jumpTo(moveIndex)}>{description}</button>
                 </li>
             )
         })                            
 
       return (
-        <div className="game">
+        <div className="game container">
           <div className="game-board">
             <Board squares={current.squares} onClick={this.handleClick} />
           </div>
-          <div className="game-info">
-            <div>{status}</div>
-            <ol>{moves}</ol>
-          </div>
+          <GameInfo status={status} moves={moves} />
         </div>
       );
     }
