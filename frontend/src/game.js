@@ -76,10 +76,15 @@ export default class Game extends React.Component {
 
       return (
         <div className="game container">
-          <div className="game-board">
-            <Board squares={current.squares} onClick={this.handleClick} />
-          </div>
-          <GameInfo status={status} moves={moves} />
+          <div className="row">
+              <div>
+                <h4>Tic Tac Toe</h4>
+              </div>
+             
+              <Board squares={current.squares} onClick={this.handleClick} />
+              <GameInfo status={status} moves={moves} />
+            
+            </div>
         </div>
       );
     }

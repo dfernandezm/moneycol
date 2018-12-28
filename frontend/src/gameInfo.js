@@ -1,5 +1,4 @@
 import React from 'react';
-import {Button, Icon} from 'react-materialize'
 
 const GameInfo = (props) => {
   return ( 
