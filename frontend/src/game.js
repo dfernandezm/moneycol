@@ -1,6 +1,10 @@
 import React from 'react';
 import Board from './board';
 import GameInfo from "./gameInfo";
+import {Button, Icon} from 'react-materialize'
+import {Navbar, NavItem} from 'react-materialize'
+
+
 
 export default class Game extends React.Component {
     constructor(props) {
@@ -80,9 +84,11 @@ export default class Game extends React.Component {
               <div>
                 <h4>Tic Tac Toe</h4>
               </div>
-             
               <Board squares={current.squares} onClick={this.handleClick} />
               <GameInfo status={status} moves={moves} />
+              <Button waves='light'>
+                <Icon>thumb_up</Icon>
+              </Button>
             
             </div>
         </div>
