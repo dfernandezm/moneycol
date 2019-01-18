@@ -1,0 +1,32 @@
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 20px;
+  color: #000;
+}
+
+ol, ul {
+  padding-left: 30px;
+}
+
+.board-row:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+
+nav {
+  background-color: #fff;
+  color: #000;
+  box-shadow: none;
+  border-bottom: 1px solid #d2cfcf;
+  border-top: 1px solid #d2cfcf;
+}
+
+nav .brand-logo, nav ul a {
+  color: #000;
+}
+
+.mainContent {
+  text-align: center;
+  margin: auto;
+}

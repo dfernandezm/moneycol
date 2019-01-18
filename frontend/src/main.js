@@ -1,14 +1,25 @@
 import React from 'react';
-import {Navbar, NavItem} from 'react-materialize'
+import SearchButton from './searchButton';
+import MainContent from './mainContent';
 
 export default class Main extends React.Component {
   
     render() {
       return (
-        <Navbar brand='logo' right>
-          <NavItem onClick={() => console.log('test click')}>Getting started</NavItem>
-          <NavItem href='components.html'>Components</NavItem>
-        </Navbar>
+        <div className="mainpage">
+          <nav>
+            <div class="nav-wrapper">
+              <a href class="brand-logo">Swap Collection</a>
+              <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <SearchButton />
+                <li><a href="badges.html"><i className="material-icons left">lock</i>Login</a></li>
+              </ul>
+            </div>
+          </nav>
+          <div className="section no-pad-bot">
+             <MainContent />
+          </div>
+        </div>
       );
     }
   }
