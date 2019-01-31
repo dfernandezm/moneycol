@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 //import './index.css';
 import './main.css';
-import Game from './game';
 import Main from './main';
 
 // ========================================
