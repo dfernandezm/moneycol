@@ -1,3 +1,4 @@
+/* UNUSED */
 body {
   font: 14px "Century Gothic", Futura, sans-serif;
   margin: 20px;
@@ -88,6 +89,11 @@ h4 {
   margin-top: 25px;
 }
 
+/* https://stackoverflow.com/questions/44387758/remove-underline-border-materialize-input-text */
+textarea:focus, input:focus {
+  border-bottom: none!important;
+  box-shadow: none!important;
+}
 /* .active {
   background-color: #fafafa;
 } */

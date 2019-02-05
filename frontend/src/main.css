@@ -30,3 +30,54 @@ nav .brand-logo, nav ul a {
   text-align: center;
   margin: auto;
 }
+
+
+/* textarea:focus, input:focus {
+  border-bottom: none!important;
+  box-shadow: none!important;
+} */
+
+textarea:focus, input:focus {
+  border-bottom: 1px solid #d2cfcf;
+  box-shadow: none!important;
+}
+/* https://stackoverflow.com/questions/44387758/remove-underline-border-materialize-input-text */
+
+/* Manual autocomplete: import inside autocompleteManual.js */
+
+/* input {
+  border: 1px solid #999;
+  padding: 10px;
+} */
+
+.no-suggestions {
+  color: #999;
+  padding: 10px;
+  text-align: left;
+}
+
+.suggestions {
+  /*border: 1px solid #999;*/
+  border-top-width: 0;
+  list-style: none;
+  margin-top: 0;
+  max-height: 143px;
+  overflow-y: auto;
+  padding-left: 5px;
+  text-align: left;
+}
+
+.suggestions li {
+  padding: 5px;
+}
+
+.suggestion-active,
+.suggestions li:hover {
+  background-color: #fafafa;
+  cursor: pointer;
+  font-weight: 300;
+}
+
+/* .suggestions li:not(:last-of-type) {
+  border-bottom: 1px solid #999;
+} */
