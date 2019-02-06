@@ -9,6 +9,7 @@
     "react": "^16.7.0",
     "react-autosuggest": "^9.4.3",
     "react-dom": "^16.7.0",
+    "react-dropdown": "^1.6.4",
     "react-materialize": "^2.6.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^2.1.3",

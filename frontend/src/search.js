@@ -1,38 +1,46 @@
 import React from 'react';
-import SearchSuggest from './searchSuggest';
-import SearchAuto from './searchAuto';
 import Autocomplete from './autocompleteManual';
+import YearSelect from './yearSelect';
+import BasicSelect from './basicSelect';
 
 class Search extends React.Component {
-  
+  setValue(val) {
+    console.log("SetValue");
+  }
   render() {
-
+    const theOptions = ["1","2","3"]
     return (
       <div className="search container">
-         <h3>Search</h3>
-         {/* <div class="row">
-    <div class="col s12">
-      <div class="row">
-        <div class="input-field col s12">
-          <i class="material-icons prefix">textsms</i>
-          <input type="text" id="autocomplete-input" class="autocomplete"/>
-          <label for="autocomplete-input">Type a country</label>
-        </div>
+        <div className="row">
+          <div className="input-field col s4 left">
+            <Autocomplete suggestions={[
+              "Afganistan",
+              "Albania",
+              "Barbados",
+              "Bermuda",
+              "Jersey",
+              "Guernsey",
+              "Spain",
+              "Laos",
+              "Cambodia",
+              "Netherlands"
+            ]}/>
+          </div>
+          <YearSelect/>
       </div>
-    </div>
-  </div> */}
-        <Autocomplete suggestions={[
-          "Alligator",
-          "Bask",
-          "Crocodilian",
-          "Death Roll",
-          "Eggs",
-          "Jaws",
-          "Reptile",
-          "Solitary",
-          "Tail",
-          "Wetlands"
-        ]}/>
+      <div className="row">
+        <div className="input-field col s4 left">
+            <input id="value" type="text" />
+            <label htmlFor="value">Value</label>
+        </div> 
+        <div className="input-field col s4 left">
+            <input id="name" type="text" />
+            <label htmlFor="name">Name</label>
+        </div> 
+      </div>
+      <div> <h3>Hey</h3>
+      <BasicSelect options={theOptions} setValue={this.setValue}/>
+      </div>
       </div>
     );
   }
