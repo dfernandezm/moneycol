@@ -1,0 +1,1 @@
+Quick evaluation of ability to search coins by pictures

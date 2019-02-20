@@ -1,0 +1,14 @@
+{
+  "name": "search-by-picture",
+  "version": "1.0.0",
+  "description": "Search By Picture Trieal",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crawler": "^1.2.0"
+  }
+}
