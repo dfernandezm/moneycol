@@ -1,14 +1,19 @@
 let Crawler = require("crawler");
+const csvWriter = require("./csvWriter")
+
 let userAgentStringOld1 = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5"
 let userAgentString = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5"
 let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
 
-//"Mozilla/5.0 (Windows NT 5.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1";
 let total = 0;
 let fs = require('fs');
 
-const baseUrl = "https://www.realbanknotes.com";
 const colnectUrl = "https://colnect.com";
+
+// Regex of the country as named on the banknote detail section
+const countryRegex = /<\/strong>\:(.*)<a.*/gm;
+
+let visitedUrls = []
 
 let imgDownloadCrawler = new Crawler({
     rateLimit: 1000,
@@ -34,22 +39,26 @@ let aCrawler = new Crawler({
         if(error){
             console.log(error);
         } else {
-            var $ = res.$;
+            const $ = res.$;
+            //console.log(res.options.uri);
 
             let links = $("div.pl_list a");
             let bankNoteDetails = $("div.pl-it")
-            // let names = $("h2.item_header a");
-
-            // if (names.length > 0) {
-            //     names.each(function(i, elem) {
-            //         let valueNames = $(elem).text()
-            //         console.log("Text: " + valueNames)
-            //     });
-            // }
+            let countryNameHtml = $("div.filter_one a");
+            let countryName = "";
+            if (countryNameHtml.length > 0) {
+                // console.log("The Html: " + countryNameHtml);
+                // let match = countryRegex.exec(countryNameHtml);
+                // let countryName = match[1];
+                countryName = countryNameHtml.eq(1).text();
+                console.log("Countryname: " + countryName);
+            }
 
             if (bankNoteDetails.length > 0) {
+                let banknotesList = [];
                 bankNoteDetails.each(function(i, elem) {
                             let valueName = $("h2.item_header a",$(elem)).text()
+                            let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
                             let issueYearLinks = $("div.i_d dl dd a",$(elem))
                             let bankNoteData = $("div.i_d dl dd",$(elem))
                             bankNoteData.each(function(i, el) {
@@ -70,14 +79,39 @@ let aCrawler = new Crawler({
                                     }
                                 });
                             }
-
-                            console.log(valueName + " - " + year + " - " + catalogCode + " - " + desc) ;
+                            let banknote = {};
+                            banknote.banknoteName = valueName;
+                            banknote.country = countryName;
+                            banknote.year = year;
+                            banknote.catalogCode = catalogCode;
+                            banknote.desc = desc;
+                            banknotesList.push(banknote);
+                            console.log(valueName + " - " + year + " - " + catalogCode + " - " + banknoteLink + " - " + desc) ;
                             
                         });
+
+                csvWriter.writeCsvRecords(banknotesList);
+
+                // navigate page if required
+                if (moreThanOnePage($)) {
+                    $("div.navigation_box div a.pager_page").each(function(i, el) {
+                        let href = $(el).attr('href');
+                        //control are the > and >> to go one page more or to the end
+                        let notControl = $('.pager_control',$(el)).length == 0
+                        let url = colnectUrl + href;
+                        let notFirstPage = !url.endsWith('/page/1');
+
+                        if (!visitedUrls.includes(url)) {
+                            if (notControl && notFirstPage) {
+                                console.log("New page within list: " + url);
+                                visitedUrls.push(url);
+                                aCrawler.queue(url);
+                            }   
+                        }
+                    });
+                }
             }
 
-
-            //console.log("Links: " + links.html());
             links.each(function(i, elem) {
                 let linkUrl = $(elem).attr('href')
                 console.log("Href: " + linkUrl)
@@ -85,6 +119,7 @@ let aCrawler = new Crawler({
             });
 
         }
+
         done();
     }
 });
@@ -100,6 +135,40 @@ const extractLinks = (banknotesLinks) => {
         }   
     });
 }
-let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania"
-let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan"
-aCrawler.queue(albaniaUrl)
+
+const countriesCrawler = new Crawler({
+    // maxConnections : 10
+     rateLimit: 500,
+     userAgent: googleUserAgent,
+     // This will be called for each crawled page
+     callback : function (error, res, done) {
+        if(error){
+            console.log(error);
+        } else {
+            var $ = res.$;
+            console.log("Crawling main list");
+            let countriesLinks = $("div.pl_list a");
+            let countriesUrl = [];
+            countriesLinks.each(function(i, el) {
+                let href = $(el).attr('href');
+                let countryUrl = colnectUrl + href;
+                
+                console.log("Sending for process: " + countryUrl);
+                aCrawler.queue(countryUrl);
+            });
+        }
+     }
+});
+
+const moreThanOnePage = ($) => {
+    return $("div.navigation_box div a.pager_page").length > 0
+}
+
+let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
+let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
+let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
+let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
+aCrawler.queue(usaUrl2);
+
+//let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
+//countriesCrawler.queue(mainCountriesUrl);
