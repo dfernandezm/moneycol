@@ -3,7 +3,8 @@ import React from 'react';
 import YearSelect from './yearSelect';
 //import BasicSelect from './basicSelect';
 import AutocompleteMaterial from './autocompleteMaterial';
-
+// we want a form with a free text search that would link directly to server side
+// alternatively, a form with 3 Selects: country, year and denomination (more useful for adding new banknote)
 class Search extends React.Component {
   setValue(val) {
     console.log("SetValue");

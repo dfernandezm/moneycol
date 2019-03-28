@@ -1,11 +1,5 @@
 import React from 'react';
-import Dropdown from 'react-dropdown';
-import FlavorForm from './flavorForm';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
 //import BasicSelect from './basicSelect';
-
-import 'react-dropdown/style.css'
 
 class YearSelect extends React.Component {
   constructor(props) {
