@@ -10,7 +10,7 @@ class BasicSelect extends React.Component {
   }
   render(props) {
     const options = this.props.options.map(elem => (
-      <option value={elem}>{elem}</option>
+      <option key={1} value={elem}>{elem}</option>
     ));
     return (
       <select value={this.props.value} onChange={this.handleChange}>
