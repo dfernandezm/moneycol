@@ -1,7 +1,8 @@
 import React from 'react';
-import Autocomplete from './autocompleteManual';
+//import Autocomplete from './autocompleteManual';
 import YearSelect from './yearSelect';
-import BasicSelect from './basicSelect';
+//import BasicSelect from './basicSelect';
+import AutocompleteMaterial from './autocompleteMaterial';
 
 class Search extends React.Component {
   setValue(val) {
@@ -13,7 +14,7 @@ class Search extends React.Component {
       <div className="search container">
         <div className="row">
           <div className="input-field col s4 left">
-            <Autocomplete suggestions={[
+            <AutocompleteMaterial suggestions={[
               "Afganistan",
               "Albania",
               "Barbados",
@@ -37,9 +38,6 @@ class Search extends React.Component {
             <input id="name" type="text" />
             <label htmlFor="name">Name</label>
         </div> 
-      </div>
-      <div> <h3>Hey</h3>
-      <BasicSelect options={theOptions} setValue={this.setValue}/>
       </div>
       </div>
     );

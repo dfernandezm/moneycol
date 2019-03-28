@@ -3,7 +3,7 @@ import Dropdown from 'react-dropdown';
 import FlavorForm from './flavorForm';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import BasicSelect from './basicSelect';
+//import BasicSelect from './basicSelect';
 
 import 'react-dropdown/style.css'
 
@@ -42,7 +42,7 @@ class YearSelect extends React.Component {
           const theOptions = ["1","2","3"]
       return (
       <div className="input-field col s4 left">
-         <BasicSelect options={theOptions} setValue={this.setValue}/>
+         {/* <BasicSelect options={theOptions} setValue={this.setValue}/> */}
       </div>
       )
   }
