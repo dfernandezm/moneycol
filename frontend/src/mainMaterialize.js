@@ -7,7 +7,6 @@ import {
 import 'materialize-css/dist/css/materialize.min.css';
 import Search from './search';
 import Home from './home';
-//import Login from './login';
 
 export default class MainMaterialize extends React.Component {
   
