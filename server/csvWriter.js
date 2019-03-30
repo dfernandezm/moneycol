@@ -2,7 +2,7 @@
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const csvWriter = createCsvWriter({
-    path: '/Users/david/Desktop/banknotes-usa.csv',
+    path: '/Users/david/Desktop/banknotes-usa-es.csv',
     header: [
         {id: 'country', title: 'Country'},
         {id: 'banknoteName', title: 'BanknoteName'},

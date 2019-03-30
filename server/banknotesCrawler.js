@@ -168,7 +168,7 @@ let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
 let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
 let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
 let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
-aCrawler.queue(usaUrl2);
+//aCrawler.queue(usaUrl2);
 
-//let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
-//countriesCrawler.queue(mainCountriesUrl);
+let mainCountriesUrl = "https://colnect.com/es/banknotes/countries";
+countriesCrawler.queue(mainCountriesUrl);
