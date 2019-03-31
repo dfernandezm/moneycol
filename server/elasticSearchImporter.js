@@ -1,17 +1,18 @@
 const elasticsearch = require("elasticsearch");
 const uniqid = require('uniqid');
-const csvFilePath='/Users/david/Desktop/banknotes-usa-es.csv'
 const csv=require('csvtojson')
 
+const csvFilePath='/Users/david/Desktop/banknotes-usa-es.csv'
+const indexName = 'banknotes-catalog-es';
 
 const client = new elasticsearch.Client({
     host: 'localhost:9200',
-    log: 'trace'
+    log: 'info'
   });
 
 const indexBanknote = async (banknote) => {
     let result = await client.index({  
-        index: 'banknotes-catalog',
+        index: indexName,
         id: uniqid(),
         type: 'banknotes',
         body: banknote
@@ -22,7 +23,7 @@ const indexBanknote = async (banknote) => {
 
  async function indexBulk (allBanknotes)  {
     const result = await client.bulk({
-            index: 'banknotes-catalog',
+            index: indexName,
             type: 'banknotes',
             body : allBanknotes
     });
@@ -32,15 +33,15 @@ const indexBanknote = async (banknote) => {
 
 async function readCsvToJson()  {
     //TODO: index in multiple languages
-   const index = await client.indices.create({
-        index: 'banknotes-catalog-es'});
+//    const index = await client.indices.create({
+//         index: 'banknotes-catalog-es'});
 
     const jsonObj = await csv().fromFile(csvFilePath);
 
     let indexLines = [];
     let i = 1;
     jsonObj.forEach(note => {
-        indexLines.push({ index:  { _index: 'banknotes-catalog', _type: 'banknote', _id: i} });
+        indexLines.push({ index:  { _index: indexName, _type: 'banknote', _id: i} });
         indexLines.push(note);
         i++;
     });      
@@ -48,20 +49,36 @@ async function readCsvToJson()  {
     await indexBulk(indexLines);
 }
 
-const search = async (query) => {
-    const resp = await client.search({
-        index: 'banknotes-catalog',
-        body: {
-           query: {
-                query_string : {
-                    "query" : query
-                }
-            }
-        }
-      })
+const search = async (language, query) => {
+
+    let theIndexName = 'banknotes-catalog';
+    if (language !== 'en') {
+       theIndexName = "banknotes-catalog-" + language;
+    }
+
+    // Search in every field but Description
+    const baseQueryString = {
+        query: {
+             query_string : {
+                 "query" : query,
+                 "fields": [
+                    "BanknoteName",
+                    "Year",
+                    "Country",
+                    "CatalogCode"
+                  ]
+             }   
+         }
+     };
     
-      console.log(resp.hits.hits.map(hit => hit._source))
+     const resp = await client.search({
+        index: theIndexName,
+        body:  baseQueryString
+    });
+
+    console.log(resp.hits.hits.map(hit => hit._source));
+    console.log("Total: " + resp.hits.total);
 }
 
 //readCsvToJson();
-search('United States 10 Dollars');
+search("en",'United');
