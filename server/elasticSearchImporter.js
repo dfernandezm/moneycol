@@ -32,10 +32,6 @@ const indexBanknote = async (banknote) => {
 }
 
 async function readCsvToJson()  {
-    //TODO: index in multiple languages
-//    const index = await client.indices.create({
-//         index: 'banknotes-catalog-es'});
-
     const jsonObj = await csv().fromFile(csvFilePath);
 
     let indexLines = [];
@@ -50,7 +46,7 @@ async function readCsvToJson()  {
 }
 
 const search = async (language, query) => {
-
+    
     let theIndexName = 'banknotes-catalog';
     if (language !== 'en') {
        theIndexName = "banknotes-catalog-" + language;
@@ -71,14 +67,26 @@ const search = async (language, query) => {
          }
      };
     
-     const resp = await client.search({
+    const resp = await client.search({
         index: theIndexName,
         body:  baseQueryString
     });
 
-    console.log(resp.hits.hits.map(hit => hit._source));
+    const results = resp.hits.hits.map(hit => hit._source)
+    const total = resp.hits.total;
+    const response = { results, total}
+    console.log(results);
     console.log("Total: " + resp.hits.total);
+    return response;
+
+}
+
+const createIndex = async () => {
+   const index = await client.indices.create({
+        index: 'banknotes-catalog-es'});
 }
 
 //readCsvToJson();
-search("en",'United');
+//search("en",'United');
+
+module.exports = { search };
