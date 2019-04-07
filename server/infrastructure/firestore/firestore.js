@@ -1,4 +1,4 @@
-import firebase from 'firebase';
+const firebase = require('firebase');
 
 // it is not a security risk to expose this as long as we control the rules in the Firebase database / collection (need to to do it)
 //https://stackoverflow.com/questions/37482366/is-it-safe-to-expose-firebase-apikey-to-the-public
@@ -14,4 +14,4 @@ var config = {
 
 firebase.initializeApp(config);
 
-export default firebase;
+module.exports = firebase;

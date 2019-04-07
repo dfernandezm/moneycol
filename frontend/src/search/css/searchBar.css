@@ -1,0 +1,42 @@
+.searchBar {
+    border: 1px solid grey;
+    line-height: 46px;
+    height: 46px;
+    position: relative;
+    padding: 2px;
+}
+
+.searchBar form {
+    height: 32px;
+    margin: 0;
+    width:70%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.searchBar .input-field input[type=search] ~ .material-icons {
+    display: inline-block;
+    height: 24px;
+    font-size: 24px;
+    /* height: 56px; */
+    /* line-height: 56px; */
+}
+
+.searchBar .input-field {
+    box-sizing: border-box;
+    height: 100%;
+}
+
+nav .input-field {
+    /* height: auto; */
+    /* It should be height:auto, but some element overflows the height of the title bar... */
+    height: 60px; 
+}
+
+.nav-wrapper .input-field input[type=search] {
+   /* width: calc(100% - 4rem); */
+   width: 300px;
+}
