@@ -10,6 +10,7 @@ const client = new elasticsearch.Client({
     log: 'info'
   });
 
+//TODO: use specific indexer for spanish (ascii) to remove accents
 const indexBanknote = async (banknote) => {
     let result = await client.index({  
         index: indexName,
@@ -45,14 +46,15 @@ async function readCsvToJson()  {
     await indexBulk(indexLines);
 }
 
+//TODO: Extract from here to its own module
 const search = async (language, query) => {
     
     let theIndexName = 'banknotes-catalog';
     if (language !== 'en') {
        theIndexName = "banknotes-catalog-" + language;
     }
-
-    // Search in every field but Description
+    console.log("Searching in index " + theIndexName + ", query is " + query) ;
+    // Search in every field but Description and CatalogCode
     const baseQueryString = {
         query: {
              query_string : {
@@ -60,12 +62,13 @@ const search = async (language, query) => {
                  "fields": [
                     "BanknoteName",
                     "Year",
-                    "Country",
-                    "CatalogCode"
+                    "Country"
                   ]
              }   
          }
      };
+
+     console.log("Querystring: ", baseQueryString);
     
     const resp = await client.search({
         index: theIndexName,
@@ -74,11 +77,10 @@ const search = async (language, query) => {
 
     const results = resp.hits.hits.map(hit => hit._source)
     const total = resp.hits.total;
-    const response = { results, total}
-    console.log(results);
+    const response = { results, total }
+    console.log("Results: " + JSON.stringify(results));
     console.log("Total: " + resp.hits.total);
     return response;
-
 }
 
 const createIndex = async () => {

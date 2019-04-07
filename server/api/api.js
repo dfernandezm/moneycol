@@ -20,6 +20,7 @@ app.use(function(req, res, next) {
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.qs;
+    console.log('SearchQuery: ' + searchQuery);
     const searchResults =  await searcher.search("es", searchQuery);
     console.log("Results: " + searchResults);        
     const json = { searchResults };
