@@ -1,6 +1,6 @@
 const elasticsearch = require("elasticsearch");
 const uniqid = require('uniqid');
-const csv=require('csvtojson')
+const csv = require('csvtojson')
 
 const csvFilePath='/Users/david/Desktop/banknotes-usa-es.csv'
 const indexName = 'banknotes-catalog-es';
@@ -10,6 +10,8 @@ const client = new elasticsearch.Client({
     log: 'info'
   });
 
+//TODO: use specific indexer for spanish (ascii) to remove accents
+//TODO: remove fantasy banknotes from search as has many countries ??
 const indexBanknote = async (banknote) => {
     let result = await client.index({  
         index: indexName,
@@ -45,48 +47,9 @@ async function readCsvToJson()  {
     await indexBulk(indexLines);
 }
 
-const search = async (language, query) => {
-    
-    let theIndexName = 'banknotes-catalog';
-    if (language !== 'en') {
-       theIndexName = "banknotes-catalog-" + language;
-    }
-
-    // Search in every field but Description
-    const baseQueryString = {
-        query: {
-             query_string : {
-                 "query" : query,
-                 "fields": [
-                    "BanknoteName",
-                    "Year",
-                    "Country",
-                    "CatalogCode"
-                  ]
-             }   
-         }
-     };
-    
-    const resp = await client.search({
-        index: theIndexName,
-        body:  baseQueryString
-    });
-
-    const results = resp.hits.hits.map(hit => hit._source)
-    const total = resp.hits.total;
-    const response = { results, total}
-    console.log(results);
-    console.log("Total: " + resp.hits.total);
-    return response;
-
-}
-
 const createIndex = async () => {
    const index = await client.indices.create({
         index: 'banknotes-catalog-es'});
 }
 
 //readCsvToJson();
-//search("en",'United');
-
-module.exports = { search };

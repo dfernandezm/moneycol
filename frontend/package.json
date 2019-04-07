@@ -6,6 +6,7 @@
     "firebase": "^5.9.2",
     "materialize-css": "^1.0.0-rc.2",
     "prop-types": "^15.6.2",
+    "query-string": "^6.4.2",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-dropdown": "^1.6.4",
@@ -15,7 +16,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --verbose=true --env=jsdom",
+    "test-ci": "CI=true react-scripts test --verbose=true --env=jsdom",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -29,6 +31,7 @@
   ],
   "devDependencies": {
     "enzyme": "^3.9.0",
+    "enzyme-adapter-react-16": "^1.12.1",
     "jest-enzyme": "^7.0.2",
     "react-test-renderer": "^16.8.5"
   }

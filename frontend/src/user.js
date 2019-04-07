@@ -1,5 +1,5 @@
 import React from 'react';
-import firebaseRepo from "./firestore/firebaseRepository";
+import userApi from "./apiCalls/userApi";
 
 class User extends React.Component {
     constructor() {
@@ -22,7 +22,7 @@ class User extends React.Component {
     addUser = e => {
         e.preventDefault();
         
-        firebaseRepo.addUser(this.state);
+        userApi.addUser(this.state);
 
         this.setState({
             username: "",   
@@ -35,11 +35,11 @@ class User extends React.Component {
   render() {
 
     const registerForm = (
-        <div class="container">
-            <div class="row">
-                <form class="col s12" id="reg-form" onSubmit={this.addUser}>
-                    <div class="row">
-                        <div class="input-field col s6">
+        <div className="container">
+            <div className="row">
+                <form className="col s12" id="reg-form" onSubmit={this.addUser}>
+                    <div className="row">
+                        <div className="input-field col s6">
                             <input id="first_name" type="text" className="validate" 
                                 onChange={this.updateInput}
                                 name="firstname"
@@ -47,7 +47,7 @@ class User extends React.Component {
                             <label htmlFor="first_name">First Name</label>
                             
                         </div>
-                        <div class="input-field col s6">
+                        <div className="input-field col s6">
                             <input id="last_name" type="text"
                                 name="lastname" 
                                 onChange={this.updateInput}
@@ -56,8 +56,8 @@ class User extends React.Component {
                             <label htmlFor="last_name">Last Name</label>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="input-field col s6">
+                    <div className="row">
+                        <div className="input-field col s6">
                             <input id="username" type="text" 
                                 name="username"
                                 className="validate" 
@@ -66,7 +66,7 @@ class User extends React.Component {
                                 required />
                             <label htmlFor="username">Username</label>
                         </div>
-                        <div class="input-field col s6">
+                        <div className="input-field col s6">
                             <input id="email" type="email"
                                 name="email" 
                                 className="validate"
@@ -76,9 +76,9 @@ class User extends React.Component {
                             <label htmlFor="email">Email</label>
                         </div>
                     </div>
-                    <div class="input-field col s12 right-align">
-                        <button class="btn btn-large btn-register waves-effect waves-light" type="submit">Register
-                         <i class="material-icons right">done</i>
+                    <div className="input-field col s12 right-align">
+                        <button className="btn btn-large btn-register waves-effect waves-light" type="submit">Register
+                         <i className="material-icons right">done</i>
                         </button>
                     </div>
                 </form>
