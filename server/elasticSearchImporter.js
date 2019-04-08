@@ -55,10 +55,12 @@ const search = async (language, query) => {
     }
     console.log("Searching in index " + theIndexName + ", query is " + query) ;
     // Search in every field but Description and CatalogCode
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
     const baseQueryString = {
         query: {
              query_string : {
                  "query" : query,
+                 "default_operator": "AND",
                  "fields": [
                     "BanknoteName",
                     "Year",
