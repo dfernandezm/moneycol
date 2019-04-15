@@ -18,12 +18,12 @@ export default class MainMaterialize extends React.Component {
           <div className="mainpage">
             <nav>
               <div className="nav-wrapper">
-              <NavLink exact={true} to="/" className="brand-logo">Banknotes Collection</NavLink>
-                
-                  <ul id="nav-mobile" className="right hide-on-med-and-down">
+                <NavLink exact={true} to="/" className="brand-logo">Banknotes Collection</NavLink>
+     
+                  <ul id="nav-mobile" className="right hide-on-med-and-down">    
                     <li><NavLink exact={true} to="/"><i className="material-icons left">home</i>Home</NavLink></li>
                     <li><NavLink to="/search"><i className="material-icons left">search</i>Search</NavLink></li>
-                    <li><NavLink to="/user"><i className="material-icons left">lock</i>Register</NavLink></li>
+                    <li><NavLink to="/user"><i className="material-icons left">account_circle</i>Register</NavLink></li>
                   </ul>
               </div>
             </nav>

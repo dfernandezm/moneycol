@@ -7,6 +7,7 @@ import M from 'materialize-css';
 
 import searchApi from '../apiCalls/searchApi';
 import SearchForm from './searchForm';
+import SearchFormInline from './searchFormInline';
 import SearchResultList from './searchResults';
 import EmptyResults from './emptySearchResults';
 
@@ -25,6 +26,7 @@ class Search extends React.Component {
       searchTerm: "",
       searchResults: []
     };
+    this.onSubmit = this.onSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -40,22 +42,22 @@ class Search extends React.Component {
     return !this.state.typing && this.termHasMinimumLength()
   }
 
-  performSearchCall(state) {
-    console.log("Term: " +  state.searchTerm);
+  performSearchCall() {
+    const searchTerm = this.state.searchTerm
+    console.log("Term: " + searchTerm);
     if (this.termHasMinimumLength()) {
       //TODO: sanitize search term before sending to server
       searchApi
-      .searchApiCall(state.searchTerm)
+      .searchApiCall(searchTerm)
       .then(searchResults => {
-          state.typing = false;
-          state.searchResults = searchResults;
-          this.setState(state);
-          //console.log(self.state);
+          // with spread: same state but override typing with false, and searchResults becomes the current
+          // 'searchResults' from API call (shortcut of {searchResults: searchResults})
+          this.setState({...this.state, typing: false, searchResults });
       })
     }
   }
 
-  //TODO: wait a delay:
+  // ===== With Search as you type with delay/timeout ====================
   // https://stackoverflow.com/questions/42217121/searching-in-react-when-user-stops-typing
   updateInput = e => {
     let self = this;
@@ -73,14 +75,36 @@ class Search extends React.Component {
           self.performSearchCall(self.state), 1000)
       });
   }
+
+  // ===== With Submit button ======
+  onSubmit(e) {
+    e.preventDefault();
+    this.performSearchCall(this.state);
+  }
+
+  updateSearchTerm = e => {
+      this.setState({
+        ...this.state,
+        searchResults: [],
+        searchTerm: e.target.value
+      });
+  }
+
   render() {
       return (
         <div className="search container">
-         <SearchForm updateInputOnChange={this.updateInput} searchTerm={this.state.searchTerm} />
-        { this.shouldRenderResults() ? 
-          <SearchResultList resultList={this.state.searchResults} />
-          : <EmptyResults message="No results yet!" />
-        }
+          <SearchFormInline
+                  onSubmit={this.onSubmit} 
+                  onChange={this.updateSearchTerm}
+                  searchTerm={this.state.searchTerm} />
+                  {/* <SearchForm 
+                    onChange={this.updateInput}
+                    searchTerm={this.state.searchTerm} /> */}
+
+          { this.shouldRenderResults() ? 
+            <SearchResultList resultList={this.state.searchResults} /> : 
+            <EmptyResults message="No results yet!" />
+          }
         </div>
       );
   }

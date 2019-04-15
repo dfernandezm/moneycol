@@ -92,3 +92,13 @@ textarea:focus, input:focus {
 /* .suggestions li:not(:last-of-type) {
   border-bottom: 1px solid #999;
 } */
+
+
+.input-group{
+  display:table;
+  width:100%;
+}
+.input-group .input-field,
+.input-group .input-group-addon{
+  display:table-cell;
+}
