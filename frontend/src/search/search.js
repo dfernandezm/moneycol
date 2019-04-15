@@ -57,7 +57,7 @@ class Search extends React.Component {
     }
   }
 
-  // ===== With Search as you type with delay/timeout ====================
+  // ======================= With Search as you type with delay/timeout ====================
   // https://stackoverflow.com/questions/42217121/searching-in-react-when-user-stops-typing
   updateInput = e => {
     let self = this;
@@ -76,7 +76,7 @@ class Search extends React.Component {
       });
   }
 
-  // ===== With Submit button ======
+  // ================ With Submit button ============
   onSubmit(e) {
     e.preventDefault();
     this.performSearchCall(this.state);
@@ -85,6 +85,7 @@ class Search extends React.Component {
   updateSearchTerm = e => {
       this.setState({
         ...this.state,
+        typing: true,
         searchResults: [],
         searchTerm: e.target.value
       });
