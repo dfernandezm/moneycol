@@ -15,7 +15,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --verbose=true --env=jsdom",
+    "test-ci": "CI=true react-scripts test --verbose=true --env=jsdom",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

@@ -5,7 +5,7 @@ import {
   HashRouter
 } from "react-router-dom";
 import 'materialize-css/dist/css/materialize.min.css';
-import Search from './search';
+import Search from './search/search';
 import Home from './home';
 import User from './user';
 
@@ -23,7 +23,6 @@ export default class MainMaterialize extends React.Component {
                   <ul id="nav-mobile" className="right hide-on-med-and-down">
                     <li><NavLink exact={true} to="/"><i className="material-icons left">home</i>Home</NavLink></li>
                     <li><NavLink to="/search"><i className="material-icons left">search</i>Search</NavLink></li>
-                    
                     <li><NavLink to="/user"><i className="material-icons left">lock</i>Register</NavLink></li>
                   </ul>
               </div>
