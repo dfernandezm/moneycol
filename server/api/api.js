@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const port = 4000
 
-const searcher = require("../elasticSearchImporter")
+const searcher = require("../infrastructure/search")
 
 const bodyParser = require('body-parser'); 
 
