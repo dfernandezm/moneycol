@@ -6,10 +6,13 @@ import M from 'materialize-css';
 //import AutocompleteMaterial from '../autocompleteMaterial';
 
 import searchApi from '../apiCalls/searchApi';
-import SearchForm from './searchForm';
+import queryString from 'query-string';
+
 import SearchFormInline from './searchFormInline';
 import SearchResultList from './searchResults';
+import SearchResultCard from './searchResultCard';
 import EmptyResults from './emptySearchResults';
+
 
 // https://www.robinwieruch.de/react-fetching-data/
 
@@ -18,19 +21,48 @@ import EmptyResults from './emptySearchResults';
 
 class Search extends React.Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       typing: true,
       typingTimeout: () => {},
       searchTerm: "",
       searchResults: []
     };
+
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  // Component doesn't re-render when the props change (location is a prop that needs to be passed in from Router)
+  // In order to access it we have them in the constructor (props)
+  // So when a component is already mounted and the qs changes rerender won't trigger. 
+  // You will have to trigger the update by updating the state. 
+  // We use componentDidUpdate instead of componentWillReceiveProps since it is marked as UNSAFE
+  // https://stackoverflow.com/questions/52539039/reactjs-re-render-same-component-when-navigate-back
+  componentDidUpdate(prevProps, prevState) {
+    // When url param 'qs' changes, we want to re-render the component as it has to search with new qs
+    if (this.props.location.search !== prevProps.location.search) { 
+      this.searchFromUrlTermIfFound();
+    }
+  }
+
+  // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
   componentDidMount() {
     M.updateTextFields();
+    this.searchFromUrlTermIfFound();
+  }
+
+  searchFromUrlTermIfFound() {
+    console.log(this.props.location.search);
+    const queryStringValues = queryString.parse(this.props.location.search);
+    console.log(queryStringValues.qs);
+    //TODO: sanitize qs before sending to server
+    if (queryStringValues.qs) {
+      // We run the search call in a callback passed to setState to ensure it has mutated the state
+      this.setState({...this.state, searchTerm: queryStringValues.qs}, () => {
+        this.performSearchCall();
+      });
+    }
   }
 
   termHasMinimumLength() {
@@ -47,14 +79,22 @@ class Search extends React.Component {
     console.log("Term: " + searchTerm);
     if (this.termHasMinimumLength()) {
       //TODO: sanitize search term before sending to server
+      //TODO: Should return this promise if something else should be updated
       searchApi
-      .searchApiCall(searchTerm)
-      .then(searchResults => {
+        .searchApiCall(searchTerm)
+        .then(searchResults => {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          this.setState({...this.state, typing: false, searchResults });
-      })
-    }
+          console.log("SearchResults: " + searchResults);
+          this.setState({...this.state, typing: false, searchResults }, () => {
+            console.log("Pushing state");
+            this.props.history.push({
+              pathname: '/search',
+              search: '?qs=' + this.state.searchTerm
+            })
+          });
+        });
+    } 
   }
 
   // ======================= With Search as you type with delay/timeout ====================
@@ -98,13 +138,9 @@ class Search extends React.Component {
                   onSubmit={this.onSubmit} 
                   onChange={this.updateSearchTerm}
                   searchTerm={this.state.searchTerm} />
-                  {/* <SearchForm 
-                    onChange={this.updateInput}
-                    searchTerm={this.state.searchTerm} /> */}
-
           { this.shouldRenderResults() ? 
-            <SearchResultList resultList={this.state.searchResults} /> : 
-            <EmptyResults message="No results yet!" />
+            <SearchResultCard resultList={this.state.searchResults} /> : 
+            <EmptyResults message="No results found" />
           }
         </div>
       );

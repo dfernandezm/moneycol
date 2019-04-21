@@ -3,7 +3,7 @@ import './css/search-icon.css';
 
 export default function SearchFormInline({ onSubmit, onChange, searchTerm}) {
   return (
-      <div className="search container">
+      <div className="searchForm">
         <form id="searchFormInline" onSubmit={onSubmit}>
           <div className="input-group">
                   <div className="input-field">

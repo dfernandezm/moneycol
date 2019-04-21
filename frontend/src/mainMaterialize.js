@@ -2,7 +2,8 @@ import React from 'react';
 import {
   Route,
   NavLink,
-  HashRouter
+  HashRouter,
+  withRouter
 } from "react-router-dom";
 import 'materialize-css/dist/css/materialize.min.css';
 import Search from './search/search';
@@ -28,9 +29,9 @@ export default class MainMaterialize extends React.Component {
               </div>
             </nav>
             <div className="section no-pad-bot mainContent">
-              <Route exact={true} path="/" component={Home}/>
-              <Route path="/search" component={Search}/>
-              <Route path="/user" component={User}/>  
+              <Route exact={true} path="/" component={withRouter(Home)}/>
+              <Route path="/search" component={withRouter(Search)}/>
+              <Route path="/user" component={withRouter(User)}/>  
             </div>
           </div>
         </HashRouter>
