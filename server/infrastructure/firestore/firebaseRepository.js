@@ -1,10 +1,8 @@
-import firebase from "./firestore";
+const firebase = require("./firestore");
 
 const db = firebase.firestore();
 
-const firestoreRepo = {}
-
-firestoreRepo.addUser = (userData) => {
+const addUser = (userData) => {
         const userRef = db.collection("users").add({
             username: userData.username,
             firstname: userData.firstname,
@@ -13,6 +11,6 @@ firestoreRepo.addUser = (userData) => {
         });  
 }
 
-export default firestoreRepo;
+module.exports  = { addUser };
 
     

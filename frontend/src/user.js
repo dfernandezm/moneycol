@@ -1,5 +1,5 @@
 import React from 'react';
-import firebaseRepo from "./firestore/firebaseRepository";
+import userApi from "./apiCalls/userApi";
 
 class User extends React.Component {
     constructor() {
@@ -22,7 +22,7 @@ class User extends React.Component {
     addUser = e => {
         e.preventDefault();
         
-        firebaseRepo.addUser(this.state);
+        userApi.addUser(this.state);
 
         this.setState({
             username: "",   

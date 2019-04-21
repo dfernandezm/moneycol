@@ -2,8 +2,8 @@ const express = require('express')
 const app = express()
 const port = 4000
 
-const searcher = require("../infrastructure/search")
-
+const searcher = require("../infrastructure/search");
+const userModel = require("../infrastructure/user");
 const bodyParser = require('body-parser'); 
 
 app.use(bodyParser.urlencoded({
@@ -15,7 +15,15 @@ app.use(bodyParser.json());
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
+    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS,HEAD");
+    if ('OPTIONS' === req.method) {
+      //respond with 200
+      res.send(200);
+    }
+    else {
+    //move on
+      next();
+    }
   });
 
 app.get('/search', async (req, res) => {
@@ -25,6 +33,14 @@ app.get('/search', async (req, res) => {
     console.log("Results: " + searchResults);        
     const json = { searchResults };
     res.send(json);
+});
+
+//TODO: error handler did not fire when 'req.body() is not a function' fired, need to catch here
+app.post('/users', async (req, res) => {
+  const reqBody = req.body;
+  console.log("User to add:", JSON.stringify(reqBody));
+  const user = await userModel.registerUser(reqBody);
+  res.send({message: "User added"});
 });
 
 // error handler
