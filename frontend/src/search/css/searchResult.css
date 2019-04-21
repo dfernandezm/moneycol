@@ -5,9 +5,19 @@
 .results {
     column-count: 2;
     column-gap: 40px;
+    margin-top: 2rem;
 }
 
 .card-action {
     text-align: left;
+}
+
+/* https://css-tricks.com/almanac/properties/b/break-inside/ */
+.card {
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    /* Avoid misalignment on top elements of 2 columns */
+    margin: 0 0 1rem 0; 
 }
 

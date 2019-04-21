@@ -58,10 +58,8 @@ class Search extends React.Component {
     console.log(queryStringValues.qs);
     //TODO: sanitize qs before sending to server
     if (queryStringValues.qs) {
-      // We run the search call in a callback passed to setState to ensure it has mutated the state
-      this.setState({...this.state, searchTerm: queryStringValues.qs}, () => {
-        this.performSearchCall();
-      });
+      // We run the search call in a callback passed to setState to ensure it sees the mutated the state
+      this.setState({...this.state, searchTerm: queryStringValues.qs}, this.performSearchCall);
     }
   }
 
@@ -85,9 +83,7 @@ class Search extends React.Component {
         .then(searchResults => {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          console.log("SearchResults: " + searchResults);
           this.setState({...this.state, typing: false, searchResults }, () => {
-            console.log("Pushing state");
             this.props.history.push({
               pathname: '/search',
               search: '?qs=' + this.state.searchTerm
