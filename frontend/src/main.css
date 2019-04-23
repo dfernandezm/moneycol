@@ -8,12 +8,6 @@ ol, ul {
   padding-left: 30px;
 }
 
-.board-row:after {
-  clear: both;
-  content: "";
-  display: table;
-}
-
 nav {
   background-color: #fff;
   color: #000;
@@ -31,12 +25,6 @@ nav .brand-logo, nav ul a {
   margin: auto;
 }
 
-
-/* textarea:focus, input:focus {
-  border-bottom: none!important;
-  box-shadow: none!important;
-} */
-
 textarea:focus, input:focus {
   border-bottom: 1px solid #d2cfcf;
   box-shadow: none!important;
@@ -45,60 +33,7 @@ textarea:focus, input:focus {
 
 /* Manual autocomplete: import inside autocompleteManual.js */
 
-/* input {
-  border: 1px solid #999;
-  padding: 10px;
-} */
-
-.no-suggestions {
-  color: #999;
-  padding: 10px;
-  text-align: left;
-  z-index: 1000 !important;
-}
-
-.suggestions {
-  /*border: 1px solid #999;*/
-  border-top-width: 0;
-  list-style: none;
-  margin-top: 0;
-  max-height: 143px;
-  overflow-y: auto;
-  padding-left: 5px;
-  text-align: left;
-  position: absolute;
-  z-index: 1000 !important;
-  background-color: #fff;
-  width: 100%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-}
-
-.suggestions li {
-  padding: 5px;
-}
-
-.suggestion-active,
-.suggestions li:hover {
-  background-color: #fafafa;
-  cursor: pointer;
-  font-weight: 300;
-}
 
 .row {
   z-index: 10 !important;
-}
-
-/* .suggestions li:not(:last-of-type) {
-  border-bottom: 1px solid #999;
-} */
-
-
-.input-group{
-  display:table;
-  width:100%;
-}
-.input-group .input-field,
-.input-group .input-group-addon{
-  display:table-cell;
 }

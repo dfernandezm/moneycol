@@ -118,12 +118,12 @@ class Search extends React.Component {
     this.performSearchCall(this.state);
   }
 
-  updateSearchTerm = e => {
+  updateSearchTerm = event => {
       this.setState({
         ...this.state,
         typing: true,
         searchResults: [],
-        searchTerm: e.target.value
+        searchTerm: event.target.value
       });
   }
 

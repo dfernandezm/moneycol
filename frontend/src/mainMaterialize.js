@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import 'materialize-css/dist/css/materialize.min.css';
 import Search from './search/search';
+import SearchBar from './search/searchBar';
 import Home from './home';
 import User from './user';
 
@@ -19,13 +20,21 @@ export default class MainMaterialize extends React.Component {
           <div className="mainpage">
             <nav>
               <div className="nav-wrapper">
-                <NavLink exact={true} to="/" className="brand-logo">Banknotes Collection</NavLink>
-     
-                  <ul id="nav-mobile" className="right hide-on-med-and-down">    
-                    <li><NavLink exact={true} to="/"><i className="material-icons left">home</i>Home</NavLink></li>
-                    <li><NavLink to="/search"><i className="material-icons left">search</i>Search</NavLink></li>
-                    <li><NavLink to="/user"><i className="material-icons left">account_circle</i>Register</NavLink></li>
-                  </ul>
+               <div className="row">
+                <div className="col s4 left">
+                  <NavLink exact={true} to="/" className="brand-logo">Banknotes Collection</NavLink>
+                </div>
+                
+                
+                <ul id="nav-mobile" className="right hide-on-med-and-down">
+                    <li>
+                      <SearchBar />
+                    </li>
+                    <li><NavLink exact={true} to="/"><i className="material-icons left">home</i></NavLink></li>
+                    <li><NavLink to="/search"><i className="material-icons left">search</i></NavLink></li>
+                    <li><NavLink to="/user"><i className="material-icons left">account_circle</i></NavLink></li>
+                </ul>
+              </div>
               </div>
             </nav>
             <div className="section no-pad-bot mainContent">
