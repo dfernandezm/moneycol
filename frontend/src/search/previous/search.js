@@ -5,13 +5,13 @@ import M from 'materialize-css';
 // the input does not move the label up and also typing does not replace the placeholder in this Search Component
 //import AutocompleteMaterial from '../autocompleteMaterial';
 
-import searchApi from '../apiCalls/searchApi';
+import searchApi from '../../apiCalls/searchApi';
 import queryString from 'query-string';
 
 import SearchFormInline from './searchFormInline';
 import SearchResultList from './searchResults';
-import SearchResultCard from './searchResultCard';
-import EmptyResults from './emptySearchResults';
+import SearchResultCard from '../searchResultCard';
+import EmptyResults from '../emptySearchResults';
 
 
 // https://www.robinwieruch.de/react-fetching-data/

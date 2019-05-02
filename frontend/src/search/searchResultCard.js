@@ -10,14 +10,13 @@ export default function SearchResultsList({ resultList = []}) {
                 <div className="card" key={banknote.CatalogCode}>
                     <div className="card-image">
                         <img alt="img" src="https://i.colnect.net/f/4565/935/1-Dollar.jpg" />
-                        <span className="card-title">{banknote.Country}</span>
                     </div>
                     <div className="card-content">
-                        <span className="card-title">{banknote.BanknoteName} ({banknote.Year})</span>
+                        <span className="card-title">{banknote.Country} - {banknote.BanknoteName} ({banknote.Year})</span>
                         <p>{banknote.Description}</p>
                     </div>
                     <div className="card-action">
-                        <a href="#">This is a link</a>
+                        <a href="#">Add to collection</a>
                     </div>
                 </div>
             )}  
