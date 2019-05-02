@@ -15,8 +15,10 @@ const search = async (language, query) => {
     // Search in every field but Description and CatalogCode
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
     const baseQueryString = {
+        "from" : 0, "size" : 24,
         query: {
-             query_string : {
+            
+             query_string : {   
                  "query" : query,
                  "default_operator": "AND",
                  "fields": [
