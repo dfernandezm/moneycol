@@ -3,7 +3,8 @@ import M from 'materialize-css';
 
 import searchApi from '../apiCalls/searchApi';
 import SearchBar from './searchBar';
-import { Redirect } from "react-router-dom";
+//import { Redirect } from "react-router-dom";
+import RenderRedirect from './renderRedirect';
 
 // This components controls the search form state and rendering of results through redirect to results page
 class SearchInTopBar extends React.Component {
@@ -13,6 +14,7 @@ class SearchInTopBar extends React.Component {
     this.state = {
       typing: true,
       searchTerm: "",
+      termUsed: "",
       searchResults: []
     };
 
@@ -29,7 +31,16 @@ class SearchInTopBar extends React.Component {
 
   shouldRenderResults() {
     // not typing and minimum term length for searching
-    return !this.state.typing && this.termHasMinimumLength();
+  
+    let isGoingToRender = !this.state.typing && this.state.termUsed.length > 3;
+
+    // if (isGoingToRender) {
+    //   console.log('Is going to redirect');
+    //   this.setState({searchTerm: ""});
+    // }
+
+    console.log("Wants to re-render " + isGoingToRender);
+    return isGoingToRender;
   }
 
   performSearchCall() {
@@ -42,23 +53,27 @@ class SearchInTopBar extends React.Component {
         .then(searchResults => {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          this.setState({...this.state, typing: false, searchResults }, () => {
+          this.setState({...this.state, typing: false, searchResults, searchTerm: "", termUsed: searchTerm }, () => {
             // this.props.history.push({
             //   pathname: '/search',
             //   search: '?qs=' + this.state.searchTerm
             // })
-            console.log("data fetched");
+            console.log("data fetched" + this.state.searchResults);
+            //TODO: this is here to avoid re-rendering 
+            this.setState({typing: true});
           });
         });
     } 
   }
 
+  //TODO: get here the 'value' of the form input (searchTerm)
   onSubmit(e) {
     console.log("On Submit!!");
     e.preventDefault();
     this.performSearchCall(this.state);
   }
 
+  //TODO: not needed until submit
   updateSearchTerm = event => {
       this.setState({
         ...this.state,
@@ -69,6 +84,9 @@ class SearchInTopBar extends React.Component {
   }
 
   render() {
+      let termUsed = this.state.termUsed;
+      let searchResults = this.state.searchResults;
+      console.log("Rendering");
       return (
         <div className="search container">
           <SearchBar
@@ -76,13 +94,7 @@ class SearchInTopBar extends React.Component {
                   onChange={this.updateSearchTerm}
                   searchTerm={this.state.searchTerm} />
           { this.shouldRenderResults() &&
-            <Redirect to={
-              {
-                pathname: '/searchResultsPage',
-                search: '?qs=' + this.state.searchTerm,
-                state: { results: this.state.searchResults }
-              }
-            } />
+           <RenderRedirect termUsed={termUsed} searchResults={searchResults} />
           }
         </div>
       );
