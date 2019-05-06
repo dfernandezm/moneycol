@@ -56,13 +56,14 @@ class SearchInTopBar extends React.Component {
     } 
   }
 
-  //TODO: get here the 'value' of the form input (searchTerm)
+  
   onSubmit(e) {
     e.preventDefault();
     this.performSearchCall(this.state);
   }
 
-  //TODO: not needed until submit
+  //TODO: this could be optimized by only re-rendering the single input as it's typed on --
+  // right now it re-renders the whole search component (fully controlled)
   updateSearchTerm = event => {
       this.setState({
         ...this.state,
@@ -75,7 +76,6 @@ class SearchInTopBar extends React.Component {
   render() {
       let termUsed = this.state.termUsed;
       let searchResults = this.state.searchResults;
-      console.log("Rendering");
       return (
         <div className="search container">
           <SearchBar
