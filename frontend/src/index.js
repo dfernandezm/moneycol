@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 //import './index.css';
 import 'materialize-css/dist/css/materialize.min.css';
 import './main.css';
-import MainMaterialize from './mainMaterialize';
+import Main from './main';
 
 // ========================================
   
   ReactDOM.render(
-    <MainMaterialize />,
+    <Main />,
     document.getElementById('root')
   );
   

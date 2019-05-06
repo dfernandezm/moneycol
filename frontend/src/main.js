@@ -7,15 +7,12 @@ import {
   withRouter
 } from "react-router-dom";
 import 'materialize-css/dist/css/materialize.min.css';
-import Search from './search/search';
 import SearchInTopBar from './search/searchInTopBar';
 import SearchResultsPage from './search/searchResultsPage';
-import Home from './home';
-import User from './user';
+import Home from './home/home';
+import User from './user/user';
 
-export default class MainMaterialize extends React.Component {
-  //TODO: register / sign-in with Google
-  //https://github.com/the-road-to-react-with-firebase/react-firebase-authentication/blob/2b28b831a7cd9b6ef5d4c5808a886ace159f3d2e/src/components/SignIn/index.js
+export default class Main extends React.Component {
     render() {
       return (
         <BrowserRouter>
@@ -24,10 +21,8 @@ export default class MainMaterialize extends React.Component {
               <div className="nav-wrapper">
                <div className="row">
                 <div className="col s4 left">
-                  <NavLink exact={true} to="/" className="brand-logo">Banknotes Collection</NavLink>
+                  <NavLink exact={true} to="/" className="brand-logo">Collections</NavLink>
                 </div>
-                
-                
                 <ul id="nav-mobile" className="right hide-on-med-and-down">
                     <li>
                       <SearchInTopBar /> 
@@ -43,8 +38,7 @@ export default class MainMaterialize extends React.Component {
             <div className="section no-pad-bot mainContent">
               <Switch>
                 <Route exact={true} path="/" component={Home}/>
-                <Route path="/search" component={withRouter(Search)}/>
-                <Route path="/user" component={Home}/>  
+                <Route path="/user" component={withRouter(User)}/>  
                 <Route path="/searchResultsPage" component={withRouter(SearchResultsPage)} />
               </Switch>
             </div>

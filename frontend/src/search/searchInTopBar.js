@@ -2,19 +2,10 @@ import React from 'react';
 import M from 'materialize-css';
 
 import searchApi from '../apiCalls/searchApi';
-import queryString from 'query-string';
-
 import SearchBar from './searchBar';
+import { Redirect } from "react-router-dom";
 
-import {
-  Redirect
-} from "react-router-dom";
-
-// https://www.robinwieruch.de/react-fetching-data/
-
-// we want a form with a free text search that would link directly to server side
-// in the future, a form with 3 Selects: country, year and denomination (more useful for adding than searching)
-
+// This components controls the search form state and rendering of results through redirect to results page
 class SearchInTopBar extends React.Component {
 
   constructor(props) {
@@ -28,7 +19,6 @@ class SearchInTopBar extends React.Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
   componentDidMount() {
     M.updateTextFields();
   }
@@ -39,13 +29,11 @@ class SearchInTopBar extends React.Component {
 
   shouldRenderResults() {
     // not typing and minimum term length for searching
-    console.log("Should render the results!!!");
     return !this.state.typing && this.termHasMinimumLength();
   }
 
   performSearchCall() {
     const searchTerm = this.state.searchTerm
-    console.log("Term: " + searchTerm);
     if (this.termHasMinimumLength()) {
       //TODO: sanitize search term before sending to server
       //TODO: Should return this promise if something else should be updated
@@ -65,7 +53,6 @@ class SearchInTopBar extends React.Component {
     } 
   }
 
-  // ================ With Submit button ============
   onSubmit(e) {
     console.log("On Submit!!");
     e.preventDefault();

@@ -1,5 +1,8 @@
 import React from 'react';
-import userApi from "./apiCalls/userApi";
+import userApi from "../apiCalls/userApi";
+
+//TODO: register / sign-in with Google
+  //https://github.com/the-road-to-react-with-firebase/react-firebase-authentication/blob/2b28b831a7cd9b6ef5d4c5808a886ace159f3d2e/src/components/SignIn/index.js
 
 class User extends React.Component {
     constructor() {
