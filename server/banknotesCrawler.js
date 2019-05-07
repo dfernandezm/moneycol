@@ -61,15 +61,17 @@ let aCrawler = new Crawler({
                             let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
                             let issueYearLinks = $("div.i_d dl dd a",$(elem))
                             let bankNoteData = $("div.i_d dl dd",$(elem))
-                            bankNoteData.each(function(i, el) {
-                                let vals = $(el).html()
-                                //console.log("<<<<" + vals + " " + i + ">>>>>" + "\n");
-                            });
 
                             let catalogCode = bankNoteData.eq(0).text()
                             let desc = bankNoteData.eq(6).text()
 
-                            //console.log("banknotedata: " + catalogCode)
+                            // Images
+                            let imageLinkEl = $("div.item_thumb a img",$(elem))
+                            let imageLinkFront = "https:" + imageLinkEl.eq(0).attr("data-src");
+                            let imageLinkBack = "https:" + imageLinkEl.eq(1).attr("data-src");
+                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
+                            imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
+
                             let year = "";
                             if (issueYearLinks.length > 0) {
                                 issueYearLinks.each(function(i, el) {
@@ -85,6 +87,9 @@ let aCrawler = new Crawler({
                             banknote.year = year;
                             banknote.catalogCode = catalogCode;
                             banknote.desc = desc;
+                            banknote.link = banknoteLink;
+                            banknote.imageLinkFront = imageLinkFront;
+                            banknote.imageLinkBack = imageLinkBack;
                             banknotesList.push(banknote);
                             console.log(valueName + " - " + year + " - " + catalogCode + " - " + banknoteLink + " - " + desc) ;
                             
@@ -103,7 +108,7 @@ let aCrawler = new Crawler({
 
                         if (!visitedUrls.includes(url)) {
                             if (notControl && notFirstPage) {
-                                console.log("New page within list: " + url);
+                                //console.log("New page within list: " + url);
                                 visitedUrls.push(url);
                                 aCrawler.queue(url);
                             }   
@@ -114,7 +119,7 @@ let aCrawler = new Crawler({
 
             links.each(function(i, elem) {
                 let linkUrl = $(elem).attr('href')
-                console.log("Href: " + linkUrl)
+                //console.log("Href: " + linkUrl)
                 aCrawler.queue(colnectUrl + linkUrl)
             });
 
@@ -130,7 +135,6 @@ const extractLinks = (banknotesLinks) => {
         if (linkUrl) {
             if (linkUrl.indexOf("/banknote/") != -1) {
                 console.log("Link: " + linkUrl);
-                //aCrawler.queue(baseUrl + linkUrl);
             }   
         }   
     });
@@ -168,7 +172,7 @@ let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
 let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
 let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
 let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
-//aCrawler.queue(usaUrl2);
+aCrawler.queue(usaUrl2);
 
-let mainCountriesUrl = "https://colnect.com/es/banknotes/countries";
-countriesCrawler.queue(mainCountriesUrl);
+//let mainCountriesUrl = "https://colnect.com/es/banknotes/countries";
+//countriesCrawler.queue(mainCountriesUrl);
