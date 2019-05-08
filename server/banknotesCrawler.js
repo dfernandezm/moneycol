@@ -34,29 +34,21 @@ let aCrawler = new Crawler({
    // maxConnections : 10
     rateLimit: 1000,
     userAgent: googleUserAgent,
-    // This will be called for each crawled page
+    // This will be called for each country link
     callback : function (error, res, done) {
         if(error){
             console.log(error);
         } else {
             const $ = res.$;
-            //console.log(res.options.uri);
 
             let links = $("div.pl_list a");
             let bankNoteDetails = $("div.pl-it")
-            let countryNameHtml = $("div.filter_one a");
-            let countryName = "";
-            if (countryNameHtml.length > 0) {
-                // console.log("The Html: " + countryNameHtml);
-                // let match = countryRegex.exec(countryNameHtml);
-                // let countryName = match[1];
-                countryName = countryNameHtml.eq(1).text();
-                console.log("Countryname: " + countryName);
-            }
+            let countryName = extractCountryName($);
 
             if (bankNoteDetails.length > 0) {
                 let banknotesList = [];
                 bankNoteDetails.each(function(i, elem) {
+
                             let valueName = $("h2.item_header a",$(elem)).text()
                             let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
                             let issueYearLinks = $("div.i_d dl dd a",$(elem))
@@ -69,7 +61,9 @@ let aCrawler = new Crawler({
                             let imageLinkEl = $("div.item_thumb a img",$(elem))
                             let imageLinkFront = "https:" + imageLinkEl.eq(0).attr("data-src");
                             let imageLinkBack = "https:" + imageLinkEl.eq(1).attr("data-src");
-                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
+                            
+                            // replacing thumbnails (/t/) with big imgs (/b/)
+                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); 
                             imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
 
                             let year = "";
@@ -92,7 +86,6 @@ let aCrawler = new Crawler({
                             banknote.imageLinkBack = imageLinkBack;
                             banknotesList.push(banknote);
                             console.log(valueName + " - " + year + " - " + catalogCode + " - " + banknoteLink + " - " + desc) ;
-                            
                         });
 
                 csvWriter.writeCsvRecords(banknotesList);
@@ -101,7 +94,7 @@ let aCrawler = new Crawler({
                 if (moreThanOnePage($)) {
                     $("div.navigation_box div a.pager_page").each(function(i, el) {
                         let href = $(el).attr('href');
-                        //control are the > and >> to go one page more or to the end
+                        // control pagelink are the > and >> to go one page more or to the end
                         let notControl = $('.pager_control',$(el)).length == 0
                         let url = colnectUrl + href;
                         let notFirstPage = !url.endsWith('/page/1');
@@ -119,7 +112,6 @@ let aCrawler = new Crawler({
 
             links.each(function(i, elem) {
                 let linkUrl = $(elem).attr('href')
-                //console.log("Href: " + linkUrl)
                 aCrawler.queue(colnectUrl + linkUrl)
             });
 
@@ -152,17 +144,25 @@ const countriesCrawler = new Crawler({
             var $ = res.$;
             console.log("Crawling main list");
             let countriesLinks = $("div.pl_list a");
-            let countriesUrl = [];
             countriesLinks.each(function(i, el) {
                 let href = $(el).attr('href');
                 let countryUrl = colnectUrl + href;
-                
                 console.log("Sending for process: " + countryUrl);
                 aCrawler.queue(countryUrl);
             });
         }
      }
 });
+
+const extractCountryName = ($) => {
+    let countryNameHtml = $("div.filter_one a");
+    let countryName = "";
+    if (countryNameHtml.length > 0) {
+        countryName = countryNameHtml.eq(1).text();
+        console.log("Countryname: " + countryName);
+    }
+    return countryName;
+}
 
 const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
