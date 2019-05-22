@@ -59,11 +59,9 @@ let aCrawler = new Crawler({
 
                             // Images
                             let imageLinkEl = $("div.item_thumb a img",$(elem))
-                            let imageLinkFront = "https:" + imageLinkEl.eq(0).attr("data-src");
-                            let imageLinkBack = "https:" + imageLinkEl.eq(1).attr("data-src");
-                            
-                            // replacing thumbnails (/t/) with big imgs (/b/)
-                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); 
+                            let imageLinkFront = imageLinkEl.length > 0 ? "https:" + imageLinkEl.eq(0).attr("data-src") : "No-front-img";
+                            let imageLinkBack = imageLinkEl.length > 1 ? "https:" + imageLinkEl.eq(1).attr("data-src") : ;
+                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
                             imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
 
                             let year = "";
