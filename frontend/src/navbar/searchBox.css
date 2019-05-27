@@ -1,0 +1,24 @@
+/* Overrides for materialize */
+
+.nav-wrapper .input-field input[type=search] {
+    width: 260px;
+    padding-left: 50px;
+}
+
+nav .input-field label.active i {
+    color: #b8b8b8;
+}
+
+nav .input-field label i {
+    transition: none;
+}
+
+/* ------ */
+
+.searchbox__ {
+    border: 1px solid #b8b8b8;
+}
+
+.searchbox__ form .searchbox__input label.active i {
+    color: #b8b8b8;
+}

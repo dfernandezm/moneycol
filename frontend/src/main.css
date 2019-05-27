@@ -1,28 +1,20 @@
 body {
-  font: 14px "Century Gothic", Futura, sans-serif;
-  margin: 20px;
-  color: #000;
-}
-
-ol, ul {
-  padding-left: 30px;
-}
-
-nav {
-  background-color: #fff;
-  color: #000;
-  box-shadow: none;
-  border-bottom: 1px solid #d2cfcf;
-  border-top: 1px solid #d2cfcf;
-}
-
-nav .brand-logo, nav ul a {
-  color: #000;
+  font: 14px "Roboto", Futura, sans-serif;
+  /*background-color: rgb(247, 244, 244);*/
 }
 
 .mainContent {
-  text-align: center;
   margin: auto;
+  height: 3000px;
+  width: 80%;
+  margin: 0 auto;
+  text-align: justify;
+  padding-top: 20px;
+  font: 14px "Roboto", Futura, sans-serif;
+}
+
+.mainContent > div {
+  margin: 10px 0;
 }
 
 textarea:focus, input:focus {
