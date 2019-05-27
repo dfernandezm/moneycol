@@ -1,0 +1,38 @@
+/* Overrides for materialize */
+nav .input-field {
+    margin: 0;
+    height: 60px;
+}
+
+.nav-wrapper .input-field input[type=search] {
+    width: 260px;
+    padding-left: 50px;
+}
+
+nav .input-field label.active i {
+    color: #b8b8b8;
+}
+
+nav .input-field label i {
+    transition: none;
+}
+
+/* ------ */
+nav {
+    z-index: 10000000;
+}
+.searchbox__ {
+    border: 1px solid #b8b8b8;
+}
+
+.searchbox__ form .searchbox__input label.active i {
+    color: #b8b8b8;
+}
+
+.searchbox__input {
+    height: 50px;
+}
+
+.searchbox__input .label-icon {
+    top: 2px;
+}
