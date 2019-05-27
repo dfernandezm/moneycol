@@ -2,7 +2,7 @@ import React from 'react';
 import M from 'materialize-css';
 
 import searchApi from '../apiCalls/searchApi';
-import SearchBar from './searchBar';
+import SearchBox from '../navbar/searchBox';
 import RenderRedirect from './renderRedirect';
 
 // This components controls the search form state and rendering of results through redirect to results page
@@ -77,15 +77,15 @@ class SearchInTopBar extends React.Component {
       let termUsed = this.state.termUsed;
       let searchResults = this.state.searchResults;
       return (
-        <div className="search container">
-          <SearchBar
+        <>
+          <SearchBox
                   onSubmit={this.onSubmit} 
                   onChange={this.updateSearchTerm}
                   searchTerm={this.state.searchTerm} />
           { this.shouldRenderResults() &&
            <RenderRedirect termUsed={termUsed} searchResults={searchResults} />
           }
-        </div>
+        </>
       );
   }
 }
