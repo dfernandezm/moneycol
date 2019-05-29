@@ -17,7 +17,9 @@ export default class Main extends React.Component {
     render() {
       return (
         <BrowserRouter>
+          
           <div className="mainpage">
+
             <NavBar />
 
             <div className="section no-pad-bot mainContent">
@@ -28,6 +30,7 @@ export default class Main extends React.Component {
               </Switch>
             </div>
           </div>
+
         </BrowserRouter>
       );
     }

@@ -22,3 +22,11 @@ nav .input-field label i {
 .searchbox__ form .searchbox__input label.active i {
     color: #b8b8b8;
 }
+
+.searchbox__input {
+    height: 50px;
+}
+
+.searchbox__input .label-icon {
+    top: 2px;
+}
