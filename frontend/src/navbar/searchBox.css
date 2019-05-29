@@ -1,4 +1,8 @@
 /* Overrides for materialize */
+nav .input-field {
+    margin: 0;
+    height: 60px;
+}
 
 .nav-wrapper .input-field input[type=search] {
     width: 260px;
@@ -14,7 +18,9 @@ nav .input-field label i {
 }
 
 /* ------ */
-
+nav {
+    z-index: 10000000;
+}
 .searchbox__ {
     border: 1px solid #b8b8b8;
 }

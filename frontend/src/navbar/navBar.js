@@ -6,6 +6,7 @@ import {
 import SearchBox from './searchBox';
 import './navBar.css';
 import logo from './moneycol-logo.png';
+import SearchInTopBar from '../search/searchInTopBar';
 
 export default class NavBar extends React.Component {
     constructor(props) {
@@ -47,7 +48,7 @@ export default class NavBar extends React.Component {
                         </div>
 
                         <div className="col s3">
-                            <SearchBox />
+                            <SearchInTopBar />
                        </div>
                         <div className="col s3 right">
                             <ul id="nav-mobile" className="right hide-on-med-and-down nav__menu--right">
