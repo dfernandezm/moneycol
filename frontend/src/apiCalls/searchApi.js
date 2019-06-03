@@ -7,4 +7,4 @@ const searchApiCall = (searchTerm) => {
               .then(data => data.searchResults.results);
 };
 
-export default {searchApiCall};
+export default { searchApiCall };
