@@ -2,8 +2,8 @@ const elasticsearch = require("elasticsearch");
 const uniqid = require('uniqid');
 const csv = require('csvtojson')
 
-const csvFilePath='/Users/david/Desktop/banknotes-usa-es.csv'
-const indexName = 'banknotes-catalog-es';
+const csvFilePath='/Users/david/Desktop/banknotes-with-links-en.csv'
+const indexName = 'banknotes-catalog-en';
 
 const client = new elasticsearch.Client({
     host: 'localhost:9200',
@@ -52,4 +52,4 @@ const createIndex = async () => {
         index: 'banknotes-catalog-es'});
 }
 
-//readCsvToJson();
+readCsvToJson();

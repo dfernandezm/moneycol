@@ -7,10 +7,8 @@ const client = new elasticsearch.Client({
 
 const search = async (language, query) => {
     
-    let theIndexName = 'banknotes-catalog';
-    if (language !== 'en') {
-       theIndexName = "banknotes-catalog-" + language;
-    }
+    let theIndexName = "banknotes-catalog-" + language;
+    
     console.log("Searching in index " + theIndexName + ", query is " + query) ;
     // Search in every field but Description and CatalogCode
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html

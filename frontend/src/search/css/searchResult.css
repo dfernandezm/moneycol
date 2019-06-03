@@ -2,18 +2,18 @@
     text-align: left;
 }
 
-.results {
+.results-two-columns {
     column-count: 2;
     column-gap: 40px;
     margin-top: 2rem;
 }
 
 .card-action {
-    text-align: left;
+    text-align: right;
 }
 
 /* https://css-tricks.com/almanac/properties/b/break-inside/ */
-.card {
+.card-two-columns {
     -webkit-column-break-inside: avoid;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -21,3 +21,40 @@
     margin: 0 0 1rem 0; 
 }
 
+/* The !important is not the best way to override, but materialize styles are very, very specific... */
+a.green-link:link,a.green-link:hover,a.green-link:visited {
+    color: #128300!important;
+}
+
+.card.horizontal .card-image {
+    width: 50%;
+}
+
+.card h3 {
+    font-size: 20px;
+}
+
+.card h4 {
+    font-size: 18px;
+
+}
+
+.image-wrapper {
+    height: 250px;
+    position: relative;
+    object-fit: contain;
+}
+
+/* center horizontally and vertically inside image-wrapper */
+.card.horizontal .card-image img {
+    object-fit: contain;
+    width: 80%;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    /* -ms-transform: translateY(-50%);
+    transform: translateY(-50%); */
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
