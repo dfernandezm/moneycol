@@ -1,5 +1,6 @@
 const elasticsearch = require("elasticsearch");
-
+const useMockedData = true;
+const mockedData = require("../test/testData/sample-data/sampleData_noruega.json");
 const client = new elasticsearch.Client({
     host: 'localhost:9200',
     log: 'info'
@@ -30,18 +31,31 @@ const search = async (language, query) => {
          }
      };
 
-     console.log("Querystring: ", baseQueryString);
-    
-    const resp = await client.search({
-        index: theIndexName,
-        body:  baseQueryString
-    });
+    console.log("Querystring: ", baseQueryString);
+    let results, total, response;
 
-    const results = resp.hits.hits.map(hit => hit._source)
-    const total = resp.hits.total;
-    const response = { results, total }
-    console.log("Results: " + JSON.stringify(results));
-    console.log("Total: " + resp.hits.total);
+    if (!useMockedData) {
+
+        const resp = await client.search({
+            index: theIndexName,
+            body:  baseQueryString
+        });
+    
+        results = resp.hits.hits.map(hit => hit._source)
+        total = resp.hits.total;
+        response = { results, total };
+        console.log("Results: " + JSON.stringify(results));
+        console.log("Total: " + resp.hits.total);
+    } else {
+        results = mockedData;
+        total = mockedData.length;
+        response = {results, total};
+
+        console.log("--Using mocked data--");
+        console.log("Results: " + JSON.stringify(results));
+        console.log("Total: " + total);
+    }
+    
     return response;
 }
 
