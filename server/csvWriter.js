@@ -1,6 +1,7 @@
 //https://www.npmjs.com/package/csv-writer
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const csvPath = '/Users/david/Desktop/banknotes-usa-link-es.csv';
+//const csvPath = '/Users/david/Desktop/banknotes-usa-link-es.csv';
+const csvPath = '/Users/david/Desktop/banknotes-with-links-en.csv';
 
 const csvWriter = createCsvWriter({
     path: csvPath,
