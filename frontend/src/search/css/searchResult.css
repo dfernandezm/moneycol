@@ -25,3 +25,36 @@
 a.green-link:link,a.green-link:hover,a.green-link:visited {
     color: #128300!important;
 }
+
+.card.horizontal .card-image {
+    width: 50%;
+}
+
+.card h3 {
+    font-size: 20px;
+}
+
+.card h4 {
+    font-size: 18px;
+
+}
+
+.image-wrapper {
+    height: 250px;
+    position: relative;
+    object-fit: contain;
+}
+
+/* center horizontally and vertically inside image-wrapper */
+.card.horizontal .card-image img {
+    object-fit: contain;
+    width: 80%;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    /* -ms-transform: translateY(-50%);
+    transform: translateY(-50%); */
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}

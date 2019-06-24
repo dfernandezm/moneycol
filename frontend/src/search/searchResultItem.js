@@ -6,7 +6,9 @@ export default function SearchResultsItem({ item, index }) {
 
         <div className="card horizontal" key={index}>
             <div className="card-image">
-                <img src="https://i.colnect.net/b/2589/242/10-Dollars.jpg" alt="img"/>
+                <div className="image-wrapper">
+                    <img src={item.ImageFront} alt="img"/>
+                </div>
             </div>
             <div className="card-stacked">
                 <div className="card-content">
