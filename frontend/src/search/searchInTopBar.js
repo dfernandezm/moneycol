@@ -38,7 +38,6 @@ class SearchInTopBar extends React.Component {
     const searchTerm = this.state.searchTerm
     if (this.termHasMinimumLength()) {
       //TODO: sanitize search term before sending to server
-      //TODO: Should return this promise if something else should be updated
       searchApi
         .searchApiCall(searchTerm)
         .then(searchResults => {
@@ -50,7 +49,7 @@ class SearchInTopBar extends React.Component {
             //   search: '?qs=' + this.state.searchTerm
             // })
             //TODO: this is here to avoid re-rendering 
-            this.setState({typing: true, searchTerm: ""});
+            this.setState({typing: true, searchTerm });
           });
         });
     } 
@@ -74,14 +73,15 @@ class SearchInTopBar extends React.Component {
   }
 
   render() {
-      let termUsed = this.state.termUsed;
-      let searchResults = this.state.searchResults;
+
+      const { termUsed, searchTerm, searchResults } = this.state;
+      
       return (
         <>
           <SearchBox
                   onSubmit={this.onSubmit} 
                   onChange={this.updateSearchTerm}
-                  searchTerm={this.state.searchTerm} />
+                  searchTerm={searchTerm} />
           { this.shouldRenderResults() &&
            <RenderRedirect termUsed={termUsed} searchResults={searchResults} />
           }
