@@ -58,6 +58,7 @@ class SearchInTopBar extends React.Component {
   
   onSubmit(e) {
     e.preventDefault();
+    window.scrollTo(0, 0);
     this.performSearchCall(this.state);
   }
 
