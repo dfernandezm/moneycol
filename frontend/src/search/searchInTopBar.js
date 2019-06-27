@@ -44,10 +44,6 @@ class SearchInTopBar extends React.Component {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
           this.setState({...this.state, typing: false, searchResults, searchTerm, termUsed: searchTerm }, () => {
-            // this.props.history.push({
-            //   pathname: '/search',
-            //   search: '?qs=' + this.state.searchTerm
-            // })
             //TODO: this is here to avoid re-rendering 
             this.setState({typing: true, searchTerm });
           });
