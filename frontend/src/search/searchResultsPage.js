@@ -16,7 +16,7 @@ class SearchResultsPage extends React.Component {
       typing: true,
       searchTerm: "",
       termUsed: "",
-      searchResults: []
+      searchResults: null
     };
   }
 
@@ -84,12 +84,11 @@ class SearchResultsPage extends React.Component {
   render() {
       return (
         <div className="searchResults">
-          { this.shouldRenderResults() ? 
+          { this.state.searchResults === null ? null : (this.shouldRenderResults()) ? 
                 <SearchResultsList 
                   resultList={this.state.searchResults} 
                   searchTerm={this.props.location.search.replace("?qs=","")} /> 
-              : 
-               <EmptyResults message="No results found" />
+              : <EmptyResults message="No results found" />
           }
         </div>
       );
