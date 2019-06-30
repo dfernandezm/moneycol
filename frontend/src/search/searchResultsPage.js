@@ -4,6 +4,7 @@ import M from 'materialize-css';
 import SearchResultsList from './searchResultsList';
 import EmptyResults from './emptySearchResults';
 import searchApi from '../apiCalls/searchApi';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const queryString = require('query-string');
 
@@ -72,24 +73,44 @@ class SearchResultsPage extends React.Component {
       searchApi
         .searchApiCall(searchTerm)
         .then(searchResults => {
-          // with spread: same state but override typing with false, and searchResults becomes the current
-          // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          this.setState({...this.state, typing: false, searchResults, searchTerm, termUsed: searchTerm }, () => {
-            this.setState({typing: true, searchTerm });
-          });
+            this.updateStateWith(searchResults);
         });
     } 
   }
 
+  updateStateWith(newSearchResults, searchTerm) {
+      // with spread: same state but override typing with false, and searchResults becomes the current
+      // 'searchResults' from API call (shortcut of {searchResults: searchResults})
+      // this.setState({...this.state, typing: false, searchResults, searchTerm, termUsed: searchTerm }, () => {
+      //   this.setState({typing: true, searchTerm });
+      // });
+
+      // this.setState({
+      //   items: this.state.searchResults.concat(newSearchResults))
+      // });
+  }
+
   render() {
+    const style = {
+      height: 30,
+      border: "1px solid green",
+      margin: 6,
+      padding: 8
+    };
       return (
         <div className="searchResults">
           { this.state.searchResults === null ? null : 
-            (this.shouldRenderResults()) ? 
-                <SearchResultsList 
-                  resultList={this.state.searchResults} 
-                  searchTerm={this.props.location.search.replace("?qs=","")} /> 
-              : <EmptyResults message="No results found" />
+            <InfiniteScroll
+            dataLength={this.state.totalResultLength}
+            next={this.fetchMoreData}
+            hasMore={true}
+            loader={<h4>Loading...</h4>}>
+            {this.state.searchResults.map((result, index) => (
+              <div style={style} key={index}>
+                div - #{index}
+              </div>
+            ))}
+          </InfiniteScroll>
           }
         </div>
       );
