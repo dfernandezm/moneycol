@@ -5,15 +5,16 @@ const client = new elasticsearch.Client({
     log: 'info'
   });
 
-const search = async (language, query) => {
-    
+const search = async (language, query, from, size) => {
+    let fromParam = from ? from : 0;
+    let sizeParam  = size ? size : 24;
     let theIndexName = "banknotes-catalog-" + language;
     
     console.log("Searching in index " + theIndexName + ", query is " + query) ;
     // Search in every field but Description and CatalogCode
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
     const baseQueryString = {
-        "from" : 0, "size" : 24,
+        "from" : fromParam, "size" : sizeParam,
         query: {
             
              query_string : {   

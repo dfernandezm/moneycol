@@ -28,8 +28,10 @@ app.use(function(req, res, next) {
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.qs;
+    const from = req.query.from;
+    const size = req.query.size;
     console.log('SearchQuery: ' + searchQuery);
-    const searchResults =  await searcher.search("en", searchQuery);
+    const searchResults =  await searcher.search("en", searchQuery, from, size);
     console.log("Results: " + searchResults);        
     const json = { searchResults };
     res.send(json);
