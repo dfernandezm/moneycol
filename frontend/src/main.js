@@ -14,7 +14,7 @@ import User from './user/user';
 import NavBar from './navbar/navBar';
 
 //Elasticsearch startup: cd development/elasticsearch && cd elasticsearch-5.3.0
-
+// /Users/david/development/repos/elasticsearch-5.3.0
 export default class Main extends React.Component {
     render() {
       return (
