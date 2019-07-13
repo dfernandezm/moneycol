@@ -1,2 +1,5 @@
 server/node_modules
 server/package-lock.json
+server/.do_token
+server/deploy/terraform/.terraform
+server/deploy/terraform/terraform.tfstate.backup
