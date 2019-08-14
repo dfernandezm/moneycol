@@ -15,6 +15,7 @@ export default function SearchResultsItem({ item, index }) {
                     <h3>{item.Country} - {item.BanknoteName}</h3>
                     <h4>{item.Year}</h4>
                     <p>{item.Description}</p>
+                    <p><a href={item.DetailLink} target="_blank">Link</a></p>
                 </div>
                 <div className="card-action">
                     <a href="#" className="green-link">Add to collection</a>
