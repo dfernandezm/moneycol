@@ -40,12 +40,13 @@ class SearchInTopBar extends React.Component {
       //TODO: sanitize search term before sending to server
       searchApi
         .searchApiCall(searchTerm, 0, 10)
-        .then(searchResults => {
+        .then(resultData => {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          this.setState({...this.state, typing: false, searchResults, searchTerm, termUsed: searchTerm }, () => {
+          console.log("SearchRes ",resultData.results);
+          this.setState({...this.state, typing: false, searchResults: resultData.results, searchTerm, termUsed: searchTerm }, () => {
             //TODO: this is here to avoid re-rendering 
-            this.setState({typing: true, searchTerm });
+            this.setState({...this.state, typing: true, searchTerm });
           });
         });
     } 
@@ -55,7 +56,10 @@ class SearchInTopBar extends React.Component {
   onSubmit(e) {
     e.preventDefault();
     window.scrollTo(0, 0);
-    this.performSearchCall(this.state);
+    this.setState({...this.state, searchResults: []}, () => {
+      this.performSearchCall(this.state);
+    });
+    //this.setState({...this.state, typing: false, searchResults: []});
   }
 
   //TODO: this could be optimized by only re-rendering the single input as it's typed on --
@@ -72,7 +76,11 @@ class SearchInTopBar extends React.Component {
   render() {
 
       const { termUsed, searchTerm, searchResults } = this.state;
-      
+      //console.log("Rendering...", searchResults);
+
+      if (this.shouldRenderResults()) {
+        console.log("Should be Rendering...", searchResults);
+      }
       return (
         <>
           <SearchBox

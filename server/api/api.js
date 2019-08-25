@@ -30,13 +30,13 @@ app.get('/search', async (req, res) => {
     const searchQuery = req.query.qs;
     const from = req.query.from;
     const size = req.query.size;
-    
+
     console.log('SearchQuery: ' + searchQuery);
     console.log('from: ' + from);
     console.log('size: ' + size);
 
     const searchResults =  await searcher.search("en", searchQuery, from, size);
-    console.log("Results: " + searchResults);        
+    console.log("Results: ",searchResults);        
     const json = { searchResults };
     res.send(json);
 });

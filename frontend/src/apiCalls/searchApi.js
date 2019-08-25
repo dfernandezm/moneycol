@@ -7,7 +7,7 @@ const searchApiCall = (searchTerm, from, size) => {
     apiReplaced = apiReplaced.replace("%size%", size);
     return fetch(apiReplaced)
               .then(response => response.json())
-              .then(data => data.searchResults.results);
+              .then(data => data.searchResults);
 };
 
 export default { searchApiCall };
