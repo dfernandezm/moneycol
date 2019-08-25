@@ -17,7 +17,7 @@ class SearchResultsPage extends React.Component {
       typing: true,
       searchTerm: "",
       termUsed: "",
-      searchResults: null,
+      searchResults: [],
       totalResultLength: 500,
       hasMore: true,
       from: 0
@@ -48,11 +48,15 @@ class SearchResultsPage extends React.Component {
                             this.props.location.state.results.length > 0;
 
     if(!hasResultsToShow) {
+      console.log("No results to show");
       this.searchFromUrlTermIfFound();
     } else {
         // store values from URL in the state of this component
+      console.log("State: ",this.props.location.state.results);
        const queryStringValues = queryString.parse(this.props.location.search);
-       this.setState({...this.state,  searchTerm: queryStringValues.qs, searchResults: this.props.location.state.results})
+       this.setState({...this.state,  
+          searchTerm: queryStringValues.qs,
+          searchResults: this.props.location.state.results})
     }
 
   }
@@ -71,29 +75,31 @@ class SearchResultsPage extends React.Component {
   }
 
   performSearchCall() {
+    console.log("New search call");
+
     const searchTerm = this.state.searchTerm
-    console.log("Another call with " + searchTerm);
     if (this.termHasMinimumLength()) {
-      console.log("Making call");
       searchApi
         .searchApiCall(searchTerm, this.state.from, 10)
-        .then(searchResults => {
-            this.updateStateWith(searchResults);
+        .then(resultData => {
+            this.updateStateWith(resultData);
         });
     } 
   }
 
-  updateStateWith(newSearchResults) {
-
+  updateStateWith(newResultData) {
+    console.log("Total length: " + newResultData.total);
       this.setState({...this.state,
         from: this.state.from + 10,
-        searchResults: this.state.searchResults.concat(newSearchResults)
+        totalResultLength: newResultData.total,
+        searchResults: this.state.searchResults.concat(newResultData.results)
       });
   }
 
   fetchMoreData = () => {
-    console.log("More data");
+    console.log("More data, totalResultLength " + this.state.totalResultLength);
     if (this.state.searchResults.length >= this.state.totalResultLength) {
+      console.log("No More data");
       this.setState({ hasMore: false });
       return;
     }
@@ -122,18 +128,19 @@ class SearchResultsPage extends React.Component {
     };
       return (
         <div className="searchResults">
-          { this.state.searchResults === null ? null : 
+          { this.state.searchResults === null || !this.shouldRenderResults() ? 
+            <EmptyResults message="No results found" />  : 
             <InfiniteScroll
               dataLength={this.state.searchResults.length}
               next={this.fetchMoreData}
               hasMore={this.state.hasMore}
-              height={200}
+              height={600}
               loader={<h4>Loading...</h4>}>
-              {this.state.searchResults.map((result, index) => (
-                <div style={style} key={index}>
-                  div - #{index} - {result.BanknoteName}
-                </div>
-              ))}
+              
+                <SearchResultsList 
+                  resultList={this.state.searchResults} 
+                  searchTerm={this.state.searchTerm} /> 
+
           </InfiniteScroll>
           }
         </div>
