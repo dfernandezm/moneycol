@@ -39,7 +39,7 @@ class SearchInTopBar extends React.Component {
     if (this.termHasMinimumLength()) {
       //TODO: sanitize search term before sending to server
       searchApi
-        .searchApiCall(searchTerm)
+        .searchApiCall(searchTerm, 0, 10)
         .then(searchResults => {
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})

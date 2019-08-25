@@ -17,13 +17,14 @@ class SearchResultsPage extends React.Component {
       typing: true,
       searchTerm: "",
       termUsed: "",
-      searchResults: null
+      searchResults: null,
+      totalResultLength: 500,
+      hasMore: true,
+      from: 0
     };
   }
 
   shouldRenderResults() {
-    // not typing and minimum term length for searching
-    //console.log("State from redirection: " , this.props.location);
     let hasBeenRedirected = this.props.location !== undefined;
     let hasResultsToShow = this.props.location.state && 
                             this.props.location.state.results && 
@@ -49,7 +50,9 @@ class SearchResultsPage extends React.Component {
     if(!hasResultsToShow) {
       this.searchFromUrlTermIfFound();
     } else {
-       this.setState({...this.state,  searchResults: this.props.location.state.results})
+        // store values from URL in the state of this component
+       const queryStringValues = queryString.parse(this.props.location.search);
+       this.setState({...this.state,  searchTerm: queryStringValues.qs, searchResults: this.props.location.state.results})
     }
 
   }
@@ -58,6 +61,7 @@ class SearchResultsPage extends React.Component {
     const queryStringValues = queryString.parse(this.props.location.search);
     if (queryStringValues.qs) {
       // We run the search call in a callback passed to setState to ensure it sees the mutated the state
+      console.log("Search term: " + queryStringValues.qs);
       this.setState({...this.state, searchTerm: queryStringValues.qs}, this.performSearchCall);
     }
   }
@@ -68,27 +72,46 @@ class SearchResultsPage extends React.Component {
 
   performSearchCall() {
     const searchTerm = this.state.searchTerm
+    console.log("Another call with " + searchTerm);
     if (this.termHasMinimumLength()) {
-      //TODO: sanitize search term before sending to server
+      console.log("Making call");
       searchApi
-        .searchApiCall(searchTerm)
+        .searchApiCall(searchTerm, this.state.from, 10)
         .then(searchResults => {
             this.updateStateWith(searchResults);
         });
     } 
   }
 
-  updateStateWith(newSearchResults, searchTerm) {
-      // with spread: same state but override typing with false, and searchResults becomes the current
-      // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-      // this.setState({...this.state, typing: false, searchResults, searchTerm, termUsed: searchTerm }, () => {
-      //   this.setState({typing: true, searchTerm });
-      // });
+  updateStateWith(newSearchResults) {
 
-      // this.setState({
-      //   items: this.state.searchResults.concat(newSearchResults))
-      // });
+      this.setState({...this.state,
+        from: this.state.from + 10,
+        searchResults: this.state.searchResults.concat(newSearchResults)
+      });
   }
+
+  fetchMoreData = () => {
+    console.log("More data");
+    if (this.state.searchResults.length >= this.state.totalResultLength) {
+      this.setState({ hasMore: false });
+      return;
+    }
+
+    // a fake async api call like which sends
+    // 20 more records in 1.5 secs
+
+    // setTimeout(() => {
+    //   this.setState({
+    //     searchResults: this.state.searchResults.concat(Array.from({ length: 20 }))
+    //   });
+    // }, 1500);
+
+    this.performSearchCall();
+
+
+
+  };
 
   render() {
     const style = {
@@ -101,15 +124,16 @@ class SearchResultsPage extends React.Component {
         <div className="searchResults">
           { this.state.searchResults === null ? null : 
             <InfiniteScroll
-            dataLength={this.state.totalResultLength}
-            next={this.fetchMoreData}
-            hasMore={true}
-            loader={<h4>Loading...</h4>}>
-            {this.state.searchResults.map((result, index) => (
-              <div style={style} key={index}>
-                div - #{index}
-              </div>
-            ))}
+              dataLength={this.state.searchResults.length}
+              next={this.fetchMoreData}
+              hasMore={this.state.hasMore}
+              height={200}
+              loader={<h4>Loading...</h4>}>
+              {this.state.searchResults.map((result, index) => (
+                <div style={style} key={index}>
+                  div - #{index} - {result.BanknoteName}
+                </div>
+              ))}
           </InfiniteScroll>
           }
         </div>
