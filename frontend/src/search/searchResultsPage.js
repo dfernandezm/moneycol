@@ -36,7 +36,11 @@ class SearchResultsPage extends React.Component {
   componentDidUpdate(prevProps) {
     // When url param 'qs' changes, we want to re-render the component as it has to search with new qs
     if (this.props.location.search !== prevProps.location.search) { 
-      this.searchFromUrlTermIfFound();
+      // Detect a need to re-render, set results to empty so we load the new ones
+      this.setState({...this.state, searchResults: []}, () => {
+        this.searchFromUrlTermIfFound();
+      })
+     
     }
   }
 
@@ -47,7 +51,7 @@ class SearchResultsPage extends React.Component {
                             this.props.location.state.results && 
                             this.props.location.state.results.length > 0;
 
-    if(!hasResultsToShow) {
+    if (!hasResultsToShow) {
       console.log("No results to show");
       this.searchFromUrlTermIfFound();
     } else {
@@ -97,26 +101,13 @@ class SearchResultsPage extends React.Component {
   }
 
   fetchMoreData = () => {
-    console.log("More data, totalResultLength " + this.state.totalResultLength);
     if (this.state.searchResults.length >= this.state.totalResultLength) {
       console.log("No More data");
       this.setState({ hasMore: false });
       return;
     }
 
-    // a fake async api call like which sends
-    // 20 more records in 1.5 secs
-
-    // setTimeout(() => {
-    //   this.setState({
-    //     searchResults: this.state.searchResults.concat(Array.from({ length: 20 }))
-    //   });
-    // }, 1500);
-
     this.performSearchCall();
-
-
-
   };
 
   render() {
@@ -139,7 +130,7 @@ class SearchResultsPage extends React.Component {
               
                 <SearchResultsList 
                   resultList={this.state.searchResults} 
-                  searchTerm={this.state.searchTerm} /> 
+                  searchTerm={this.props.location.search.replace("?qs=","")} /> 
 
           </InfiniteScroll>
           }

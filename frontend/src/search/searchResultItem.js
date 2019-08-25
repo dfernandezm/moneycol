@@ -3,7 +3,7 @@ import './css/searchResult.css';
 
 export default function SearchResultsItem({ item, index }) {
   return (
-        <div className="card horizontal" key={index}>
+        <div className="card horizontal" key={item.CatalogCode}>
             <div className="card-image">
                 <div className="image-wrapper">
                     <img src={item.ImageFront} alt="img"/>
@@ -11,7 +11,7 @@ export default function SearchResultsItem({ item, index }) {
             </div>
             <div className="card-stacked">
                 <div className="card-content">
-                    <h3>{item.Country} - {item.BanknoteName}</h3>
+                    <h3>{item.Country} ==== {item.BanknoteName}</h3>
                     <h4>{item.Year}</h4>
                     <p>{item.Description}</p>
                     <p><a href={item.DetailLink} target="_blank">Link</a></p>
