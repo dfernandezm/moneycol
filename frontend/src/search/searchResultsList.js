@@ -12,7 +12,10 @@ export default function SearchResultsList({ resultList = [], searchTerm = ""}) {
         <SearchResultsMessage searchTerm={searchTerm} />
         <div className="results">    
             <div className="col s10 m10 card-container">
-                { resultList.map((banknote, index) => <SearchResultItem item={banknote} index={index} key={index} /> ) }  
+                { resultList.map((banknote, index) => {
+                  console.log("Bank: ", banknote);
+let a = <SearchResultItem item={banknote} index={index} key={banknote.CatalogCode} /> ;
+return a;}) }  
             </div>
         </div>      
     </div> 

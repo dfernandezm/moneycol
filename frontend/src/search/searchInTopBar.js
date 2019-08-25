@@ -56,10 +56,10 @@ class SearchInTopBar extends React.Component {
   onSubmit(e) {
     e.preventDefault();
     window.scrollTo(0, 0);
-    this.setState({...this.state, searchResults: []}, () => {
-      this.performSearchCall(this.state);
-    });
-    //this.setState({...this.state, typing: false, searchResults: []});
+    // this.setState({...this.state, searchResults: []}, () => {
+    //   this.performSearchCall(this.state);
+    // });
+    this.setState({...this.state, typing: false, searchResults: []}, this.performSearchCall);
   }
 
   //TODO: this could be optimized by only re-rendering the single input as it's typed on --
@@ -76,11 +76,6 @@ class SearchInTopBar extends React.Component {
   render() {
 
       const { termUsed, searchTerm, searchResults } = this.state;
-      //console.log("Rendering...", searchResults);
-
-      if (this.shouldRenderResults()) {
-        console.log("Should be Rendering...", searchResults);
-      }
       return (
         <>
           <SearchBox

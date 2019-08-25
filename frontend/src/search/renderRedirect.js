@@ -1,7 +1,7 @@
 import React from 'react';
 import { Redirect } from "react-router-dom";
 
-export default function RenderRedirect({ termUsed, searchResults }) {
+const RenderRedirect = ({ termUsed, searchResults }) => {
     return (
         <Redirect to={
             {
@@ -12,3 +12,5 @@ export default function RenderRedirect({ termUsed, searchResults }) {
         } />
     )
 }
+
+export default RenderRedirect;
