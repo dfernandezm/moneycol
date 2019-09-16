@@ -1,0 +1,10 @@
+type Query {
+  helloWorld: String!
+}
+//https://www.toptal.com/api-development/graphql-vs-rest-tutorial
+type SearchQuery {
+  language: String,
+  searchTerm: String!,
+  from: Number,
+  to: Number
+}
