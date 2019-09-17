@@ -1,5 +1,5 @@
 import { IResolvers } from 'graphql-tools';
-
+//https://www.compose.com/articles/use-all-the-databases-part-2/#elasticsearch
 const resolverMap: IResolvers = {
     Query: {
         helloWorld(_: void, args: void): string {
@@ -7,7 +7,9 @@ const resolverMap: IResolvers = {
         },
     },
     SearchQuery: {
-        
+        async search(_, args: void): Promise<any> {
+            
+        }
     }
     
 };
