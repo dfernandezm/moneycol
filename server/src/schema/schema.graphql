@@ -1,9 +1,32 @@
-type Query {
-  helloWorld: String!
+# https://alligator.io/graphql/graphql-sdl/
+# https://graphql.org/learn/queries/
+type BankNote {
+  country: String!,
+  banknoteName: String!,
+  year: String!,
+  catalogCode: String!,
+  description: String,
+  detailLink: String,
+  imageFront: String,
+  imageBack: String
 }
-//https://www.toptal.com/api-development/graphql-vs-rest-tutorial
-type SearchQuery {
-  searchTerm: String!,
-  from: Number,
-  to: Number
+
+type SearchResult {
+  results: [BankNote],
+  total: Int
+}
+
+type Query {
+  # Search for banknotes
+  search(term: String!, from: Int, to: Int): SearchResult!
+}
+
+type Mutation {
+  # Placeholder
+  addUser(name: String!): SearchResult!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
 }
