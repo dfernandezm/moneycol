@@ -1,1 +1,6 @@
-Quick evaluation of ability to search coins by pictures
+# Server for MoneyCol
+
+To start ElasticSearch:
+
+```
+```
