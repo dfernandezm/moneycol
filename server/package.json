@@ -8,7 +8,8 @@
     "build": "tsc -p . && ncp src/schema dist/schema",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "npm run build:dev",
-    "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql"
+    "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
+    "start:elasticsearch": "~/development/repos/elasticsearch-5.3.0/bin/elasticsearch"
   },
   "keywords": [],
   "author": "",
