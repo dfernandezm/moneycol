@@ -1,28 +1,39 @@
 provider "google-beta" {
-  credentials = "${file("~/account.json")}"
+  credentials = "${file("/Users/david/account.json")}"
   project     = "moneycol"
   region      = "europe-west1-b"
 }
 
-# resource "google_container_cluster" "main" {
-#   name = "main"
-#   zone = "${var.cluster_zone}"
+variable "cluster_zone" {
+  default = "europe-west1-b"
+}
 
-#   lifecycle {
-#     ignore_changes = ["node_pool"]
-#   }
+resource "google_container_cluster" "main" {
+  name = "moneycol-main"
+  project = "moneycol"
+  zone = "${var.cluster_zone}"
 
-#   node_pool {
-#     name = "default-pool"
-#   }
-# }
+  remove_default_node_pool = true
+  initial_node_count = 1
+  logging_service = "none"
+  monitoring_service = "none"
 
-resource "google_container_node_pool" "ingress" {
-  provider = "google-beta"
-  name       = "ingress-pool"
-  location       = "europe-west1-b"
-  cluster    = "moneycol-dev"
-  node_count = 1
+  master_auth {
+    username = "admin"
+    password = "4dmin_gcloud_moneycol_1"
+
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+  }
+}
+
+resource "google_container_node_pool" "main_node_pool" {
+  provider   = "google-beta"
+  name       = "main-pool"
+  location   = "europe-west1-b"
+  cluster    = "${google_container_cluster.main.name}"
+  node_count = 3
 
   management {
     auto_repair  = true
@@ -30,19 +41,9 @@ resource "google_container_node_pool" "ingress" {
   }
 
   node_config {
-    preemptible  = false
+    preemptible  = true
     machine_type = "f1-micro"
-    disk_size_gb = 20
-
-    taint {
-      key    = "ingress"
-      value  = "true"
-      effect = "NO_EXECUTE"
-    }
-
-    labels = {
-      ingress = "true"
-    }
+    disk_size_gb = 10
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/compute",
@@ -52,6 +53,8 @@ resource "google_container_node_pool" "ingress" {
     ]
   }
 }
+
+# https://www.edureka.co/blog/kubernetes-dashboard/
 
 # resource "google_container_node_pool" "main" {
 #   name       = "main"
