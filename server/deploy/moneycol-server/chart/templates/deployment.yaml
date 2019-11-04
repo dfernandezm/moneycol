@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ template "chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+  minReadySeconds: 10
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /.well-known/apollo/server-health
+            port: 4000
+          initialDelaySeconds: 5
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+        env:
+        - name: "ENV"
+          value: {{ .Values.env }}
+        ports:
+        - name: http
+          containerPort: 4000
+          protocol: TCP
+
+        resources:
+          limits:
+            cpu: 800m
+            memory: 500Mi
+          requests:
+            cpu: 300m
+            memory: 250Mi
+
+      nodeSelector:
+        type: applications

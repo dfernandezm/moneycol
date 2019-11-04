@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ template "elasticsearch.name" . }}
+  name: {{ template "name" . }}
   labels:
-    app: {{ template "elasticsearch.name" . }}
-    chart: {{ template "elasticsearch.chart" . }}
+    app: {{ template "name" . }}
+    chart: {{ template "chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  serviceName: {{ template "elasticsearch.name" . }}
+  serviceName: {{ template "name" . }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "elasticsearch.name" . }}
+      app: {{ template "name" . }}
   updateStrategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ template "elasticsearch.name" . }}
+        app: {{ template "name" . }}
     spec:
       securityContext:
         fsGroup: 1000
