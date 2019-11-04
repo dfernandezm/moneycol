@@ -10,6 +10,9 @@ metadata:
 
 spec:
   replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "name" . }}
   minReadySeconds: 10
   revisionHistoryLimit: 1
   strategy:
@@ -46,11 +49,11 @@ spec:
 
         resources:
           limits:
-            cpu: 800m
-            memory: 500Mi
+            cpu: 700m
+            memory: 200Mi
           requests:
-            cpu: 300m
-            memory: 250Mi
+            cpu: 100m
+            memory: 100Mi
 
       nodeSelector:
         type: applications

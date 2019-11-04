@@ -1,7 +1,6 @@
 env: dev
 image:
-  registry: gcr.io
-  repository: moneycol/moneycol-server
+  repository: gcr.io/moneycol/moneycol-server
   tag: 0.1.0-alpha1
   pullPolicy: IfNotPresent
 
