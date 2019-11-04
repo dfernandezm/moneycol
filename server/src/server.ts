@@ -22,4 +22,8 @@ const httpServer = createServer(app);
 
 httpServer.listen(
   { port: 4000 },
-  (): void => console.log(`\nGraphQL is now running on http://localhost:4000/graphql`));
+  (): void => {
+    console.log(`\nGraphQL is now running on http://localhost:4000/graphql`);
+    console.log(
+      `Try your health check at:  http://localhost:4000/.well-known/apollo/server-health`);
+  });

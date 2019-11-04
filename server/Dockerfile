@@ -1,9 +1,17 @@
 FROM node:12-stretch
 
-USER app
-RUN mkdir /home/app
+RUN useradd -c "App User" -d /home/app -m app
+RUN apt-get update && apt-get install -y curl wget vim sudo
 
-COPY . /home/app
+USER app
+RUN mkdir -p /home/app
+
+COPY --chown=app:app . /home/app
+RUN chmod -R 700 /home/app/
+
 WORKDIR /home/app
 RUN npm install
-RUN 
+RUN npm run build
+EXPOSE 4000
+
+ENTRYPOINT ["npm", "start"]
