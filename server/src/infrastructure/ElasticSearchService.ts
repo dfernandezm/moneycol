@@ -3,6 +3,9 @@ import { Client } from 'elasticsearch';
 import { SearchResult } from './SearchResult';
 import { BankNote } from '../types/BankNote';
 
+// it should include endpoint:port
+const ELASTICSEARCH_ENDPOINT_WITH_PORT = process.env.ELASTICSEARCH_ENDPOINT_WITH_PORT || "elasticsearch";
+
 class ElasticSearchService implements SearchService {
 
     async search(language: string, searchTerm: string, from: number, size: number): Promise<SearchResult> {
@@ -49,7 +52,7 @@ class ElasticSearchService implements SearchService {
 
     private elasticClient() {
         return new Client({
-            host: 'localhost:9200',
+            host: `${ELASTICSEARCH_ENDPOINT_WITH_PORT}`,
             log: 'info'
         });
     }
