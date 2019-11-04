@@ -54,6 +54,33 @@ resource "google_container_node_pool" "main_node_pool" {
   }
 }
 
+
+resource "google_container_node_pool" "es_node_pool" {
+  provider   = "google-beta"
+  name       = "elasticsearch-pool"
+  location   = "europe-west1-b"
+  cluster    = "${google_container_cluster.main.name}"
+  node_count = 1
+
+  management {
+    auto_repair  = true
+    auto_upgrade = false
+  }
+
+  node_config {
+    preemptible  = true
+    machine_type = "n1-standard-1"
+    disk_size_gb = 11
+
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
+  }
+}
+
 # https://www.edureka.co/blog/kubernetes-dashboard/
 
 # resource "google_container_node_pool" "main" {
