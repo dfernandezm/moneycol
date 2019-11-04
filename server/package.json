@@ -1,7 +1,7 @@
 {
   "name": "moneycol-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Collections of Coins and Banknotes",
   "main": "index.js",
   "scripts": {
     "start": "node 'dist/server.js'",

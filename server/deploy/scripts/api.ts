@@ -4,8 +4,8 @@ const port = 4000
 
 //const searcher = require("../infrastructure/search");
 
-import { ElasticSearchService } from '../src/infrastructure/ElasticSearchService';
-import { SearchService } from '../src/infrastructure/SearchService';
+import { ElasticSearchService } from '../../src/infrastructure/ElasticSearchService';
+import { SearchService } from '../../src/infrastructure/SearchService';
 
 const searcher : SearchService = new ElasticSearchService();
 
