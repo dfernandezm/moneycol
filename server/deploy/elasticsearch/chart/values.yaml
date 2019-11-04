@@ -1,0 +1,10 @@
+image:
+  registry: docker.elastic.co
+  repository: elasticsearch/elasticsearch
+  tag: 6.5.0
+  pullPolicy: IfNotPresent
+
+configmap:
+  name: elasticsearch-config
+  
+replicaCount: 1
