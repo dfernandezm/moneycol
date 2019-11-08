@@ -5,5 +5,5 @@ engine: gotpl
 maintainers:
 - email: moneycol@moneycol.com
   name: moneycol
-name: moneycol-server
+name: moneycolserver
 version: 1.0.0

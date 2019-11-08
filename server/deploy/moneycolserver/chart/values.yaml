@@ -1,10 +1,10 @@
 env: dev
 image:
   repository: gcr.io/moneycol/moneycol-server
-  tag: 0.1.0-alpha1
+  tag: 0.1.0-0a8cfa9
   pullPolicy: IfNotPresent
 
 configmap:
   name: moneycol-server-config
   
-replicaCount: 3
+replicaCount: 2
