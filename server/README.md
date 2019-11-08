@@ -77,3 +77,9 @@ To put back LoadBalancer from GCP:
 ```
 helm upgrade [traefik-release] deploy/traefik/chart
 ```
+
+## Exposing NodePort without LB
+
+Useful for dev or local env:
+
+https://stackoverflow.com/questions/42040238/how-to-expose-nodeport-to-internet-on-gce
