@@ -1,6 +1,6 @@
 ## Default values for Traefik
 image: traefik
-imageTag: 1.7.14
+imageTag: 1.7.19
 nameOverride: "traefik"
 fullnameOverride: "traefik"
 ## Optionally specify an array of imagePullSecrets.
@@ -66,9 +66,10 @@ tolerations: []
 #   effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
 ## Kubernetes ingress filters
 kubernetes:
-  # endpoint:
-  # namespaces:
-  # - default
+  #endpoint:
+  namespaces:
+  - default
+  - kube-system
   # labelSelector:
   # ingressClass:
   # ingressEndpoint:

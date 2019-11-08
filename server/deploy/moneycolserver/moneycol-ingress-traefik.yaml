@@ -6,10 +6,10 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: moneycolserver.localhost
-    http:
+  - host: moneycolserver
+  - http:
       paths:
-      - path: /
+      - path: /graphql
         backend:
           serviceName: moneycolserver
           servicePort: 80
