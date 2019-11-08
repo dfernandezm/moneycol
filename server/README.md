@@ -54,3 +54,26 @@ with parameters
   "searchTerm": "ireland" 
 }
 ```
+## Kubernetes proxied services
+
+Through traefik:
+
+```
+$ kubectl proxy &
+
+Visit http://localhost:8001/api/v1/namespaces/kube-system/services/traefik:80/proxy/graphql
+```
+
+Directly `moneycolserver`:
+```
+$ kubectl proxy &
+http://localhost:8001/api/v1/namespaces/default/services/moneycolserver:80/proxy/graphql
+```
+
+To put back LoadBalancer from GCP:
+
+- Change traefik `values.yaml` value `serviceType: NodePort` to `serviceType: NodePort`
+- Re-run upgrade on the helm release
+```
+helm upgrade [traefik-release] deploy/traefik/chart
+```
