@@ -22,7 +22,7 @@ metadata:
 spec:
   rules:
   - host: {{ .Values.dashboard.domain }}
-    http:
+  - http:
       paths:
       - backend:
           serviceName: {{ template "traefik.fullname" . }}-dashboard
