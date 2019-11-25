@@ -10,12 +10,12 @@ import 'materialize-css/dist/css/materialize.min.css';
 
 import SearchResultsPage from './search/searchResultsPage';
 import Home from './home/home';
-import NavBar from './navbar/navBar';
+import { NavBar } from './navbar/navBar';
 
 const Main: React.FC<{}> = () => {
   return (
     <BrowserRouter>
-
+      <NavBar />
       <div className="mainpage">
         <div className="section no-pad-bot mainContent">
           <Switch>
