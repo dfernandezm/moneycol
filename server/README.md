@@ -83,3 +83,27 @@ helm upgrade [traefik-release] deploy/traefik/chart
 Useful for dev or local env:
 
 https://stackoverflow.com/questions/42040238/how-to-expose-nodeport-to-internet-on-gce
+
+* Need to open a firewall rule, allowing TCP traffic on port range tcp:30000-32767. See
+ example: https://console.cloud.google.com/networking/firewalls/details/nodeport-access?project=moneycol
+ ```
+ # Example
+ gcloud compute firewall-rules create nodeport-access --allow tcp:30080,tcp:30443
+ gcloud compute instances list
+ ```
+
+## Get IP and port
+
+* IP
+```
+kubectl get node gke-moneycol-main-main-pool-ac0c4442-57ff -o json | jq '.status.addresses[1].address
+```
+
+* Port
+```
+# first port in the output
+kubectl get svc traefik -n kube-system -o json | jq '.spec.ports[0].nodePort'
+```
+
+- Option 1: use the port and the IP of any node (given the firewall rule) [working]
+- Option 2: add a f1-micro instance (3.88$/month), deploy HAProxy/Traefik/Nginx to point to the nodes
