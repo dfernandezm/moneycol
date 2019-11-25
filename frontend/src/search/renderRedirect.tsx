@@ -1,9 +1,10 @@
 import React from 'react';
 import { Redirect } from "react-router-dom";
+import { SearchResult } from './types/SearchResult';
 
 type RedirectToSearchPageProps = {
     termUsed?: string,
-    searchResults?: []
+    searchResults?: SearchResult[]
 }
 
 const RenderRedirect: React.FC<RedirectToSearchPageProps> = ({ termUsed, searchResults }) => {
@@ -12,7 +13,7 @@ const RenderRedirect: React.FC<RedirectToSearchPageProps> = ({ termUsed, searchR
             {
                 pathname: '/searchResultsPage',
                 search: '?qs=' + termUsed,
-                state: { results: searchResults }
+                state: { searchResults: searchResults }
             }
         } />
     )

@@ -4,59 +4,75 @@ import M from 'materialize-css';
 import searchApi from '../apiCalls/searchApi';
 import SearchBox from '../navbar/searchBox';
 import RenderRedirect from './renderRedirect';
+import { SearchResult } from './types/SearchResult';
 
-type SearchState = {
-  searchTerm?: string,
-  termUsed?: string,
-  searchResults?: []
+const termHasMinimumLength = (searchTerm: string) => {
+  return searchTerm.length > 3;
 }
 
 const SearchInTopBar: React.FC = () => {
 
   const [isTyping, setIsTyping] = useState(true);
-  const [searchState, setSearchState] = useState<SearchState>({})
+  const [submittingSearch, setSubmittingSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
   useEffect(() => {
     M.updateTextFields();
   }, []) // react docs: pass empty array here to indicate that this does not depend on state or props (run only once)
 
-  // termHasMinimumLength = () => {
-  //   return this.state.searchTerm.length > 3;
-  // }
+  useEffect(() => {
+    if (submittingSearch) {
+      performSearchCall();
+    }
+  }, [submittingSearch])
 
   const shouldRenderResults = () => {
-    // let isGoingToRender = !this.state.typing && this.termHasMinimumLength();
-    return true;
+    let isGoingToRender = !isTyping && termHasMinimumLength(searchTerm);
+    return isGoingToRender;
   }
 
-  // performSearchCall() {
-  //   const searchTerm = this.state.searchTerm
-  //   if (this.termHasMinimumLength()) {
-  //     //TODO: sanitize search term before sending to server
-  //     searchApi
-  //       .searchApiCall(searchTerm, 0, 10)
-  //       .then(resultData => {
-  //         // with spread: same state but override typing with false, and searchResults becomes the current
-  //         // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-  //         console.log("SearchRes ", resultData.results);
-  //         this.setState({ ...this.state, typing: false, searchResults: resultData.results, searchTerm, termUsed: searchTerm }, () => {
-  //           //TODO: this is here to avoid re-rendering 
-  //           this.setState({ ...this.state, typing: true, searchTerm });
-  //         });
-  //       });
-  //   }
-  // }
+  const performSearchCall = () => {
+    //TODO: error handling
 
+    if (termHasMinimumLength(searchTerm)) {
+      //TODO: sanitize search term before sending to server
+      searchApi
+        .searchApiCall(searchTerm, 0, 10)
+        .then(resultData => {
+          setSubmittingSearch(false)
+          // with spread: same state but override typing with false, and searchResults becomes the current
+          // 'searchResults' from API call (shortcut of {searchResults: searchResults})
+          console.log("SearchRes ", resultData.results);
+          setSearchResults(resultData.searchResults);
+          setIsTyping(true);
+
+          //setSearchState({ ...searchState, searchResults: resultData.searchResults, searchTerm, termUsed: searchTerm });
+
+          // this.setState({ ...this.state, typing: false, searchResults: resultData.results, searchTerm, termUsed: searchTerm }, () => {
+          //   //TODO: this is here to avoid re-rendering 
+          //   this.setState({ ...this.state, typing: true, searchTerm });
+          // });
+        });
+    }
+  }
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     window.scrollTo(0, 0);
+    setIsTyping(false);
+    setSubmittingSearch(true);
     //this.setState({ ...this.state, typing: false, searchResults: [] }, this.performSearchCall);
   }
 
   // //TODO: this could be optimized by only re-rendering the single input as it's typed on --
   // // right now it re-renders the whole search component (fully controlled)
-  const updateSearchTerm = (event: React.FormEvent) => {
+  const updateSearchTerm = (e: React.FormEvent) => {
+    const target = e.target as HTMLInputElement;
+    setIsTyping(true);
+    setSearchResults([]);
+    setSearchTerm(target.value);
+    //setSearchState({ ...setSearchState, searchResults: [], searchTerm: target.value });
     // this.setState({
     //   ...this.state,
     //   typing: true,
@@ -65,7 +81,6 @@ const SearchInTopBar: React.FC = () => {
     // });
   }
 
-  const { termUsed, searchTerm, searchResults } = searchState;
   return (
     <>
       <SearchBox
@@ -73,7 +88,7 @@ const SearchInTopBar: React.FC = () => {
         onChange={updateSearchTerm}
         searchTerm={searchTerm} />
       {shouldRenderResults() &&
-        <RenderRedirect termUsed={termUsed} searchResults={searchResults} />
+        <RenderRedirect termUsed={searchTerm} searchResults={searchResults} />
       }
     </>
   );

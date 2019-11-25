@@ -1,12 +1,18 @@
 import React from 'react';
 import './css/searchResult.css';
+import { SearchResult } from './types/SearchResult';
 
-export default function SearchResultsItem({ item, index }) {
-  return (
+type SearchResultsItemProps = {
+    item: SearchResult,
+    index: number
+}
+
+const SearchResultsItem: React.FC<SearchResultsItemProps> = ({ item, index }) => {
+    return (
         <div className="card horizontal" key={item.CatalogCode}>
             <div className="card-image">
                 <div className="image-wrapper">
-                    <img src={item.ImageFront} alt="img"/>
+                    <img src={item.ImageFront} alt="img" />
                 </div>
             </div>
             <div className="card-stacked">
@@ -20,7 +26,9 @@ export default function SearchResultsItem({ item, index }) {
                     <a href="#" className="green-link">Add to collection</a>
                 </div>
             </div>
-        </div>   
+        </div>
     )
-}  
-    
+}
+
+export default SearchResultsItem;
+
