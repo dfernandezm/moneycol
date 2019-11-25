@@ -16,6 +16,7 @@ const SearchInTopBar: React.FC = () => {
   const [submittingSearch, setSubmittingSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [redirectToResults, setRedirectToResults] = useState(false);
 
   useEffect(() => {
     M.updateTextFields();
@@ -43,9 +44,10 @@ const SearchInTopBar: React.FC = () => {
           setSubmittingSearch(false)
           // with spread: same state but override typing with false, and searchResults becomes the current
           // 'searchResults' from API call (shortcut of {searchResults: searchResults})
-          console.log("SearchRes ", resultData.results);
-          setSearchResults(resultData.searchResults);
+          console.log("SearchRes ", resultData.results[0]);
+          setSearchResults(resultData.results);
           setIsTyping(true);
+          setRedirectToResults(true)
 
           //setSearchState({ ...searchState, searchResults: resultData.searchResults, searchTerm, termUsed: searchTerm });
 
@@ -69,6 +71,7 @@ const SearchInTopBar: React.FC = () => {
   // // right now it re-renders the whole search component (fully controlled)
   const updateSearchTerm = (e: React.FormEvent) => {
     const target = e.target as HTMLInputElement;
+    setRedirectToResults(false);
     setIsTyping(true);
     setSearchResults([]);
     setSearchTerm(target.value);
@@ -87,7 +90,7 @@ const SearchInTopBar: React.FC = () => {
         onSubmit={onSubmit}
         onChange={updateSearchTerm}
         searchTerm={searchTerm} />
-      {shouldRenderResults() &&
+      {redirectToResults &&
         <RenderRedirect termUsed={searchTerm} searchResults={searchResults} />
       }
     </>

@@ -39,7 +39,8 @@ const style = {
 
 const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
-  const [resultsState, setResultsState] = useState<ResultsPageState>(props.location.state)
+  const [resultsState, setResultsState] = useState<ResultsPageState>(props.location.state ? props.location.state : {})
+
   const hasResultsToShow = props.location.state &&
     props.location.state.results &&
     props.location.state.results.length > 0;
@@ -47,16 +48,17 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
   const shouldRenderResults = () => {
     let hasBeenRedirected = props.location !== undefined;
     let hasResultsToShow = props.location.state &&
-      props.location.state.results &&
-      props.location.state.results.length > 0;
+      props.location.state.searchResults &&
+      props.location.state.searchResults.length > 0;
+    let stateHasResults = resultsState.searchResults && resultsState.searchResults.length > 0;
 
-    return (hasBeenRedirected && hasResultsToShow) || resultsState.searchResults.length > 0;
+    return (hasBeenRedirected && hasResultsToShow) || stateHasResults;
   }
 
-  const checkSearchTerm = () => {
+  const searchTermFromQueryString = () => {
     const queryStringValues = queryString.parse(props.location.search);
     const qs = queryStringValues.qs;
-    return qs;
+    return qs as string;
   }
 
   const updateStateWith = (newResultData: SearchResultsData) => {
@@ -81,20 +83,11 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
     console.log("New search call");
     if (termHasMinimumLength(searchTerm)) {
       searchApi
-        .searchApiCall(searchTerm, resultsState.fromOffset, 10)
+        .searchApiCall(searchTerm, resultsState.fromOffset || 0, 10)
         .then(resultData => {
-          updateStateWith(resultData);
+          console.log("Data arrived", resultData);
+          setResultsState({ ...resultsState, totalResultLength: resultData.total, searchResults: resultData.results });
         });
-    }
-  }
-
-  const searchFromUrlTermIfFound = () => {
-    const queryStringValues = queryString.parse(props.location.search);
-    if (queryStringValues.qs) {
-      // We run the search call in a callback passed to setState to ensure it sees the mutated the state
-      console.log("Search term: " + queryStringValues.qs);
-      //this.setState({ ...this.state, searchTerm: queryStringValues.qs }, this.performSearchCall);
-
     }
   }
 
@@ -106,16 +99,22 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
   //   //     this.searchFromUrlTermIfFound();
   //   //   })
 
-  //   performSearchCall(resultsState.searchTerm)
 
-  // }, [checkSearchTerm()])
+  // }, [])
 
   // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
   useEffect(() => {
     M.updateTextFields();
+    console.log("Result from the previous search", resultsState);
+    console.log("Result from the previous search (props)", props.location);
     if (!hasResultsToShow) {
       console.log("No results to show");
-      searchFromUrlTermIfFound();
+      let qsTerm = searchTermFromQueryString();
+      if (qsTerm) {
+        console.log("Searching from queryString term: ", qsTerm);
+        performSearchCall(qsTerm);
+      }
+      //searchFromUrlTermIfFound();
     } else {
       // store values from URL in the state of this component
       console.log("State: ", props.location.state.results);
