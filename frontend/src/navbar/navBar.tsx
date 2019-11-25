@@ -1,27 +1,26 @@
-import React, { useLayoutEffect, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     NavLink
 } from "react-router-dom";
 
-import SearchBox from './searchBox';
 import './navBar.css';
 import logo from './moneycol-logo.png';
 import SearchInTopBar from '../search/searchInTopBar';
 
-export const NavBar: React.FC = () => {
+const NavBar: React.FC = () => {
 
     const [measures, setMeasures] = useState({ top: 0, height: 0, scroll: -1 });
     const [initLoad, setInitLoad] = useState(true);
 
     useEffect(() => {
         if (initLoad) {
-            const el = document.querySelector('nav');
+            const el: any = document.querySelector('nav');
             setMeasures({ top: el.offsetTop, height: el.offsetHeight, scroll: -1 });
             setInitLoad(false);
-            window.addEventListener('scroll', this.handleScroll);
+            window.addEventListener('scroll', handleScroll);
         } else {
             measures.scroll > measures.top ?
-                document.body.style.paddingTop = `${this.state.height}px` :
+                document.body.style.paddingTop = `${measures.height}px` :
                 document.body.style.paddingTop = '0px';
         }
     });
@@ -29,9 +28,9 @@ export const NavBar: React.FC = () => {
     const handleScroll = () => {
         setMeasures({ ...measures, scroll: window.scrollY });
     }
-    
+
     return (
-        <nav className={this.state.scroll > this.state.top ? "fixed-nav" : ""}>
+        <nav className={measures.scroll > measures.top ? "fixed-nav" : ""}>
             <div className="nav-wrapper">
                 <div className="row">
                     <div className="col left">
@@ -58,6 +57,6 @@ export const NavBar: React.FC = () => {
             </div>
         </nav>
     );
-
-
 }
+
+export { NavBar };
