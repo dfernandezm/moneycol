@@ -8,19 +8,20 @@ type SearchResultsItemProps = {
 }
 
 const SearchResultsItem: React.FC<SearchResultsItemProps> = ({ item, index }) => {
+    console.log("Item: ", item);
     return (
-        <div className="card horizontal" key={item.CatalogCode}>
+        <div className="card horizontal" key={item.catalogCode}>
             <div className="card-image">
                 <div className="image-wrapper">
-                    <img src={item.ImageFront} alt="img" />
+                    <img src={item.imageFront} alt="img" />
                 </div>
             </div>
             <div className="card-stacked">
                 <div className="card-content">
-                    <h3>{item.Country} ==== {item.BanknoteName}</h3>
-                    <h4>{item.Year}</h4>
-                    <p>{item.Description}</p>
-                    <p><a href={item.DetailLink} target="_blank">Link</a></p>
+                    <h3>{item.country} - {item.banknoteName}</h3>
+                    <h4>{item.year}</h4>
+                    <p>{item.description}</p>
+                    <p><a href={item.detailLink} target="_blank">Link</a></p>
                 </div>
                 <div className="card-action">
                     <a href="#" className="green-link">Add to collection</a>

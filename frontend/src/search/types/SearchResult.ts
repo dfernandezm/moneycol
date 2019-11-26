@@ -1,9 +1,9 @@
 export type SearchResult = {
-    CatalogCode: string,
-    ImageFront: string,
-    Country: string,
-    BanknoteName: string,
-    Year: string,
-    Description: string,
-    DetailLink: string
+    catalogCode: string,
+    imageFront: string,
+    country: string,
+    banknoteName: string,
+    year: string,
+    description: string,
+    detailLink: string
 };

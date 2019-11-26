@@ -79,28 +79,17 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
     // });
   }
 
-  const performSearchCall = (searchTerm: string) => {
-    console.log("New search call");
-    if (termHasMinimumLength(searchTerm)) {
-      searchApi
-        .searchApiCall(searchTerm, resultsState.fromOffset || 0, 10)
-        .then(resultData => {
-          console.log("Data arrived", resultData);
-          setResultsState({ ...resultsState, totalResultLength: resultData.total, searchResults: resultData.results });
-        });
-    }
-  }
-
-  // useEffect(() => {
-  //   // When url param 'qs' changes, we want to re-render the component as it has to search with new qs
-  //   // if (this.props.location.search !== prevProps.location.search) {
-  //   //   // Detect a need to re-render, set results to empty so we load the new ones
-  //   //   this.setState({ ...this.state, searchResults: [] }, () => {
-  //   //     this.searchFromUrlTermIfFound();
-  //   //   })
-
-
-  // }, [])
+  // const performSearchCall = (searchTerm: string) => {
+  //   console.log("New search call");
+  //   if (termHasMinimumLength(searchTerm)) {
+  //     searchApi
+  //       .searchApiCall(searchTerm, resultsState.fromOffset || 0, 10)
+  //       .then(resultData => {
+  //         console.log("Data arrived", resultData);
+  //         setResultsState({ ...resultsState, totalResultLength: resultData.total, searchResults: resultData.results });
+  //       });
+  //   }
+  // }
 
   // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
   useEffect(() => {
@@ -112,7 +101,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
       let qsTerm = searchTermFromQueryString();
       if (qsTerm) {
         console.log("Searching from queryString term: ", qsTerm);
-        performSearchCall(qsTerm);
+        //performSearchCall(qsTerm);
       }
       //searchFromUrlTermIfFound();
     } else {
@@ -120,6 +109,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
       console.log("State: ", props.location.state.results);
       const queryStringValues = queryString.parse(props.location.search);
       console.log("Set state here!");
+      setResultsState(props.location.state.results);
       // this.setState({
       //   ...this.state,
       //   searchTerm: queryStringValues.qs,
@@ -142,18 +132,21 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
     <div className="searchResults">
       {resultsState.searchResults === null || !shouldRenderResults() ?
         <EmptyResults message="No results found" /> :
-        <InfiniteScroll
-          dataLength={resultsState.searchResults.length}
-          next={fetchMoreData}
-          hasMore={resultsState.hasMore}
-          height={600}
-          loader={<h4>Loading...</h4>}>
+        <SearchResultsList
+          resultList={resultsState.searchResults}
+          searchTerm={props.location.search.replace("?qs=", "")} />
+        // <InfiniteScroll
+        //   dataLength={resultsState.searchResults.length}
+        //   next={fetchMoreData}
+        //   hasMore={resultsState.hasMore}
+        //   height={600}
+        //   loader={<h4>Loading...</h4>}>
 
-          <SearchResultsList
-            resultList={resultsState.searchResults}
-            searchTerm={props.location.search.replace("?qs=", "")} />
+        //   <SearchResultsList
+        //     resultList={resultsState.searchResults}
+        //     searchTerm={props.location.search.replace("?qs=", "")} />
 
-        </InfiniteScroll>
+        // </InfiniteScroll>
       }
     </div>
   );
