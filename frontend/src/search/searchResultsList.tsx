@@ -12,15 +12,15 @@ type SearchResultsListProps = {
 
 // Cards list: https://codepen.io/jonvadillo/pen/PzYyEW
 const SearchResultsList: React.FC<SearchResultsListProps> = ({ resultList = [], searchTerm = "" }) => {
+  console.log("ResultsList:", resultList);
   return (
     <div className="row">
       <SearchResultsMessage searchTerm={searchTerm} />
       <div className="results">
         <div className="col s10 m10 card-container">
           {resultList.map((banknote, index) => {
-            console.log("Bank: ", banknote);
-            let a = <SearchResultItem item={banknote} index={index} key={banknote.CatalogCode} />;
-            return a;
+            console.log("Banknote: ", banknote);
+            return <SearchResultItem item={banknote} index={index} key={banknote.catalogCode} />;
           })}
         </div>
       </div>
