@@ -1,26 +1,20 @@
 import React from 'react';
 import { Redirect } from "react-router-dom";
 import { useQuery } from '@apollo/react-hooks';
-
-import { SearchResult } from './types/SearchResult';
 import { SEARCH_GQL } from './gql/search';
 
 type RedirectToSearchPageProps = {
-    termUsed?: string,
-    searchResults?: SearchResult[]
+    termUsed: string
 }
 
-const RenderRedirect: React.FC<RedirectToSearchPageProps> = ({ termUsed, searchResults }) => {
-    console.log("Term usequery: ", termUsed);
+const RenderRedirect: React.FC<RedirectToSearchPageProps> = ({ termUsed }) => {
+    //TODO: this useQuery shouldn't be here possibly, better in the SearchResultsPage?
     const { data, loading, error } = useQuery(SEARCH_GQL, {
         variables: { searchTerm: termUsed },
     });
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error</p>;
-    if (!loading) {
-        console.log("Data: ", data.search.results);
-    }
+    if (loading) return <p>&nbsp;</p>;
+    if (error) return <p>Error: {error}</p>;
 
     return (
         <Redirect to={

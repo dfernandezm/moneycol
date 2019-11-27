@@ -3,17 +3,13 @@ import M from 'materialize-css';
 
 import SearchResultsList from './searchResultsList';
 import EmptyResults from './emptySearchResults';
-import searchApi from '../apiCalls/searchApi';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import queryString from 'query-string';
 import { SearchResult } from './types/SearchResult';
-import { RouteProps, RouteComponentProps, withRouter } from 'react-router';
+import { RouteComponentProps } from 'react-router';
+import { useApolloClient } from '@apollo/react-hooks';
+import RenderRedirect from './redirectToResultsPage';
 
-const termHasMinimumLength = (searchTerm: string) => {
-  return searchTerm.length > 3;
-}
-
-//TODO: If we want bookmarks, this component should probably re-search if state is not present 
+//TODO: If we want bookmarks, this component should re-search if state from redirect is not present 
 // and the url contains the search term
 
 type ResultsPageState = {
@@ -45,113 +41,39 @@ const searchTermFromQueryString = (searchLocation: string) => {
 
 const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
-  const [resultsState, setResultsState] = useState<ResultsPageState>({ searchResults: [] })
+  const [newSearchTerm, setNewSearchTerm] = useState("");
+  const resultsValues = props.location.state;
+  const client = useApolloClient();
 
-  console.log("REDIRECT HERE: Result from the previous search (props)", props.location.state);
-  console.log("REDIRECT HERE: RESULTSSTATE", resultsState.searchResults);
-
-  const hasResultsToShow =
-    props.location.state &&
-    props.location.state.results &&
-    props.location.state.results.length > 0;
+  //console.log("REDIRECT HERE: Result from the previous search (props)", props.location.state);
+  //console.log("REDIRECT HERE: RESULTS-STATE", resultsState.searchResults);
 
   const shouldRenderResults = () => {
     let hasBeenRedirected = props.location !== undefined;
     let hasResultsToShow = props.location.state &&
       props.location.state.searchResults &&
       props.location.state.searchResults.length > 0;
-    let stateHasResults = resultsState.searchResults && resultsState.searchResults.length > 0;
-    console.log(">>>>>>>>>>>>> State has results <<<<<<<<<<<<<<<<", stateHasResults);
-    return (hasBeenRedirected && hasResultsToShow) || stateHasResults;
+    return (hasBeenRedirected && hasResultsToShow);
   }
 
-
-
-  const updateStateWith = (newResultData: SearchResultsData) => {
-    console.log("Total length: " + newResultData.total);
-    // const {fromOffset, searchResults} = resultsState;
-    // const {total, results} = newResultData;
-
-    // setResultsState({
-    //   fromOffset: fromOffset + 10,
-    //   totalResultLength: total,
-    //   searchResults: searchResults.concat(results)
-    // })
-    // this.setState({
-    //   ...this.state,
-    //   from: this.state.from + 10,
-    //   totalResultLength: newResultData.total,
-    //   searchResults: this.state.searchResults.concat(newResultData.results)
-    // });
-  }
-
-  // const performSearchCall = (searchTerm: string) => {
-  //   console.log("New search call");
-  //   if (termHasMinimumLength(searchTerm)) {
-  //     searchApi
-  //       .searchApiCall(searchTerm, resultsState.fromOffset || 0, 10)
-  //       .then(resultData => {
-  //         console.log("Data arrived", resultData);
-  //         setResultsState({ ...resultsState, totalResultLength: resultData.total, searchResults: resultData.results });
-  //       });
-  //   }
-  // }
-
-  // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
+  // When the qs url parameter changes, we want to re-render and redirect to results
   useEffect(() => {
-    console.log("==== SEARCH RESULTS USEEFFECT ====");
-    M.updateTextFields();
-    //console.log("Result from the previous search", resultsState);
-    console.log("Result from the previous search (props)", props.location);
-    const hasResultsToShow =
-      props.location.state &&
-      props.location.state.searchResults &&
-      props.location.state.searchResults.length > 0;
-    if (!hasResultsToShow) {
-      console.log("No results to show");
-      let qsTerm = searchTermFromQueryString(props.location.search);
-      if (qsTerm) {
-        console.log("Searching from queryString term: ", qsTerm);
-        //performSearchCall(qsTerm);
-      }
-      //searchFromUrlTermIfFound();
-    } else {
-      // redirected from search, has state, set it in this component state and show them
-      console.log("Has results to show");
-      console.log("State: ", props.location.state);
-      setResultsState({ searchResults: props.location.state.searchResults, searchTerm: props.location.state.searchTerm });
-    }
-
-  }, [props.location.state.searchTerm]);
-
-  const fetchMoreData = () => {
-    // if (this.state.searchResults.length >= this.state.totalResultLength) {
-    //   console.log("No More data");
-    //   this.setState({ hasMore: false });
-    //   return;
-    // }
-    // performSearchCall();
-  };
+    const searchTerm = searchTermFromQueryString(props.location.search);
+    setNewSearchTerm(searchTerm);
+  }, [props.location.search]);
 
   return (
     <div className="searchResults">
-      {resultsState.searchResults.length == 0 || !shouldRenderResults() ?
-        <EmptyResults message="No results found" /> :
-        <SearchResultsList
-          resultList={resultsState.searchResults}
-          searchTerm={props.location.search.replace("?qs=", "")} />
-        // <InfiniteScroll
-        //   dataLength={resultsState.searchResults.length}
-        //   next={fetchMoreData}
-        //   hasMore={resultsState.hasMore}
-        //   height={600}
-        //   loader={<h4>Loading...</h4>}>
+      {resultsValues &&
 
-        //   <SearchResultsList
-        //     resultList={resultsState.searchResults}
-        //     searchTerm={props.location.search.replace("?qs=", "")} />
-
-        // </InfiniteScroll>
+        (resultsValues.searchResults.length == 0 || !shouldRenderResults() ?
+          <EmptyResults message="No results found" /> :
+          <SearchResultsList
+            resultList={resultsValues.searchResults}
+            searchTerm={props.location.search.replace("?qs=", "")} />)
+      }
+      {
+        newSearchTerm && <RenderRedirect termUsed={newSearchTerm} />
       }
     </div>
   );
