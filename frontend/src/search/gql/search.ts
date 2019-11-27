@@ -16,5 +16,8 @@ fragment BanknoteSearchResult on BankNote {
   year
   description
   catalogCode
+  detailLink
+  imageFront
+  imageBack
 }
 `;

@@ -20,14 +20,14 @@ type ResultsPageState = {
   searchResults: SearchResult[]
   searchTerm?: string
   termUsed?: string
-  totalResultLength: number,
-  hasMore: boolean,
+  totalResultLength?: number,
+  hasMore?: boolean,
   fromOffset?: number
 }
 
 type SearchResultsData = {
-  total: number,
-  results: SearchResult[]
+  total?: number,
+  results?: SearchResult[]
 }
 
 const style = {
@@ -37,11 +37,21 @@ const style = {
   padding: 8
 };
 
+const searchTermFromQueryString = (searchLocation: string) => {
+  const queryStringValues = queryString.parse(searchLocation);
+  const qs = queryStringValues.qs;
+  return qs as string;
+}
+
 const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
-  const [resultsState, setResultsState] = useState<ResultsPageState>(props.location.state ? props.location.state : {})
+  const [resultsState, setResultsState] = useState<ResultsPageState>({ searchResults: [] })
 
-  const hasResultsToShow = props.location.state &&
+  console.log("REDIRECT HERE: Result from the previous search (props)", props.location.state);
+  console.log("REDIRECT HERE: RESULTSSTATE", resultsState.searchResults);
+
+  const hasResultsToShow =
+    props.location.state &&
     props.location.state.results &&
     props.location.state.results.length > 0;
 
@@ -51,15 +61,11 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
       props.location.state.searchResults &&
       props.location.state.searchResults.length > 0;
     let stateHasResults = resultsState.searchResults && resultsState.searchResults.length > 0;
-
+    console.log(">>>>>>>>>>>>> State has results <<<<<<<<<<<<<<<<", stateHasResults);
     return (hasBeenRedirected && hasResultsToShow) || stateHasResults;
   }
 
-  const searchTermFromQueryString = () => {
-    const queryStringValues = queryString.parse(props.location.search);
-    const qs = queryStringValues.qs;
-    return qs as string;
-  }
+
 
   const updateStateWith = (newResultData: SearchResultsData) => {
     console.log("Total length: " + newResultData.total);
@@ -93,31 +99,30 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
 
   // We have to call 'searchFromUrl' here as well in case a direct link to /search?qs=term is invoked first time round
   useEffect(() => {
+    console.log("==== SEARCH RESULTS USEEFFECT ====");
     M.updateTextFields();
-    console.log("Result from the previous search", resultsState);
+    //console.log("Result from the previous search", resultsState);
     console.log("Result from the previous search (props)", props.location);
+    const hasResultsToShow =
+      props.location.state &&
+      props.location.state.searchResults &&
+      props.location.state.searchResults.length > 0;
     if (!hasResultsToShow) {
       console.log("No results to show");
-      let qsTerm = searchTermFromQueryString();
+      let qsTerm = searchTermFromQueryString(props.location.search);
       if (qsTerm) {
         console.log("Searching from queryString term: ", qsTerm);
         //performSearchCall(qsTerm);
       }
       //searchFromUrlTermIfFound();
     } else {
-      // store values from URL in the state of this component
-      console.log("State: ", props.location.state.results);
-      const queryStringValues = queryString.parse(props.location.search);
-      console.log("Set state here!");
-      setResultsState(props.location.state.results);
-      // this.setState({
-      //   ...this.state,
-      //   searchTerm: queryStringValues.qs,
-      //   searchResults: this.props.location.state.results
-      // })
+      // redirected from search, has state, set it in this component state and show them
+      console.log("Has results to show");
+      console.log("State: ", props.location.state);
+      setResultsState({ searchResults: props.location.state.searchResults, searchTerm: props.location.state.searchTerm });
     }
 
-  }, [])
+  }, [props.location.state.searchTerm]);
 
   const fetchMoreData = () => {
     // if (this.state.searchResults.length >= this.state.totalResultLength) {
@@ -130,7 +135,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
 
   return (
     <div className="searchResults">
-      {resultsState.searchResults === null || !shouldRenderResults() ?
+      {resultsState.searchResults.length == 0 || !shouldRenderResults() ?
         <EmptyResults message="No results found" /> :
         <SearchResultsList
           resultList={resultsState.searchResults}

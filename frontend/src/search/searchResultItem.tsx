@@ -21,7 +21,7 @@ const SearchResultsItem: React.FC<SearchResultsItemProps> = ({ item, index }) =>
                     <h3>{item.country} - {item.banknoteName}</h3>
                     <h4>{item.year}</h4>
                     <p>{item.description}</p>
-                    <p><a href={item.detailLink} target="_blank">Link</a></p>
+                    <p><a href={item.detailLink} target="_blank">Detail</a></p>
                 </div>
                 <div className="card-action">
                     <a href="#" className="green-link">Add to collection</a>
