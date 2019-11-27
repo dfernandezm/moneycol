@@ -8,14 +8,15 @@ export class BankNote {
     readonly imageFront: string;
     readonly imageBack: string
 
-    constructor (searchResultJson: any) {
+    constructor(searchResultJson: any) {
+        console.log("SearchResult: ", searchResultJson);
         this.country = searchResultJson.Country;
-        this.banknoteName = searchResultJson.BanknoteName;    
-        this.year = searchResultJson.Year;    
-        this.catalogCode = searchResultJson.CatalogCode;    
+        this.banknoteName = searchResultJson.BanknoteName;
+        this.year = searchResultJson.Year;
+        this.catalogCode = searchResultJson.CatalogCode;
         this.description = searchResultJson.Description;
-        this.detailLink = searchResultJson.DetailLink;        
-        this.imageBack = searchResultJson.ImageBack;        
-        this.imageFront = searchResultJson.imageFront;                
+        this.detailLink = searchResultJson.DetailLink;
+        this.imageBack = searchResultJson.ImageBack;
+        this.imageFront = searchResultJson.ImageFront;
     }
-  }
+}

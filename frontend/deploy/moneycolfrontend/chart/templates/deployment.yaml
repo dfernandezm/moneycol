@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { { template "name" . } }
+  labels:
+    app: { { template "name" . } }
+    chart: { { template "chart" . } }
+    release: { { .Release.Name } }
+    heritage: { { .Release.Service } }
+
+spec:
+  replicas: { { .Values.replicaCount } }
+  selector:
+    matchLabels:
+      app: { { template "name" . } }
+  minReadySeconds: 10
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: { { template "name" . } }
+    spec:
+      containers:
+        - name: { { .Chart.Name } }
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: { { .Values.image.pullPolicy } }
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+          env:
+            - name: "ENV"
+              value: { { .Values.env } }
+          ports:
+            - name: http
+              containerPort: 5080
+              protocol: TCP
+
+          resources:
+            limits:
+              cpu: 300m
+              memory: 150Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+
+      nodeSelector:
+        type: applications
