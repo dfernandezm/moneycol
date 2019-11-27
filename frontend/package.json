@@ -14,6 +14,7 @@
     "@types/react-router-dom": "^5.1.2",
     "apollo-boost": "^0.4.4",
     "apollo-client": "^2.6.4",
+    "env-cmd": "^10.0.1",
     "graphql": "^14.5.8",
     "graphql-tag": "^2.10.1",
     "materialize-css": "^1.0.0-rc.2",
@@ -30,6 +31,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:staging": "env-cmd -f .env.staging npm run build",
     "test": "react-scripts test --verbose=true --env=jsdom",
     "test-ci": "CI=true react-scripts test --verbose=true --env=jsdom",
     "eject": "react-scripts eject"
