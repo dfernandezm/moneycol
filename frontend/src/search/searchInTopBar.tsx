@@ -4,7 +4,9 @@ import M from 'materialize-css';
 
 import searchApi from '../apiCalls/searchApi';
 import SearchBox from '../navbar/searchBox';
-import RenderRedirect from './renderRedirect';
+//import RenderRedirect from './renderRedirect';
+import RenderRedirect from './redirectToResultsPage';
+
 import { SearchResult } from './types/SearchResult';
 
 import { SEARCH_GQL } from './gql/search';
@@ -34,7 +36,9 @@ const SearchInTopBar: React.FC = () => {
 
   useEffect(() => {
     if (submittingSearch) {
-      performSearchCall();
+      console.log("Searching...", searchTerm, usableSearchTerm);
+      setRedirectToResults(true);
+      setUsableSearchTerm(searchTerm);
     }
   }, [submittingSearch])
 
@@ -87,29 +91,22 @@ const SearchInTopBar: React.FC = () => {
     //     });
   }
 
-
-
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     window.scrollTo(0, 0);
     setIsTyping(false);
-
-
-    //setSearchTerm()
     setSubmittingSearch(true);
-    //this.setState({ ...this.state, typing: false, searchResults: [] }, this.performSearchCall);
+    console.log("Submitting...", submittingSearch);
   }
 
   // //TODO: this could be optimized by only re-rendering the single input as it's typed on --
   // // right now it re-renders the whole search component (fully controlled)
   const updateSearchTerm = (e: React.FormEvent) => {
     const target = e.target as HTMLInputElement;
+    setSubmittingSearch(false);
     setRedirectToResults(false);
     setIsTyping(true);
     setSearchResults([]);
-
-    console.log("Setting search term:", target.value);
     setSearchTerm(target.value);
   }
 
@@ -128,14 +125,8 @@ const SearchInTopBar: React.FC = () => {
         searchTerm={searchTerm} />
 
       {redirectToResults &&
-        <RenderRedirect termUsed={searchTerm} searchResults={searchResults} />
+        <RenderRedirect termUsed={usableSearchTerm} searchResults={searchResults} />
       }
-      {/* {loading &&
-        <div>Loading</div>
-      }
-      {error &&
-        <div>ERROR </div>
-      } */}
     </>
   );
 }
