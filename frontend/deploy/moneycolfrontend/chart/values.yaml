@@ -1,0 +1,7 @@
+env: dev
+image:
+  repository: gcr.io/moneycol/moneycol-frontend
+  tag: 0.1.0-alpha1
+  pullPolicy: IfNotPresent
+
+replicaCount: 2

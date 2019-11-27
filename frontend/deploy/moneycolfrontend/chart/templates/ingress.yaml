@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: { { template "name" . } }
+  labels:
+    app: { { template "name" . } }
+    chart: { { template "chart" . } }
+    release: { { .Release.Name } }
+    heritage: { { .Release.Service } }
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: moneycolfrontend
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: moneycolfrontend
+              servicePort: 80

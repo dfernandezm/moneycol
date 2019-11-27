@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: 0.1.0
+description: React Frontend App for MoneyCol
+engine: gotpl
+maintainers:
+  - email: moneycol@moneycol.com
+    name: moneycol
+name: moneycolfrontend
+version: 1.0.0
