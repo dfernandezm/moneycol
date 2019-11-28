@@ -16,4 +16,5 @@ data:
     discovery.zen.minimum_master_nodes: 1
     xpack.security.enabled: false
     xpack.monitoring.enabled: false
+    path.repo: ["/tmp/backups"]
   ES_JAVA_OPTS: -Xms512m -Xmx512m
