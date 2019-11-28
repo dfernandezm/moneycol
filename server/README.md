@@ -96,7 +96,7 @@ https://stackoverflow.com/questions/42040238/how-to-expose-nodeport-to-internet-
 
 * IP
 ```
-kubectl get node gke-moneycol-main-main-pool-ac0c4442-57ff -o json | jq '.status.addresses[1].address
+kubectl get node gke-moneycol-main-main-pool-ac0c4442-57ff -o json | jq '.status.addresses[1].address'
 ```
 
 * Port

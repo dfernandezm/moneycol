@@ -15,7 +15,7 @@ const APOLLO_SERVER_URL = `http://${API_BASE_URL}/graphql`;
 console.log("URI: ", APOLLO_SERVER_URL);
 
 const client = new ApolloClient({
-  uri: APOLLO_SERVER_URL,
+  uri: "graphql",
 });
 
 const WrappedApp = (

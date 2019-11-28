@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { template "name" . } }
+  name: {{ template "name" . }}
   labels:
-    app: { { template "name" . } }
-    chart: { { template "chart" . } }
-    release: { { .Release.Name } }
-    heritage: { { .Release.Service } }
+    app: {{ template "name" . }}
+    chart: {{ template "chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 
 spec:
-  replicas: { { .Values.replicaCount } }
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: { { template "name" . } }
+      app: {{ template "name" . }}
   minReadySeconds: 10
   revisionHistoryLimit: 1
   strategy:
@@ -23,19 +23,21 @@ spec:
   template:
     metadata:
       labels:
-        app: { { template "name" . } }
+        app: {{ template "name" . }}
     spec:
       containers:
-        - name: { { .Chart.Name } }
+        - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: { { .Values.image.pullPolicy } }
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             capabilities:
               add:
                 - IPC_LOCK
           env:
             - name: "ENV"
-              value: { { .Values.env } }
+              value: {{ .Values.env }}
+            - name: "API_BASE_URL"
+              value: {{ .Values.apiBaseUrl }}
           ports:
             - name: http
               containerPort: 5080

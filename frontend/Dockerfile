@@ -13,7 +13,8 @@ RUN chmod -R 700 /home/app/
 WORKDIR /home/app
 RUN npm install
 RUN npm run build
+RUN cd web-server && npm install
 
 EXPOSE 5080
 
-ENTRYPOINT ["serve", "-s", "build", "-n", "-l", "5080"]
+ENTRYPOINT ["node", "web-server/server.js"]
