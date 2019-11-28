@@ -14,22 +14,22 @@ class ElasticSearchService implements SearchService {
         let theIndexName = "banknotes-catalog-" + language;
 
         console.log("Searching in index " + theIndexName + ", query is " + searchTerm);
+
         // Search in every field but Description and CatalogCode
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
+        // https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-multi-match-query.html#type-cross-fields
+        // Elastic 6.x onwards?
         const baseQueryString = {
             "from": fromParam, "size": sizeParam,
-            query: {
-                query_string: {
+            "query": {
+                "multi_match": {
                     "query": searchTerm,
-                    "default_operator": "AND",
-                    "fields": [
-                        "BanknoteName",
-                        "Year",
-                        "Country"
-                    ]
+                    "type": "cross_fields",
+                    "fields": ["Country", "Year", "BanknoteName"],
+                    "operator": "and"
                 }
             }
-        };
+        }
 
         console.log("Querystring: ", baseQueryString);
 
@@ -41,7 +41,7 @@ class ElasticSearchService implements SearchService {
         const results = resp.hits.hits.map(hit => hit._source)
         const total = resp.hits.total;
         const bankNotes: BankNote[] = results.map(result => new BankNote(result));
-        
+
         const searchResult = new SearchResult(bankNotes, total);
         //console.log("Results: " + JSON.stringify(results));
         console.log("Banknotes", searchResult.results);
