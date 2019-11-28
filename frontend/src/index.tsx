@@ -18,8 +18,6 @@ const client = new ApolloClient({
   uri: APOLLO_SERVER_URL,
 });
 
-
-
 const WrappedApp = (
   <ApolloProvider client={client}>
     <Main />

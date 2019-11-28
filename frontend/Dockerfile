@@ -14,7 +14,6 @@ WORKDIR /home/app
 RUN npm install
 RUN npm run build
 
-
 EXPOSE 5080
 
 ENTRYPOINT ["serve", "-s", "build", "-n", "-l", "5080"]
