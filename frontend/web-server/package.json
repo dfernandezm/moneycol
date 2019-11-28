@@ -1,0 +1,16 @@
+{
+  "name": "react-web-server",
+  "version": "0.1.0",
+  "description": "React Web Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-http-proxy": "^1.6.0",
+    "request-promise": "^4.2.5"
+  }
+}

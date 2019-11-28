@@ -34,7 +34,9 @@
     "build:staging": "env-cmd -f .env.staging npm run build",
     "test": "react-scripts test --verbose=true --env=jsdom",
     "test-ci": "CI=true react-scripts test --verbose=true --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "start:webserver": "cd web-server && node server.js",
+    "start:backend": "cd ../server && ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev"
   },
   "eslintConfig": {
     "extends": "react-app"
