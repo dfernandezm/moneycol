@@ -11,6 +11,10 @@ terraform {
   }
 }
 
+variable "dev_ip" {
+  default = "35.190.193.217"
+}
+
 resource "google_dns_managed_zone" "moneycol_zone_free_domain" {
   description = "Managed by Terraform"
   dns_name    = "moneycol.ml."
@@ -48,7 +52,7 @@ resource "google_dns_record_set" "moneycol_dev" {
   name         = "dev.${google_dns_managed_zone.moneycol_zone_free_domain.dns_name}"
   project      = "moneycol"
   rrdatas = [
-    "35.190.193.217",
+    "${var.dev_ip}",
   ]
   ttl  = 120
   type = "A"
