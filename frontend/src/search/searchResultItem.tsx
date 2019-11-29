@@ -8,7 +8,6 @@ type SearchResultsItemProps = {
 }
 
 const SearchResultsItem: React.FC<SearchResultsItemProps> = ({ item, index }) => {
-    console.log("Item: ", item);
     return (
         <div className="card horizontal" key={item.catalogCode}>
             <div className="card-image">
