@@ -2,7 +2,7 @@
 
 This is the frontend of the system. Written in React, Typescript, Graphql and `create-react-app`.
 
-## Run locally without backend
+## Run locally without backend
 
 Just run `npm start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use it for styling and static development.
 
