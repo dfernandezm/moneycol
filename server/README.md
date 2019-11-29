@@ -109,9 +109,31 @@ kubectl -n kube-system get svc traefik
 
 ## Terraform
 
-Create of storage bucket for terraform state with versioning:
+Create a storage bucket for terraform state with versioning:
 
 ```
 $ gsutil mb gs://moneycol-tf-state-dev
 $ gsutil versioning set on gs://moneycol-tf-state-dev
+```
+
+## Basic DNS setup
+
+Manually:
+
+- CloudDNS create zone, set name and DNS suffix
+- Copy NS from the recordset NS
+- Using google account, go to freenom: https://my.freenom.com/clientarea.php?action=domaindetails
+- Add the NS from GCP (one off, or until the NS changes)
+- Create record set (prefix.dns.suffix) with A for IP of LB or similar
+- Poll: dig +short NS `dns.domain`
+
+Terraform:
+
+With terraform the NS are fixed to a name in moneycol project already. This way we avoid going to Freenom/Godaddy and update them every time they're created.
+
+- Edit `dns.tf` and change `dev_ip` variable to the new value
+- Run
+```
+$ terraform plan 
+$ terraform apply
 ```

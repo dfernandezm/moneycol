@@ -74,7 +74,7 @@ spec:
               - key: elasticsearch.yml
                 path: elasticsearch.yml
       nodeSelector:
-        type: elasticsearch
+         cloud.google.com/gke-nodepool: "elasticsearch-pool"
   volumeClaimTemplates:
   - metadata:
       name: es-data

@@ -52,4 +52,4 @@ spec:
               memory: 100Mi
 
       nodeSelector:
-        type: applications
+         cloud.google.com/gke-nodepool: "main-pool"
