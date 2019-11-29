@@ -106,3 +106,12 @@ helm upgrade [traefik-release] deploy/traefik/chart
 ```
 kubectl -n kube-system get svc traefik
 ```
+
+## Terraform
+
+Create of storage bucket for terraform state with versioning:
+
+```
+$ gsutil mb gs://moneycol-tf-state-dev
+$ gsutil versioning set on gs://moneycol-tf-state-dev
+```
