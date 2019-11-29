@@ -4,19 +4,27 @@ provider "google-beta" {
   region      = "europe-west1-b"
 }
 
+# gsutil versioning set on gs://moneycol-tf-state-dev
+terraform {
+  backend "gcs" {
+    bucket = "moneycol-tf-state-dev"
+    prefix = "terraform/state/cluster"
+  }
+}
+
 variable "cluster_zone" {
   default = "europe-west1-b"
 }
 
 resource "google_container_cluster" "main" {
-  name = "moneycol-main"
+  name    = "moneycol-main"
   project = "moneycol"
-  zone = "${var.cluster_zone}"
+  zone    = "${var.cluster_zone}"
 
   remove_default_node_pool = true
-  initial_node_count = 1
-  logging_service = "none"
-  monitoring_service = "none"
+  initial_node_count       = 1
+  logging_service          = "none"
+  monitoring_service       = "none"
 
   master_auth {
     username = "admin"
