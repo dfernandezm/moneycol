@@ -1,6 +1,6 @@
-# Server for MoneyCol
+#  Server for MoneyCol
 
-## Run locally
+##  Run locally
 
 ### Directly
 
@@ -10,21 +10,14 @@ Start Elasticsearch:
 npm run start:elasticsearch
 ```
 
-Start Node server in dev mode:
+For this script to work, edit `package.json` and set your Elasticsearch installation directory. Restore a backup to have data. [pending: docker setup with a backup]
+
+Start GraphQL server in dev mode:
 ```
-npm run build:dev
+ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev
 ```
 
-### Using Docker for Mac
-
-Make sure `elasticsearch.yaml` config has `network.host=0.0.0.0`
-
-```
-docker build . -t moneycol-server:v0.1.1-alpha
-npm run start:elasticsearch
-export LOCAL_IP=192.168.1.80
-docker run --name server-1 -e ELASTICSEARCH_ENDPOINT_WITH_PORT=192.168.1.80:9200 -p 4000:4000 -it moneycol-server:0.1.0-alpha3
-```
+Visit the playground for GraphQL at http://localhost:4000/graphql.
 
 ### GQL query for search
 
@@ -54,7 +47,7 @@ with parameters
   "searchTerm": "ireland" 
 }
 ```
-## Kubernetes proxied services
+## Kubernetes proxied services
 
 Through traefik:
 
@@ -70,21 +63,11 @@ $ kubectl proxy &
 http://localhost:8001/api/v1/namespaces/default/services/moneycolserver:80/proxy/graphql
 ```
 
-To put back LoadBalancer from GCP:
+## Exposing NodePort without LB
 
-- Change traefik `values.yaml` value `serviceType: LoadBalancer` to `serviceType: NodePort`
-- Re-run upgrade on the helm release
-```
-helm upgrade [traefik-release] deploy/traefik/chart
-```
+To save cost of LoadBalancer in GCP.
 
-## Exposing NodePort without LB
-
-Useful for dev or local env:
-
-https://stackoverflow.com/questions/42040238/how-to-expose-nodeport-to-internet-on-gce
-
-* Need to open a firewall rule, allowing TCP traffic on port range tcp:30000-32767. See
+* Need to open a firewall rule, allowing TCP traffic on port range tcp:30000-32767. This the the port range that Kubernetes uses to expose NodePort services. See
  example: https://console.cloud.google.com/networking/firewalls/details/nodeport-access?project=moneycol
  ```
  # Example
@@ -92,10 +75,11 @@ https://stackoverflow.com/questions/42040238/how-to-expose-nodeport-to-internet-
  gcloud compute instances list
  ```
 
-## Get IP and port
+### Get IP and port
 
 * IP
 ```
+# the node name can be any of them, can be checked with kubectl get nodes
 kubectl get node gke-moneycol-main-main-pool-ac0c4442-57ff -o json | jq '.status.addresses[1].address'
 ```
 
@@ -107,3 +91,18 @@ kubectl get svc traefik -n kube-system -o json | jq '.spec.ports[0].nodePort'
 
 - Option 1: use the port and the IP of any node (given the firewall rule) [working]
 - Option 2: add a f1-micro instance (3.88$/month), deploy HAProxy/Traefik/Nginx to point to the nodes
+
+
+### Put back LoadBalancer for production-like environment
+
+The service is exposed in GKE as NodePort to save cost of LoadBalancer. To put back LoadBalancer from GCP:
+
+- Change `deploy/traefik/chart/values.yaml` value `serviceType: LoadBalancer` to `serviceType: NodePort`
+- Re-run upgrade on the traefik helm release (this does not affect the underlying services, only the Ingress)
+```
+helm upgrade [traefik-release] deploy/traefik/chart
+```
+- The IP served is stable and can be linked to a CloudDNS domain name
+```
+kubectl -n kube-system get svc traefik
+```
