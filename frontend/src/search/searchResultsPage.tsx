@@ -9,7 +9,7 @@ import { RouteComponentProps } from 'react-router';
 import { useApolloClient } from '@apollo/react-hooks';
 import RenderRedirect from './redirectToResultsPage';
 
-//TODO: If we want bookmarks, this component should re-search if state from redirect is not present 
+// If we want bookmarks, this component should re-search if state from redirect is not present 
 // and the url contains the search term
 
 type ResultsPageState = {

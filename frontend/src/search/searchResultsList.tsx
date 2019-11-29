@@ -12,7 +12,6 @@ type SearchResultsListProps = {
 
 // Cards list: https://codepen.io/jonvadillo/pen/PzYyEW
 const SearchResultsList: React.FC<SearchResultsListProps> = ({ resultList = [], searchTerm = "" }) => {
-  console.log("ResultsList:", resultList);
   return (
     <div className="row">
       <SearchResultsMessage searchTerm={searchTerm} />

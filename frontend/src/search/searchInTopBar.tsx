@@ -19,7 +19,6 @@ const SearchInTopBar: React.FC = () => {
   // When submit button has been clicked, 
   useEffect(() => {
     if (submittingSearch) {
-      console.log("Searching...", searchTerm, usableSearchTerm);
       setRedirectToResults(true);
       setUsableSearchTerm(searchTerm);
     }
@@ -28,7 +27,6 @@ const SearchInTopBar: React.FC = () => {
   // While typing, we only consider search term with at least 3 characters
   useEffect(() => {
     if (searchTerm.length > 2) {
-      console.log("Usable search term: ", searchTerm);
       setUsableSearchTerm(searchTerm);
     }
   }, [searchTerm])
