@@ -1,3 +1,4 @@
+project: moneycol
 env: dev
 apiBaseUrl: "moneycolserver"
 image:

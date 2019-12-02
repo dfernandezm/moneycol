@@ -1,3 +1,5 @@
+project: moneycol
+env: dev
 image:
   registry: docker.elastic.co
   repository: elasticsearch/elasticsearch

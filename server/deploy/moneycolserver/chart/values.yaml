@@ -1,3 +1,4 @@
+project: moneycol
 env: dev
 image:
   repository: gcr.io/moneycol/moneycol-server

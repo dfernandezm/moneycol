@@ -52,4 +52,4 @@ spec:
               memory: 100Mi
 
       nodeSelector:
-         cloud.google.com/gke-nodepool: "main-pool"
+        cloud.google.com/gke-nodepool: "{{ .Values.project }}-{{ .Values.env }}-applications-pool"

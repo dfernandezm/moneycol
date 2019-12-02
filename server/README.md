@@ -86,7 +86,7 @@ kubectl get node gke-moneycol-main-main-pool-ac0c4442-57ff -o json | jq '.status
 * Port
 ```
 # first port in the output
-kubectl get svc traefik -n kube-system -o json | jq '.spec.ports[0].nodePort'
+kubectl get svc traefik -o json | jq '.spec.ports[0].nodePort'
 ```
 
 - Option 1: use the port and the IP of any node (given the firewall rule) [working]

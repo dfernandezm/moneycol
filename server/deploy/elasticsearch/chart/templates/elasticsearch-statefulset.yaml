@@ -74,7 +74,7 @@ spec:
               - key: elasticsearch.yml
                 path: elasticsearch.yml
       nodeSelector:
-         cloud.google.com/gke-nodepool: "elasticsearch-pool"
+         cloud.google.com/gke-nodepool: "{{ .Values.project }}-{{.Values.env}}-elasticsearch-pool"
   volumeClaimTemplates:
   - metadata:
       name: es-data

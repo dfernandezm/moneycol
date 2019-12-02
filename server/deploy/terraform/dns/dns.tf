@@ -12,7 +12,7 @@ terraform {
 }
 
 variable "dev_ip" {
-  default = "35.190.193.217"
+  default = "35.187.176.24"
 }
 
 resource "google_dns_managed_zone" "moneycol_zone_free_domain" {

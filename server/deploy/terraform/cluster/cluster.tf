@@ -1,25 +1,41 @@
+
+
+locals {
+  cluster_name            = "${var.project}-${var.environment}"
+  cluster_state_bucket    = "${var.project}-tf-state-${var.environment}"
+  state_bucket_prefix     = "terraform/state/cluster"
+  applications_pool_name  = "${var.project}-${var.environment}-applications-pool"
+  elasticsearch_pool_name = "${var.project}-${var.environment}-elasticsearch-pool"
+
+}
+
 provider "google-beta" {
   credentials = "${file("/Users/david/account.json")}"
-  project     = "moneycol"
-  region      = "europe-west1-b"
+  project     = "${var.project}"
+  region      = "${var.cluster_zone}"
 }
 
 # gsutil versioning set on gs://moneycol-tf-state-dev
 terraform {
-  backend "gcs" {
-    bucket = "moneycol-tf-state-dev"
-    prefix = "terraform/state/cluster"
+  backend "gcs" {}
+}
+
+data "terraform_remote_state" "state" {
+  backend = "gcs"
+  config = {
+    bucket = "${var.cluster_state_bucket}"
+    prefix = "${var.state_bucket_prefix}"
   }
 }
 
-variable "cluster_zone" {
-  default = "europe-west1-b"
-}
+# terraform init \ 
+#      -backend-config "bucket=$TF_VAR_bucket" \  
 
-resource "google_container_cluster" "main" {
-  name    = "moneycol-main"
-  project = "moneycol"
-  zone    = "${var.cluster_zone}"
+
+resource "google_container_cluster" "cluster" {
+  name     = "${local.cluster_name}"
+  project  = "${var.project}"
+  location = "${var.cluster_zone}"
 
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -27,8 +43,8 @@ resource "google_container_cluster" "main" {
   monitoring_service       = "none"
 
   master_auth {
-    username = "admin"
-    password = "4dmin_gcloud_moneycol_1"
+    username = ""
+    password = ""
 
     client_certificate_config {
       issue_client_certificate = false
@@ -36,21 +52,31 @@ resource "google_container_cluster" "main" {
   }
 }
 
-resource "google_container_node_pool" "main_node_pool" {
-  provider   = "google-beta"
-  name       = "main-pool"
-  location   = "europe-west1-b"
-  cluster    = "${google_container_cluster.main.name}"
-  node_count = 3
+resource "google_container_node_pool" "applications_node_pool" {
+  provider           = "google-beta"
+  name               = "${local.applications_pool_name}"
+  location           = google_container_cluster.cluster.location
+  cluster            = "${google_container_cluster.cluster.name}"
+  initial_node_count = 1
+
+
+  autoscaling {
+    # Minimum number of nodes in the NodePool. Must be >=0 and <= max_node_count.
+    min_node_count = 2
+
+    # Maximum number of nodes in the NodePool. Must be >= min_node_count.
+    max_node_count = var.applications_max_node_count
+  }
+
 
   management {
     auto_repair  = true
-    auto_upgrade = false
+    auto_upgrade = true
   }
 
   node_config {
     preemptible  = true
-    machine_type = "f1-micro"
+    machine_type = "${var.applications_machine_type}"
     disk_size_gb = 10
 
     oauth_scopes = [
@@ -60,24 +86,36 @@ resource "google_container_node_pool" "main_node_pool" {
       "https://www.googleapis.com/auth/monitoring",
     ]
   }
+
+  timeouts {
+    update = "10m"
+  }
 }
 
-resource "google_container_node_pool" "es_node_pool" {
-  provider   = "google-beta"
-  name       = "elasticsearch-pool"
-  location   = "europe-west1-b"
-  cluster    = "${google_container_cluster.main.name}"
-  node_count = 1
+resource "google_container_node_pool" "elasticsearch_node_pool" {
+  provider           = "google-beta"
+  name               = "${local.elasticsearch_pool_name}"
+  location           = google_container_cluster.cluster.location
+  cluster            = "${google_container_cluster.cluster.name}"
+  initial_node_count = 1
 
   management {
     auto_repair  = true
-    auto_upgrade = false
+    auto_upgrade = true
+  }
+
+  autoscaling {
+    # Minimum number of nodes in the NodePool. Must be >=0 and <= max_node_count.
+    min_node_count = 1
+
+    # Maximum number of nodes in the NodePool. Must be >= min_node_count.
+    max_node_count = var.elasticsearch_max_node_count
   }
 
   node_config {
     preemptible  = true
-    machine_type = "n1-standard-1"
-    disk_size_gb = 11
+    machine_type = "${var.elasticsearch_machine_type}"
+    disk_size_gb = 20
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/compute",
@@ -87,5 +125,3 @@ resource "google_container_node_pool" "es_node_pool" {
     ]
   }
 }
-
-# https://www.edureka.co/blog/kubernetes-dashboard/
