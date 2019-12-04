@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "traefik-dev"
+  labels:
+    app: {{ template "traefik.name" . }}
+    chart: {{ template "traefik.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  # use this if you want to inline in --set externalIps={a,b,c}
+  externalIPs: {{ .Values.externalIps }}
+  selector:
+    app: {{ template "traefik.name" . }}
+    release: {{ .Release.Name }}
+  ports:
+  - port: 80
+    name: http
+    targetPort: http
+  - port: 443
+    name: https
+
+    # helm upgrade --set externalIps={a,b,c} opining-frog deploy/traefik/chart --debug

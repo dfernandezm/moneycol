@@ -3,12 +3,25 @@ image: traefik
 imageTag: 1.7.19
 nameOverride: "traefik"
 fullnameOverride: "traefik"
+
+# Helm injects the IPs here at deployment time (custom deployment for traefik-dev service)
+# externalIps: |
+#     - "a"
+#     - "b"
+#     - "c"
+
+# externalIps: |
+#   externalIPs:
+#     - 10.132.0.9
+#     - 10.132.0.7
+#     - 10.132.0.2
+#     - 10.132.0.6
+
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 # imagePullSecrets:
 # - "regsecret"
-
 
 testFramework:
   image: "dduportal/bats"
@@ -28,7 +41,8 @@ replicas: 1
 # /ping health-check entry point.
 # pingEntryPoint: http
 
-podDisruptionBudget: {}
+podDisruptionBudget:
+  {}
   # maxUnavailable: 1
   # minAvailable: 2
 
@@ -45,7 +59,8 @@ debug:
 
 # maxIdleConnsPerHost: 200
 
-deploymentStrategy: {}
+deploymentStrategy:
+  {}
   # rollingUpdate:
   #   maxSurge: 1
   #   maxUnavailable: 0
@@ -55,9 +70,11 @@ securityContext: {}
 useNonPriviledgedPorts: false
 env: {}
 
-nodeSelector: {}
+nodeSelector:
+  {}
   # key: value
-affinity: {}
+affinity:
+  {}
   # key: value
 tolerations: []
 # - key: "key"
@@ -68,8 +85,8 @@ tolerations: []
 kubernetes:
   #endpoint:
   namespaces:
-  - default
-  - kube-system
+    - default
+    - kube-system
   # labelSelector:
   # ingressClass:
   # ingressEndpoint:
@@ -78,7 +95,8 @@ kubernetes:
   #   publishedService: "namespace/servicename"
   #   useDefaultPublishedService: false
 
-fileBackend: ""
+fileBackend:
+  ""
   # as in same traefik.toml
   #
   # [backends]
@@ -108,7 +126,8 @@ forwardedHeaders:
 ## Add arbitrary ConfigMaps to deployment
 ## Will be mounted to /configs/, i.e. myconfig.json would
 ## be mounted to /configs/myconfig.json.
-configFiles: {}
+configFiles:
+  {}
   # myconfig.json: |
   #   filecontents...
 
@@ -116,7 +135,8 @@ configFiles: {}
 ## Will be mounted to /secrets/, i.e. file.name would
 ## be mounted to /secrets/mysecret.txt.
 ## The contents will be base64 encoded when added
-secretFiles: {}
+secretFiles:
+  {}
   # mysecret.txt: |
   #   filecontents...
 
@@ -128,11 +148,13 @@ ssl:
   insecureSkipVerify: false
   generateTLS: false
   # defaultCN: "example.com"
-    # or *.example.com
-  defaultSANList: []
+  # or *.example.com
+  defaultSANList:
+    []
     # - example.com
     # - test1.example.com
-  defaultIPList: []
+  defaultIPList:
+    []
     # - 1.2.3.4
   # cipherSuites: []
   # https://docs.traefik.io/configuration/entrypoints/#specify-minimum-tls-version
@@ -144,7 +166,8 @@ ssl:
   # Basic auth to protect all the routes. Can use htpasswd to generate passwords
   # > htpasswd -n -b testuser testpass
   # > testuser:$apr1$JXRA7j2s$LpVns9vsme8FHN0r.aSt11
-  auth: {}
+  auth:
+    {}
     # basic:
     #   testuser: $apr1$JXRA7j2s$LpVns9vsme8FHN0r.aSt11
 
@@ -171,44 +194,40 @@ kvprovider:
   importAcme: false
 
   # etcd:
-    # endpoint: etcd-service:2379
-    # useAPIV3: false
-    # watch: true
-    # prefix: traefik
-
-    ## Override default configuration template.
-    ## For advanced users :)
-    ##
-    ## Optional
-    # filename: consul.tmpl
-    # username: foo
-    # password: bar
-    # tls:
-    #   ca: "/etc/ssl/ca.crt"
-    #   cert: "/etc/ssl/consul.crt"
-    #   key: "/etc/ssl/consul.key"
-    #   insecureSkipVerify: true
-    #
+  # endpoint: etcd-service:2379
+  # useAPIV3: false
+  # watch: true
+  # prefix: traefik
+  ## Override default configuration template.
+  ## For advanced users :)
+  ##
+  ## Optional
+  # filename: consul.tmpl
+  # username: foo
+  # password: bar
+  # tls:
+  #   ca: "/etc/ssl/ca.crt"
+  #   cert: "/etc/ssl/consul.crt"
+  #   key: "/etc/ssl/consul.key"
+  #   insecureSkipVerify: true
+  #
   # consul:
-    # endpoint: consul-service:8500
-    # watch: true
-    # prefix: traefik
-
-    ## Override default configuration template.
-    ## For advanced users :)
-    ##
-    ## Optional
-    # filename: consul.tmpl
-    # username: foo
-    # password: bar
-    # tls:
-    #   ca: "/etc/ssl/ca.crt"
-    #   cert: "/etc/ssl/consul.crt"
-    #   key: "/etc/ssl/consul.key"
-    #   insecureSkipVerify: true
-
-    ## only relevant for etcd
-
+  # endpoint: consul-service:8500
+  # watch: true
+  # prefix: traefik
+  ## Override default configuration template.
+  ## For advanced users :)
+  ##
+  ## Optional
+  # filename: consul.tmpl
+  # username: foo
+  # password: bar
+  # tls:
+  #   ca: "/etc/ssl/ca.crt"
+  #   cert: "/etc/ssl/consul.crt"
+  #   key: "/etc/ssl/consul.key"
+  #   insecureSkipVerify: true
+  ## only relevant for etcd
 
 acme:
   keyType: RSA4096
@@ -242,7 +261,8 @@ acme:
   ## Configure dnsProvider to perform domain verification using dns challenge
   ## Applicable only if using the dns-01 challenge type
   delayBeforeCheck: 0
-  resolvers: []
+  resolvers:
+    []
     # - 1.1.1.1:53
     # - 8.8.8.8:53
   dnsProvider:
@@ -351,23 +371,26 @@ dashboard:
   enabled: true
   domain: dashboard.localhost
   # serviceType: ClusterIP
-  service: {}
+  service:
+    {}
     # annotations:
     #   key: value
-  ingress: 
+  ingress:
     annotations:
-       kubernetes.io/ingress.class: "traefik"
+      kubernetes.io/ingress.class: "traefik"
     #   key: value
     # labels:
     #   key: value
     # tls:
-      # - hosts:
-      #   - traefik.example.com
-      #   secretName: traefik-default-cert
-  auth: {}
+    # - hosts:
+    #   - traefik.example.com
+    #   secretName: traefik-default-cert
+  auth:
+    {}
     # basic:
     #   username: password
-  statistics: {}
+  statistics:
+    {}
     ## Number of recent errors to show in the ‘Health’ tab
     # recentErrors:
 service:
@@ -393,18 +416,20 @@ accessLogs:
   enabled: true
   ## Path to the access logs file. If not provided, Traefik defaults it to stdout.
   # filePath: ""
-  format: common  # choices are: common, json
+  format: common # choices are: common, json
   ## for JSON logging, finer-grained control over what is logged. Fields can be
   ## retained or dropped, and request headers can be retained, dropped or redacted
   fields:
     # choices are keep, drop
     defaultMode: keep
-    names: {}
+    names:
+      {}
       # ClientUsername: drop
     headers:
       # choices are keep, drop, redact
       defaultMode: keep
-      names: {}
+      names:
+        {}
         # Authorization: redact
 rbac:
   enabled: true
@@ -418,14 +443,14 @@ metrics:
     restrictAccess: false
     # buckets: [0.1,0.3,1.2,5]
   # serviceMonitor:
-    # When set true and if Prometheus Operator is installed then use a ServiceMonitor to configure scraping
-    # enabled: false
-    # Set the namespace the ServiceMonitor should be deployed
-    # namespace: monitoring
-    # Set how frequently Prometheus should scrape
-    # interval: 30s
-    # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
-    # labels:
+  # When set true and if Prometheus Operator is installed then use a ServiceMonitor to configure scraping
+  # enabled: false
+  # Set the namespace the ServiceMonitor should be deployed
+  # namespace: monitoring
+  # Set how frequently Prometheus should scrape
+  # interval: 30s
+  # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+  # labels:
   datadog:
     enabled: false
     # address: localhost:8125
@@ -506,7 +531,8 @@ tracing:
 #   trustForwardHeader: true
 
 # Any extra volumes to define for the pod
-extraVolumes: []
+extraVolumes:
+  []
   # - name: example-name
   #   hostPath:
   #     path: /path/on/host
