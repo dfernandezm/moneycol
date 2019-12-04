@@ -8,10 +8,13 @@ Just run `npm start`. That would start the Webpack dev server, but the GraphQL q
 
 ## Run locally with backend
 
-* Start the backend server (more details in [server startup](https://github.com/dfernandezm/moneycol))
+### Elasticsearch
+* Unzip the `data.zip` folder in a known location in your machine
+
+
+* Start the backend server (more details in [server startup](https://github.com/dfernandezm/moneycol/server/README.md))
 ```
 $ cd server
-$ npm run start:elasticsearch
 $ ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev
 ```
 
