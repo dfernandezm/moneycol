@@ -54,6 +54,6 @@ resource "google_dns_record_set" "moneycol_dev" {
   rrdatas = [
     "${var.dev_ip}",
   ]
-  ttl  = 120
+  ttl  = 30
   type = "A"
 }

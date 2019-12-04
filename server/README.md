@@ -137,3 +137,85 @@ With terraform the NS are fixed to a name in moneycol project already. This way 
 $ terraform plan 
 $ terraform apply
 ```
+
+## Elasticsearch backup/restore
+
+Download elasticsearch:
+```
+#
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.5.0.tar.gz
+tar xvf elasticsearch-6.5.0.tar.gz
+
+# Upgrade from 5.3.0 to the dockerized one (6.5.0)
+cp -R elasticsearch-5.3.0/data elasticsearch-6.5.0
+cp -R elasticsearch-5.3.0/config elasticsearch-6.5.0
+```
+
+
+Install the plugin:
+```
+sudo bin/elasticsearch-plugin install repository-gcs
+```
+
+After the installation ensure you **restart Elasticsearch**.
+
+Ensure service account for gcs has storage admin roles for the backup bucket (change the role, it's too much privileges):
+
+```
+# Create the service account first
+gcloud projects add-iam-policy-binding moneycol \                                                      
+  --member serviceAccount:gcs-buckets@moneycol.iam.gserviceaccount.com \
+  --role roles/storage.admin
+```
+
+Get the service account key for gcs buckets:
+```
+# This can be done from the command line
+Console > Iam & Admin > Service accounts > gcs-buckets > JSON key
+Copy json to /tmp
+```
+
+Create a keystore for ES (locally and cloud):
+```
+bin/elasticsearch-keystore create
+
+bin/elasticsearch-keystore add-file gcs.client.moneycol_dev.credentials_file /tmp/gcs-buckets-service-account.json
+```
+
+* Instructions 1: https://www.elastic.co/guide/en/elasticsearch/reference/6.5/secure-settings.html
+* Instructions 2: https://www.elastic.co/guide/en/elasticsearch/reference/5.6/rolling-upgrades.html
+Create/use a bucket for ElasticSearch snapshots repository:
+
+```
+curl -i -H "Content-Type: application/json" -XPUT http://localhost:9200/_snapshot/moneycol_elastic_dev -d '{"type":"gcs","settings":{"bucket":"moneycol-dev-elasticsearch-snapshots","region":"europe-west1","client":"moneycol_dev","compress":true}}'
+```
+
+Take a snapshot:
+```
+curl -i -H "Content-Type: application/json" -XPUT http://localhost:9200/_snapshot/moneycol_elastic_dev/snapshot_moneycol_1?wait_for_completion=true -d '{
+"indices": "banknotes-catalog-en,banknotes-catalog-es",
+  "ignore_unavailable": true,
+  "include_global_state": false,
+  "metadata": {
+    "taken_by": "david",
+    "taken_because": "local backup for GCP"
+  }}'
+```
+## Alternative to NodePort to get services on port 80/443
+
+Only Kubernetes Services of type LoadBalancer support this. A workable workaround has been found [here](https://serverfault.com/questions/801189/expose-port-80-and-443-on-google-container-engine-without-load-balancer)
+
+Steps:
+
+- Create a variant of `traefik` service that lists the internal IPs of every node in the cluster (see: `deploy/traefik/service-externalIps.yaml)
+- This service requires all **internal IPs** of the cluster nodes. These can be obtained like this:
+```
+# Internal IP
+kubectl get nodes -o json | jq '.items[i].status.addresses[0].address'
+# External IP
+kubectl get nodes -o json | jq '.items[i].status.addresses[1].address'
+```
+- Once the internal Ips are populated the service can be then deployed alongside `traefik` chart.
+- In the GKE dashboard, observe a new `traefik-dev` service
+- The DNS can now be updated to the IP of **any** node in the cluster
+- The service should be available in port 80/443 now through its DNS after the update
