@@ -9,8 +9,11 @@ import { ApolloProvider } from '@apollo/react-hooks'
 
 import { Main } from './main';
 
+const URL = process.env.NODE_ENV == 'production' ? "graphql" : "http://localhost:4000/graphql"
+console.log("GraphQL uri is: ", URL)
+
 const client = new ApolloClient({
-  uri: "graphql",
+  uri: URL,
 });
 
 const WrappedApp = (
