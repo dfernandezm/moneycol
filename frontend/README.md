@@ -2,15 +2,31 @@
 
 This is the frontend of the system. Written in React, Typescript, Graphql and `create-react-app`.
 
-## Run locally without backend
+## Without backend
 
 Just run `npm start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use it for styling and static development.
 
-## Run locally with backend
+## With backend
+
+A recent distribution of [Docker for Mac]() is required to run backend locally
 
 ### Elasticsearch
-* Unzip the `data.zip` folder in a known location in your machine
 
+* Unzip the `data.zip` folder in a known location in your machine (don't commit the unzipped data). For example:
+```
+mkdir /Users/myuser/elasticsearch-data
+cd /Users/myuser/elasticsearch-data
+unzip data.zip
+```
+
+* Rename `.env.template` to `.env` present in the root folder and populate the environment variable `ES_DATA_PATH`
+with the full path to the unzipped data folder in the previous step.
+
+* Open a dedicated tab in your terminal. Run `docker-compose up`. This should start the Elasticsearch service
+
+* Check in your browser the data is present `http://localhost:9200/_cat/indices`
+
+### Server (GraphQL)
 
 * Start the backend server (more details in [server startup](https://github.com/dfernandezm/moneycol/server/README.md))
 ```
