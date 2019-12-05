@@ -178,7 +178,6 @@ Copy json to /tmp
 Create a keystore for ES (locally and cloud):
 ```
 bin/elasticsearch-keystore create
-
 bin/elasticsearch-keystore add-file gcs.client.moneycol_dev.credentials_file /tmp/gcs-buckets-service-account.json
 ```
 
