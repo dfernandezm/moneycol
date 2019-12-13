@@ -44,7 +44,7 @@ const Login: React.FC = (props:any) => {
   const [state, setState] = useState({ email: "", password: "" });
 
   const handleEmailChange = ({ target }) => {
-    this.setState({ email: target.value });
+    setState({...state, email: target.value });
   };
 
   const handlePasswordChange = ({ target }) => {

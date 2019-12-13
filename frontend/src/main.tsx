@@ -12,18 +12,14 @@ import Home from './home/home';
 import { NavBar } from './navbar/navBar';
 
 import { connect } from "react-redux";
-import ProtectedRoute from "./login/ProtectedRoute";
-
-import { Provider } from "react-redux";
-//import App from "./App";
-import configureStore from "./configureStore";
-const store = configureStore();
+import ProtectedRoute from "./login/protectedRoute";
+import Login from "./login/login";
 
 
 const Main: React.FC = (props:any) => {
   const { isAuthenticated, isVerifying } = props;
   return (
-    <Provider store={store}>
+   
     <BrowserRouter>
       <NavBar />
       <div className="mainpage">
@@ -38,12 +34,13 @@ const Main: React.FC = (props:any) => {
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
             />
+            <Route path="/login" component={Login} />
           </Switch>
         </div>
       </div>
 
     </BrowserRouter>
-    </Provider>
+
   );
 }
 
