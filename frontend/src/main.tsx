@@ -28,6 +28,7 @@ const Main: React.FC = (props:any) => {
           <Switch>
             <Route exact={true} path="/" component={Home} />
             <Route path="/searchResultsPage" component={withRouter(SearchResultsPage)} />
+
             <ProtectedRoute
               exact
               path="/protected"
@@ -35,6 +36,7 @@ const Main: React.FC = (props:any) => {
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
             />
+            
             <Route path="/login" component={Login} />
           </Switch>
         </div>
