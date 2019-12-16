@@ -13,6 +13,7 @@ import { NavBar } from './navbar/navBar';
 
 import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";
+import Protected from "./login/protected";
 import Login from "./login/login";
 
 
@@ -30,7 +31,7 @@ const Main: React.FC = (props:any) => {
             <ProtectedRoute
               exact
               path="/protected"
-              component={Home}
+              component={Protected}
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
             />
