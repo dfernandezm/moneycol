@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { loginUser } from "../actions";
@@ -42,13 +42,13 @@ const styles: any = () => ({
 
 const Login: React.FC = (props:any) => {
   const [state, setState] = useState({ email: "", password: "" });
-
-  const handleEmailChange = ({ target }) => {
-    setState({...state, email: target.value });
+    
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({...state, email: event.target.value });
   };
 
-  const handlePasswordChange = ({ target }) => {
-    setState({...state, password: target.value });
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({...state, password: event.target.value });
   };
 
   const handleSubmit = () => {
