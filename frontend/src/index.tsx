@@ -19,7 +19,6 @@ const client = new ApolloClient({
   uri: URL,
 });
 
-
 const store = configureStore();
 
 const WrappedApp = (
