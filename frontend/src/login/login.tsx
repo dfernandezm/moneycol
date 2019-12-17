@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { connect, ConnectedProps } from "react-redux";
+import { connect, ConnectedProps, useDispatch } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { loginUser } from "../actions";
 import { withStyles } from "@material-ui/styles";
@@ -44,7 +44,8 @@ const styles: any = () => ({
 
 const Login: React.FC = (props:any) => {
   const [state, setState] = useState({ email: "", password: "" });
-    
+  const dispatch = useDispatch();
+  
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({...state, email: event.target.value });
   };
@@ -54,10 +55,13 @@ const Login: React.FC = (props:any) => {
   };
 
   const handleSubmit = () => {
-    const { dispatch } = props;
+    //const { dispatch } = props;
     const { email, password } = state;
 
-    dispatch(loginUser(email, password));
+    const loginDispatcher = loginUser(email, password);
+    loginDispatcher(dispatch);
+
+    //dispatch(loginUser(email, password));
   };
 
   const { classes, loginError, isAuthenticated } = props;
