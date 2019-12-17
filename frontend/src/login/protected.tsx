@@ -11,7 +11,8 @@ type ProtectedComponentProps = {
 }
 
 const Protected: React.FC<ProtectedComponentProps> = (props: ProtectedComponentProps) => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    
     const handleLogout = () => {
        
         //const { dispatch } = props;
