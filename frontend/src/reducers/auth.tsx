@@ -6,22 +6,23 @@ import {
     LOGOUT_SUCCESS,
     LOGOUT_FAILURE,
     VERIFY_REQUEST,
-    VERIFY_SUCCESS
+    VERIFY_SUCCESS,
+    AuthenticationState,
+    AuthenticationActionTypes
   } from "../actions/";
 
+  const defaultState: AuthenticationState = {
+    isLoggingIn: false,
+    isLoggingOut: false,
+    isVerifying: false,
+    loginError: false,
+    logoutError: false,
+    isAuthenticated: false,
+    verifyingError: false,
+    user: {}
+  }
 
-    export default (
-        state = {
-          isLoggingIn: false,
-          isLoggingOut: false,
-          isVerifying: false,
-          loginError: false,
-          logoutError: false,
-          isAuthenticated: false,
-          user: {}
-        },
-        action
-      ) => {
+    export default (state = defaultState, action: AuthenticationActionTypes ): AuthenticationState => {
         switch (action.type) {
             case LOGIN_REQUEST:
                 return {

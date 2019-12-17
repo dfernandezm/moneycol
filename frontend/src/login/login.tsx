@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
+import { connect, ConnectedProps } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { loginUser } from "../actions";
 import { withStyles } from "@material-ui/styles";
@@ -11,6 +11,8 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import Container from "@material-ui/core/Container";
+
+import {RootState} from '../reducers'
 
 const styles: any = () => ({
   "@global": {
@@ -112,7 +114,8 @@ const Login: React.FC = (props:any) => {
     }
 }
 
-function mapStateToProps(state) {
+//https://redux.js.org/recipes/usage-with-typescript
+const mapState = (state: RootState) => {
   return {
     isLoggingIn: state.auth.isLoggingIn,
     loginError: state.auth.loginError,
@@ -120,4 +123,18 @@ function mapStateToProps(state) {
   };
 }
 
-export default withStyles(styles)(connect(mapStateToProps)(Login));
+// empty
+const mapDispatch = {}
+
+const connector = connect(
+    mapState,
+    mapDispatch
+  )
+
+//TODO: to remove the 'any' in Props
+//   type PropsFromRedux = ConnectedProps<typeof connector>
+//   type Props = PropsFromRedux & {
+//     backgroundColor: string
+//   }
+
+export default withStyles(styles)(connector(Login));

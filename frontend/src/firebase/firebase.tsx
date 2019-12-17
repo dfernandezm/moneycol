@@ -2,6 +2,7 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
 
+//TODO: try to remove this
 const firebaseConfig = {
     apiKey: "AIzaSyDImTA3-o5ew92DQ4pg0-nVKTHR92ncq-U",
     authDomain: "moneycol.firebaseapp.com",
