@@ -13,8 +13,9 @@ import { NavBar } from './navbar/navBar';
 
 import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";
-import Protected from "./login/protected";
+import Protected  from "./login/protected";
 import Login from "./login/login";
+import { RootState } from './reducers';
 
 
 const Main: React.FC = (props:any) => {
@@ -34,8 +35,7 @@ const Main: React.FC = (props:any) => {
               path="/protected"
               component={Protected}
               isAuthenticated={isAuthenticated}
-              isVerifying={isVerifying}
-            />
+              isVerifying={isVerifying} />
             
             <Route path="/login" component={Login} />
           </Switch>
@@ -47,11 +47,19 @@ const Main: React.FC = (props:any) => {
   );
 }
 
-function mapStateToProps(state) {
+const mapState = (state: RootState) => {
   return {
     isAuthenticated: state.auth.isAuthenticated,
     isVerifying: state.auth.isVerifying
   };
 }
 
-export default connect(mapStateToProps)(Main);
+// empty
+const mapDispatch = {}
+
+const connector = connect(
+  mapState,
+  mapDispatch
+)
+
+export default connector(Main);

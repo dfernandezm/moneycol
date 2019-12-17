@@ -1,11 +1,23 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import { logoutUser } from "../actions";
+import { RootState } from "../reducers"
+import { Dispatch } from 'redux';
 
-const Protected: React.FC = (props: any) => {
+type ProtectedComponentProps = {
+    isLoggingOut: boolean
+    logoutError: boolean
+    //dispatch: Dispatch
+}
+
+const Protected: React.FC<ProtectedComponentProps> = (props: ProtectedComponentProps) => {
+    const dispatch = useDispatch()
     const handleLogout = () => {
-        const { dispatch } = props;
-        dispatch(logoutUser());
+       
+        //const { dispatch } = props;
+        const logoutDispatcher = logoutUser();
+        logoutDispatcher(dispatch);
+        //dispatch(logoutUser());
     };
     const { isLoggingOut, logoutError } = props;
 
@@ -20,11 +32,20 @@ const Protected: React.FC = (props: any) => {
     );
 }
 
-function mapStateToProps(state) {
+const mapState = (state: RootState) => {
     return {
         isLoggingOut: state.auth.isLoggingOut,
         logoutError: state.auth.logoutError
     };
 }
 
-export default connect(mapStateToProps)(Protected);
+
+// empty
+const mapDispatch = {}
+
+const connector = connect(
+    mapState,
+    mapDispatch
+)
+
+export default connector(Protected);
