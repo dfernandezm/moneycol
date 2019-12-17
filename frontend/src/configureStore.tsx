@@ -1,16 +1,19 @@
-import { applyMiddleware, createStore } from "redux";
+import { applyMiddleware, createStore, Store } from "redux";
 import thunkMiddleware from "redux-thunk";
-import { verifyAuth } from "./actions/";
+import { verifyAuthWithDispatch } from "./actions/";
 import rootReducer from "./reducers";
-import { auth } from "firebase";
 
-export default function configureStore(persistedState = {}) {
-    const store = createStore(
-      rootReducer,
-      persistedState,
-      applyMiddleware(thunkMiddleware)
-    );
-    const authVerify: any = verifyAuth()
-    store.dispatch(authVerify);
-    return store;
-  }
+const configureStore = (persistedState = {}) => {
+
+  const store: Store = createStore(
+    rootReducer,
+    persistedState,
+    applyMiddleware(thunkMiddleware)
+  );
+
+  // const authVerify: any = verifyAuth();
+  verifyAuthWithDispatch(store.dispatch)
+  return store;
+}
+
+export default configureStore;

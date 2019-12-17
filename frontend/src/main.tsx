@@ -17,8 +17,14 @@ import Protected  from "./login/protected";
 import Login from "./login/login";
 import { RootState } from './reducers';
 
+//TOOD: how are these props coming in there, from where they are coming from?
+export interface MainProps {
+  isAuthenticated: boolean,
+  isVerifying: boolean
+}
 
-const Main: React.FC = (props:any) => {
+const Main: React.FC<MainProps> = (props: MainProps) => {
+  console.log("Props", props);
   const { isAuthenticated, isVerifying } = props;
   return (
    

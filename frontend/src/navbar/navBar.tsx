@@ -7,6 +7,8 @@ import './navBar.css';
 import logo from './moneycol-logo.png';
 import SearchInTopBar from '../search/searchInTopBar';
 
+type El = HTMLElement | null;
+
 const NavBar: React.FC = () => {
 
     const [measures, setMeasures] = useState({ top: 0, height: 0, scroll: -1 });
@@ -14,10 +16,12 @@ const NavBar: React.FC = () => {
 
     useEffect(() => {
         if (initLoad) {
-            const el: any = document.querySelector('nav');
-            setMeasures({ top: el.offsetTop, height: el.offsetHeight, scroll: -1 });
-            setInitLoad(false);
-            window.addEventListener('scroll', handleScroll);
+            const el: El = document.querySelector('nav');
+            if (el != null) {
+                setMeasures({ top: el.offsetTop, height: el.offsetHeight, scroll: -1 });
+                setInitLoad(false);
+                window.addEventListener('scroll', handleScroll);
+            }
         } else {
             measures.scroll > measures.top ?
                 document.body.style.paddingTop = `${measures.height}px` :

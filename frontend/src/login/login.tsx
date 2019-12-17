@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { connect, ConnectedProps, useDispatch } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { loginUser } from "../actions";
-import { withStyles } from "@material-ui/styles";
+import { withStyles, createStyles } from "@material-ui/styles";
 
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -12,9 +12,10 @@ import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import Container from "@material-ui/core/Container";
 
-import {RootState} from '../reducers'
+import { RootState } from '../reducers'
+import { CssBaselineClassKey } from "@material-ui/core";
 
-const styles: any = () => ({
+const styles = createStyles({
   "@global": {
     body: {
       backgroundColor: "#fff"
@@ -42,26 +43,34 @@ const styles: any = () => ({
   }
 });
 
-const Login: React.FC = (props:any) => {
+interface LoginProps {
+  classes: any
+  loginError: boolean
+  isAuthenticated: boolean
+  isLoggingIn: boolean
+}
+
+const Login: React.FC<LoginProps> = (props: LoginProps) => {
+
   const [state, setState] = useState({ email: "", password: "" });
   const dispatch = useDispatch();
-  
+
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({...state, email: event.target.value });
+    setState({ ...state, email: event.target.value });
   };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({...state, password: event.target.value });
+    setState({ ...state, password: event.target.value });
   };
 
   const handleSubmit = () => {
-    //const { dispatch } = props;
-    const { email, password } = state;
+    // const { dispatch } = props;
+    // dispatch(loginUser(email, password));
 
+    const { email, password } = state;
     const loginDispatcher = loginUser(email, password);
     loginDispatcher(dispatch);
 
-    //dispatch(loginUser(email, password));
   };
 
   const { classes, loginError, isAuthenticated } = props;
@@ -69,53 +78,52 @@ const Login: React.FC = (props:any) => {
   if (isAuthenticated) {
     return <Redirect to="/protected" />;
   } else {
-      return (
-        <Container component="main" maxWidth="xs">
-          <Paper className={classes.paper}>
-            <Avatar className={classes.avatar}>
-              <LockOutlinedIcon />
-            </Avatar>
-            <Typography component="h1" variant="h5">
-              Sign in
+    return (
+      <Container component="main" maxWidth="xs">
+        <Paper className={classes.paper}>
+          <Avatar className={classes.avatar}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign in
             </Typography>
-            <TextField
-              variant="outlined"
-              margin="normal"
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              onChange={handleEmailChange}
-            />
-            <TextField
-              variant="outlined"
-              margin="normal"
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              onChange={handlePasswordChange}
-            />
-            {loginError && (
-              <Typography component="p" className={classes.errorText}>
-                Incorrect email or password.
+          <TextField
+            variant="outlined"
+            margin="normal"
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            onChange={handleEmailChange}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            onChange={handlePasswordChange}
+          />
+          {loginError && (
+            <Typography component="p" className={classes.errorText}>
+              Incorrect email or password.
               </Typography>
-            )}
-            <Button
-              type="button"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-              onClick={handleSubmit}
-            >
-              Sign In
+          )}
+          <Button
+            type="button"
+            fullWidth
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            onClick={handleSubmit}>
+            Sign In
             </Button>
-          </Paper>
-        </Container>
-      );
-    }
+        </Paper>
+      </Container>
+    );
+  }
 }
 
 //https://redux.js.org/recipes/usage-with-typescript
@@ -131,9 +139,9 @@ const mapState = (state: RootState) => {
 const mapDispatch = {}
 
 const connector = connect(
-    mapState,
-    mapDispatch
-  )
+  mapState,
+  mapDispatch
+)
 
 //TODO: to remove the 'any' in Props
 //   type PropsFromRedux = ConnectedProps<typeof connector>
