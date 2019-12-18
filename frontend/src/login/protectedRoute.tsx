@@ -1,7 +1,8 @@
-import React, { Component, ComponentType } from "react";
+import React, { ComponentType } from "react";
 import { Route, Redirect, RouteComponentProps } from "react-router-dom";
-import { Dispatch } from 'redux';
 
+//TODO: write a documentation about this: how PartialProtectedRouteProps works and 
+// how ...rest is separated at least 
 export type PartialProtectedRouteProps<T> = Pick<T, Exclude<keyof T, keyof ProtectedRouteProps>>
 export type ComponentWithDispatch = ComponentType
 

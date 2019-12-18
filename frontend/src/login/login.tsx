@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { connect, ConnectedProps, useDispatch } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { loginUser } from "../actions";
+import { loginUser } from "./actions";
 import { withStyles, createStyles } from "@material-ui/styles";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -12,8 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import Container from "@material-ui/core/Container";
 
-import { RootState } from '../reducers'
-import { CssBaselineClassKey } from "@material-ui/core";
+import { RootState } from './reducers'
 
 const styles = createStyles({
   "@global": {
@@ -44,7 +43,7 @@ const styles = createStyles({
 });
 
 interface LoginProps {
-  classes: any
+  classes: any //TODO: investigate what's the type of this
   loginError: boolean
   isAuthenticated: boolean
   isLoggingIn: boolean
@@ -64,13 +63,9 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
   };
 
   const handleSubmit = () => {
-    // const { dispatch } = props;
-    // dispatch(loginUser(email, password));
-
     const { email, password } = state;
     const loginDispatcher = loginUser(email, password);
     loginDispatcher(dispatch);
-
   };
 
   const { classes, loginError, isAuthenticated } = props;

@@ -1,9 +1,9 @@
 import { applyMiddleware, createStore, Store } from "redux";
 import thunkMiddleware from "redux-thunk";
-import { verifyAuthWithDispatch } from "./actions/";
-import rootReducer from "./reducers";
+import { verifyAuthWithDispatch } from "./login/actions";
+import rootReducer from "./login/reducers";
 
-const configureStore = (persistedState = {}) => {
+const configureStore = (persistedState = {}): Store => {
 
   const store: Store = createStore(
     rootReducer,
@@ -11,7 +11,6 @@ const configureStore = (persistedState = {}) => {
     applyMiddleware(thunkMiddleware)
   );
 
-  // const authVerify: any = verifyAuth();
   verifyAuthWithDispatch(store.dispatch)
   return store;
 }

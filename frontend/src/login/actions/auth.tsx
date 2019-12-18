@@ -1,4 +1,4 @@
-import { myFirebase } from "../firebase/firebase";
+import { myFirebase } from "../../firebase/firebase";
 //import { Dispatch } from 'redux';
 import {Action, ActionCreator, Dispatch} from 'redux';
 import AuthenticationState from "../reducers"
