@@ -9,7 +9,7 @@ import {
     VERIFY_SUCCESS,
     AuthenticationState,
     AuthenticationActionTypes
-  } from "../actions/";
+  } from "../actions";
 
   const defaultState: AuthenticationState = {
     isLoggingIn: false,

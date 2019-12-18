@@ -1,25 +1,22 @@
-import React, { Component } from "react";
+import React from "react";
 import { connect, useDispatch } from "react-redux";
-import { logoutUser } from "../actions";
-import { RootState } from "../reducers"
-import { Dispatch } from 'redux';
+import { logoutUser } from "./actions";
+import { RootState } from "./reducers"
 
 type ProtectedComponentProps = {
     isLoggingOut: boolean
     logoutError: boolean
-    //dispatch: Dispatch
 }
 
 const Protected: React.FC<ProtectedComponentProps> = (props: ProtectedComponentProps) => {
     const dispatch = useDispatch();
     
     const handleLogout = () => {
-       
-        //const { dispatch } = props;
+        // doing it this way we don't pick 'dispatch' from the props but from the hook
         const logoutDispatcher = logoutUser();
         logoutDispatcher(dispatch);
-        //dispatch(logoutUser());
     };
+
     const { isLoggingOut, logoutError } = props;
 
     return (
@@ -39,7 +36,6 @@ const mapState = (state: RootState) => {
         logoutError: state.auth.logoutError
     };
 }
-
 
 // empty
 const mapDispatch = {}

@@ -15,17 +15,18 @@ import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";
 import Protected  from "./login/protected";
 import Login from "./login/login";
-import { RootState } from './reducers';
+import { RootState } from './login/reducers';
 
-//TOOD: how are these props coming in there, from where they are coming from?
+//TODO: where are these values coming from? the call to <Main /> is without props
 export interface MainProps {
   isAuthenticated: boolean,
   isVerifying: boolean
 }
 
 const Main: React.FC<MainProps> = (props: MainProps) => {
-  console.log("Props", props);
+
   const { isAuthenticated, isVerifying } = props;
+
   return (
    
     <BrowserRouter>
@@ -49,7 +50,6 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
       </div>
 
     </BrowserRouter>
-
   );
 }
 
