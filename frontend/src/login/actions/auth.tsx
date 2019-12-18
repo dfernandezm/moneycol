@@ -1,6 +1,6 @@
 import { myFirebase } from "../../firebase/firebase";
 //import { Dispatch } from 'redux';
-import {Action, ActionCreator, Dispatch} from 'redux';
+import { Action, ActionCreator, Dispatch } from 'redux';
 import AuthenticationState from "../reducers"
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
@@ -11,7 +11,6 @@ export const LOGOUT_SUCCESS = "LOGOUT_SUCCESS";
 export const LOGOUT_FAILURE = "LOGOUT_FAILURE";
 export const VERIFY_REQUEST = "VERIFY_REQUEST";
 export const VERIFY_SUCCESS = "VERIFY_SUCCESS";
-
 
 export interface FirebaseUser {
   username: string,
@@ -65,10 +64,11 @@ interface VerifySuccessAction {
   type: typeof VERIFY_SUCCESS
 }
 
-export type AuthenticationActionTypes = RequestLoginAction | ReceiveLoginAction | 
-                                        RequestLogoutAction | ReceiveLoginFailureAction |
-                                        RequestLogoutFailureAction | ReceiveLogoutAction |
-                                        VerifyRequestAction | VerifySuccessAction;
+export type AuthenticationActionTypes = 
+  RequestLoginAction | ReceiveLoginAction |
+  RequestLogoutAction | ReceiveLoginFailureAction |
+  RequestLogoutFailureAction | ReceiveLogoutAction |
+  VerifyRequestAction | VerifySuccessAction;
 
 const requestLogin: ActionCreator<RequestLoginAction> = () => {
   return {
@@ -119,45 +119,64 @@ const verifySuccess = () => {
   };
 };
 
-export const loginUser = (email: string, password: string) => 
+export const loginUser = (email: string, password: string) =>
   (dispatch: Dispatch<Action>) => {
-    const a: RequestLoginAction  = requestLogin()
-    dispatch(a);
-    myFirebase
-      .auth()
-      .signInWithEmailAndPassword(email, password)
-      .then((userCredential: firebase.auth.UserCredential) => {
-        dispatch(receiveLogin(userCredential.user));
-      })
-      .catch(error => {
-        //Do something with the error if you want!
-        dispatch(loginError());
-      });
+    const requestLoginAction: RequestLoginAction = requestLogin()
+    dispatch(requestLoginAction);
+
+    myFirebase()
+    .then(firebase => 
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+        .then((userCredential: firebase.auth.UserCredential) => {
+          dispatch(receiveLogin(userCredential.user));
+        })
+        .catch(() => {
+          //Do something with the error if you want!
+          dispatch(loginError());
+        })
+    );
   }
 
-export const logoutUser = () => 
+const tokenFromUser = async (user: firebase.User) => {
+  //const user = myFirebase.auth().currentUser;
+  if (user) {
+    try {
+      const idToken = await user.getIdToken(/* forceRefresh */ true)
+    } catch (error) {
+      console.log("Error retrieving token: ", error)
+    }
+  }
+}
+
+export const logoutUser = () =>
   (dispatch: Dispatch<RequestLogoutAction>) => {
     dispatch(requestLogout());
-    myFirebase
-      .auth()
-      .signOut()
-      .then(() => {
-        dispatch(receiveLogout());
-      })
-      .catch(error => {
-        //Do something with the error if you want!
-        dispatch(logoutError());
-      });
+    myFirebase()
+      .then(firebase => 
+        firebase.auth().signOut()
+        .then(() => {
+          dispatch(receiveLogout());
+        }).catch(() => {
+          //Do something with the error if you want!
+          dispatch(logoutError());
+        })
+      ); 
   };
 
 export const verifyAuthWithDispatch = (dispatch: Dispatch) => {
   dispatch(verifyRequest());
-  myFirebase.auth().onAuthStateChanged(user => {
-    if (user !== null) {
-      dispatch(receiveLogin(user));
-    }
-    dispatch(verifySuccess());
-  });
+  myFirebase()
+      .then(firebase => {
+        console.log("Firebase", firebase); 
+        firebase.auth().onAuthStateChanged((user: firebase.User) => {
+          if (user !== null) {
+            dispatch(receiveLogin(user));
+          }
+          dispatch(verifySuccess());
+        })
+      });
 };
 
 export const verifyAuth = () => verifyAuthWithDispatch;
