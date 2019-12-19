@@ -2,6 +2,8 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
 
+//TODO: Firebase should be in server side under an interface as Auth provider
+// This works in production/deployed as there is an ingress rule for /api that points to moneycolserver
 const FIREBASE_CONFIG_URL = process.env.NODE_ENV == 'production' ? "api/firebaseConfig" : 
                                     "http://localhost:4000/api/firebaseConfig"
 

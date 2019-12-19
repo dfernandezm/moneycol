@@ -4,6 +4,7 @@ var proxy = require('express-http-proxy');
 const path = require('path');
 const app = express();
 
+// This in injected into the container from the deployment.yaml (chart)
 const API_BASE_URL = process.env.API_BASE_URL || "localhost:4000"
 
 app.use(express.static(path.join(__dirname, '../build')));
