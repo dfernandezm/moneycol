@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 //import App from "./App";
 import configureStore from "./configureStore";
 
+// This works in production/deployed as there is an ingress rule for /graphql that points to moneycolserver
 const URL = process.env.NODE_ENV == 'production' ? "graphql" : "http://localhost:4000/graphql"
 console.log("GraphQL uri is: ", URL)
 
