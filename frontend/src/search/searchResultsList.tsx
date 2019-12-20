@@ -1,5 +1,6 @@
 import React from 'react';
-import './css/searchResult.css';
+
+import Container from '@material-ui/core/Container';
 
 import SearchResultItem from './searchResultItem';
 import SearchResultsMessage from './searchResultsMessage';
@@ -10,20 +11,16 @@ type SearchResultsListProps = {
   searchTerm: string
 }
 
-// Cards list: https://codepen.io/jonvadillo/pen/PzYyEW
 const SearchResultsList: React.FC<SearchResultsListProps> = ({ resultList = [], searchTerm = "" }) => {
   return (
-    <div className="row">
-      <SearchResultsMessage searchTerm={searchTerm} />
-      <div className="results">
-        <div className="col s10 m10 card-container">
-          {resultList.map((banknote, index) => {
-            console.log("Banknote: ", banknote);
-            return <SearchResultItem item={banknote} index={index} key={banknote.catalogCode} />;
-          })}
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg">
+       <SearchResultsMessage searchTerm={searchTerm} />
+       <Container maxWidth="md">
+            {resultList.map((banknote, index) => {
+              return <SearchResultItem item={banknote} index={index} key={banknote.catalogCode} />;
+            })}  
+        </Container>
+    </Container>
   )
 }
 

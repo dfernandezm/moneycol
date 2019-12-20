@@ -32,7 +32,7 @@ const NavBar: React.FC = () => {
     const handleScroll = () => {
         setMeasures({ ...measures, scroll: window.scrollY });
     }
-
+    
     return (
         <nav className={measures.scroll > measures.top ? "fixed-nav" : ""}>
             <div className="nav-wrapper">
@@ -50,7 +50,7 @@ const NavBar: React.FC = () => {
                         <SearchInTopBar />
                     </div>
                     <div className="col s3 right">
-                        <ul id="nav-mobile" className="right hide-on-med-and-down nav__menu--right">
+                        <ul id="nav-mobile" className="right nav__menu--right">
                             <li><NavLink exact={true} to="/protected">My Collections</NavLink></li>
                             {/* <li><NavLink to="/user"><i className="material-icons left nav__material-icon-link">account_circle</i></NavLink></li> */}
                             {/* <li><NavLink to="/user">Sign in</NavLink></li> */}

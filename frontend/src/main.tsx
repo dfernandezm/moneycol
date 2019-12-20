@@ -6,10 +6,11 @@ import {
   withRouter
 } from "react-router-dom";
 
-import 'materialize-css/dist/css/materialize.min.css';
 import SearchResultsPage from './search/searchResultsPage';
 import Home from './home/home';
-import { NavBar } from './navbar/navBar';
+// import { NavBar } from './navbar/navBar';
+import { NavBarMui }  from './navbar/navbarMui';
+
 
 import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";
@@ -17,7 +18,6 @@ import Protected  from "./login/protected";
 import Login from "./login/login";
 import { RootState } from './login/reducers';
 
-//TODO: where are these values coming from? the call to <Main /> is without props
 export interface MainProps {
   isAuthenticated: boolean,
   isVerifying: boolean
@@ -30,7 +30,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
   return (
    
     <BrowserRouter>
-      <NavBar />
+      <NavBarMui />
       <div className="mainpage">
         <div className="section no-pad-bot mainContent">
           <Switch>

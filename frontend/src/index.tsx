@@ -1,15 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import 'materialize-css/dist/css/materialize.min.css';
-import './main.css';
+// import 'materialize-css/dist/css/materialize.min.css';
+// import './main.css';
 
 import ApolloClient from 'apollo-boost';
 import { ApolloProvider } from '@apollo/react-hooks'
 
 import Main from './main';
 import { Provider } from "react-redux";
-//import App from "./App";
+
 import configureStore from "./configureStore";
 
 // This works in production/deployed as there is an ingress rule for /graphql that points to moneycolserver

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import M from 'materialize-css';
 
 import SearchResultsList from './searchResultsList';
 import EmptyResults from './emptySearchResults';

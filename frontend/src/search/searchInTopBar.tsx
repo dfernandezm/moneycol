@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import M from 'materialize-css';
 
 import SearchBox from '../navbar/searchBox';
 import RenderRedirect from './redirectToResultsPage';
@@ -11,9 +10,6 @@ const SearchInTopBar: React.FC = () => {
   const [usableSearchTerm, setUsableSearchTerm] = useState('');
   const [redirectToResults, setRedirectToResults] = useState(false);
 
-  useEffect(() => {
-    M.updateTextFields();
-  }, [])
   // react docs: pass empty array here to indicate that this does not depend on state or props (run only once)
 
   // When submit button has been clicked, 
