@@ -35,7 +35,7 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({item, index}) => {
                 <CardMedia
                     component="img"
                     alt="image"
-                    height="300"
+                    height="200"
                     image={item.imageFront}
                     title="image"
                 />

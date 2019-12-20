@@ -53,7 +53,7 @@ type SearchBoxProps = {
 }
 
 const SearchBox: React.FC<SearchBoxProps> =
-    ({ onSubmit, onChange, searchTerm, placeholderText = "Search the catalog" }) => {
+    ({ onSubmit, onChange, searchTerm, placeholderText = "Search" }) => {
         const classes = useStyles();
         return (
             <div className={classes.search}>
