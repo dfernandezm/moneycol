@@ -42,10 +42,10 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({item, index}) => {
             </Grid>
             <Grid item xs={6}>
                 <CardContent>
-                    <Typography gutterBottom variant="h4" component="h2">
+                    <Typography gutterBottom variant="h5" component="h3">
                         {item.country} - {item.banknoteName}
                     </Typography>
-                    <Typography gutterBottom variant="h5" component="h2">
+                    <Typography gutterBottom variant="h6" component="h3">
                         {item.year}
                     </Typography>
                     <Typography variant="body2" color="textSecondary" component="p">

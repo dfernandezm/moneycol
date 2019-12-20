@@ -16,6 +16,8 @@ import {
     NavLink
 } from "react-router-dom";
 
+import SearchInTopBar from '../search/searchInTopBar'
+
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         grow: {
@@ -65,34 +67,12 @@ type El = HTMLElement | null;
 
 const NavBarMui: React.FC = () => {
     const classes = useStyles();
-    
-    const [measures, setMeasures] = useState<Measures>({ top: 0, height: 0, scroll: -1 });
-    const [initLoad, setInitLoad] = useState<boolean>(true);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<null | HTMLElement>(null);
 
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-    useEffect(() => {
-        if (initLoad) {
-            const el: El = document.querySelector('nav');
-            if (el != null) {
-                setMeasures({ top: el.offsetTop, height: el.offsetHeight, scroll: -1 });
-                setInitLoad(false);
-                window.addEventListener('scroll', handleScroll);
-            }
-        } else {
-            measures.scroll > measures.top ?
-                document.body.style.paddingTop = `${measures.height}px` :
-                document.body.style.paddingTop = '0px';
-        }
-    });
-
-    const handleScroll = () => {
-        setMeasures({ ...measures, scroll: window.scrollY });
-    }
 
     const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -160,7 +140,7 @@ const NavBarMui: React.FC = () => {
     return (
 
         <div className={classes.grow}>
-            
+
             <AppBar className={classes.appBar} position="fixed" >
 
                 <Toolbar>
