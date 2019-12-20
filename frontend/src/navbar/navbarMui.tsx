@@ -11,6 +11,8 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
+import LockOpenRounded from '@material-ui/icons/LockOpenRounded';
+import PermMediaRounded from '@material-ui/icons/PermMediaRounded';
 
 import {
     NavLink
@@ -23,6 +25,9 @@ const useStyles = makeStyles((theme: Theme) =>
         grow: {
             flexGrow: 1,
         },
+        appBar: {
+            boxShadow: 'none'
+        },
         menuButton: {
             marginRight: theme.spacing(2),
         },
@@ -32,43 +37,6 @@ const useStyles = makeStyles((theme: Theme) =>
                 display: 'block',
             },
             fontFamily: "Roboto Mono"
-        },
-        search: {
-            position: 'relative',
-            borderRadius: theme.shape.borderRadius,
-            backgroundColor: fade(theme.palette.common.white, 0.15),
-            '&:hover': {
-                backgroundColor: fade(theme.palette.common.white, 0.25),
-            },
-            marginLeft: 0,
-            width: '100%',
-            [theme.breakpoints.up('sm')]: {
-                marginLeft: theme.spacing(1),
-                width: 'auto',
-            },
-        },
-        searchIcon: {
-            width: theme.spacing(7),
-            height: '100%',
-            position: 'absolute',
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        inputRoot: {
-            color: 'inherit',
-        },
-        inputInput: {
-            padding: theme.spacing(1, 1, 1, 7),
-            transition: theme.transitions.create('width'),
-            width: '100%',
-            [theme.breakpoints.up('sm')]: {
-                width: 120,
-                '&:focus': {
-                    width: 200,
-                },
-            },
         },
         sectionDesktop: {
             display: 'none',
@@ -82,6 +50,12 @@ const useStyles = makeStyles((theme: Theme) =>
                 display: 'none',
             },
         },
+        theNavLink: {
+            '&:visited, &:link': {
+                textDecoration: 'none',
+                color: 'white'
+            }
+        }
     }),
 );
 
@@ -159,7 +133,7 @@ const NavBarMui: React.FC = () => {
 
     return (
         <div className={classes.grow}>
-            <AppBar position="sticky">
+            <AppBar position="sticky" className={classes.appBar}>
                 <Toolbar>
                     <IconButton
                         edge="start"
@@ -170,11 +144,30 @@ const NavBarMui: React.FC = () => {
                     </IconButton>
                     <Typography className={classes.title} variant="h6" noWrap>MoneyCol</Typography>
 
-                    <SearchInTopBar/>
+                    <SearchInTopBar />
 
                     <div className={classes.grow} />
-                    
+
                     <div className={classes.sectionDesktop}>
+                       
+                            <IconButton
+                                edge="end"
+                                aria-label="collections"
+                                aria-controls={menuId}
+                                color="inherit">
+                                  <NavLink exact={true} to="/protected" className={classes.theNavLink}>      
+                                    <PermMediaRounded />
+                                  </NavLink>
+                                
+                            </IconButton>
+                       
+                        <IconButton
+                            edge="end"
+                            aria-label="signin"
+                            aria-controls={menuId}
+                            color="inherit">
+                            <LockOpenRounded />
+                        </IconButton>
                         <IconButton
                             edge="end"
                             aria-label="account of current user"
