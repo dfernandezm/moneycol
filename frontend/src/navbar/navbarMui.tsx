@@ -4,11 +4,9 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
-import InputBase from '@material-ui/core/InputBase';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
-import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import LockOpenRounded from '@material-ui/icons/LockOpenRounded';
@@ -17,8 +15,6 @@ import PermMediaRounded from '@material-ui/icons/PermMediaRounded';
 import {
     NavLink
 } from "react-router-dom";
-import logo from './moneycol-logo.png';
-import SearchInTopBar from '../search/searchInTopBar';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -56,13 +52,6 @@ const useStyles = makeStyles((theme: Theme) =>
                 color: 'white'
             }
         },
-        fixedNav: {
-            position: 'fixed',
-            width: '100%',
-            marginTop: 0
-            /* from materialize css */
-            //boxShadow: "0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2)"
-          }
     }),
 );
 
@@ -167,12 +156,12 @@ const NavBarMui: React.FC = () => {
             </MenuItem>
         </Menu>
     );
-// className={measures.scroll > measures.top ? "fixed-nav " + classes.appBar : classes.appBar }>
-// position="sticky"
+
     return (
+
         <div className={classes.grow}>
-            <nav className={measures.scroll > measures.top ? classes.fixedNav + " " + classes.appBar + " " +classes.grow : classes.appBar }>
-            <AppBar position="sticky" className={classes.appBar}>
+            
+            <AppBar className={classes.appBar} position="fixed" >
 
                 <Toolbar>
                     <IconButton
@@ -233,7 +222,7 @@ const NavBarMui: React.FC = () => {
             </AppBar>
             {renderMobileMenu}
             {renderMenu}
-            </nav>
+           
         </div>
     );
 }

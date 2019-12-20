@@ -27,11 +27,12 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
 
   const { isAuthenticated, isVerifying } = props;
 
-  return (
-   
+  //TODO: put containers here to avoid style={{paddingTop: 64}}
+  
+  return ( 
     <BrowserRouter>
       <NavBarMui />
-      <div className="mainpage">
+      <div className="mainpage" style={{paddingTop: 64}}>
         <div className="section no-pad-bot mainContent">
           <Switch>
             <Route exact={true} path="/" component={Home} />
