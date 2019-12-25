@@ -54,28 +54,33 @@ const useStyles = makeStyles((theme: Theme) =>
                 color: 'white'
             }
         },
+        theNavLinkInverse: {
+            '&:visited, &:link': {
+                textDecoration: 'none',
+                color: 'black'
+            }
+        },
     }),
 );
-
-interface Measures {
-    top: number,
-    height: number,
-    scroll: number
-}
-
-type El = HTMLElement | null;
 
 const NavBarMui: React.FC = () => {
     const classes = useStyles();
 
+    const [mainAnchorEl, setMainAnchorEl] = useState<null | HTMLElement>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<null | HTMLElement>(null);
 
+    const isMainMenuOpen = Boolean(mainAnchorEl)
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
     const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
+    };
+
+    const handleMainMenuClose = () => {
+        setMainAnchorEl(null);
+        handleMobileMenuClose();
     };
 
     const handleMobileMenuClose = () => {
@@ -89,6 +94,10 @@ const NavBarMui: React.FC = () => {
 
     const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setMobileMoreAnchorEl(event.currentTarget);
+    };
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setMainAnchorEl(event.currentTarget);
     };
 
     const menuId = 'primary-search-account-menu';
@@ -106,6 +115,24 @@ const NavBarMui: React.FC = () => {
         </Menu>
     );
 
+    const mainMenuId = 'primary-main-menu';
+    const renderMainMenu = (
+        <Menu
+            anchorEl={mainAnchorEl}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            id={mainMenuId}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={isMainMenuOpen}
+            onClose={handleMainMenuClose}>
+            <MenuItem>
+                <NavLink exact={true} to="/" className={classes.theNavLinkInverse}> 
+                    Home
+                </NavLink>
+            </MenuItem>
+        </Menu>
+    );
+
+
     const mobileMenuId = 'primary-search-account-menu-mobile';
     const renderMobileMenu = (
         <Menu
@@ -116,12 +143,20 @@ const NavBarMui: React.FC = () => {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             open={isMobileMenuOpen}
             onClose={handleMobileMenuClose}>
-            <MenuItem>
-                <IconButton aria-label="My Collections" color="inherit" />
-                <p>My Collections</p>
+            <MenuItem component={NavLink} to="/protected">
+                <IconButton
+                    aria-label="Collections"
+                    color="inherit">
+                        <PermMediaRounded />
+                </IconButton>
+                
+                    <p>Collections</p>
+                
             </MenuItem>
-            <MenuItem>
-                <IconButton aria-label="Sign in" color="inherit" />
+            <MenuItem component={NavLink} to="/login">
+                <IconButton aria-label="Sign in" color="inherit">
+                    <LockOpenRounded />
+                </IconButton>
                 <p>Sign in</p>
             </MenuItem>
             <MenuItem onClick={handleProfileMenuOpen}>
@@ -145,14 +180,20 @@ const NavBarMui: React.FC = () => {
 
                 <Toolbar>
                     <IconButton
+                        onClick={handleClick}
                         edge="start"
                         className={classes.menuButton}
                         color="inherit"
                         aria-label="open drawer">
                         <MenuIcon />
                     </IconButton>
-                    <Typography className={classes.title} variant="h6" noWrap>MoneyCol</Typography>
-
+                    
+                    <NavLink exact={true} to="/" className={classes.theNavLink}> 
+                        <Typography className={classes.title} variant="h6" noWrap>
+                            MoneyCol
+                        </Typography>
+                    </NavLink>
+                    
                     <SearchInTopBar />
 
                     <div className={classes.grow} />
@@ -175,7 +216,9 @@ const NavBarMui: React.FC = () => {
                             aria-label="signin"
                             aria-controls={menuId}
                             color="inherit">
-                            <LockOpenRounded />
+                            <NavLink exact={true} to="/login" className={classes.theNavLink}>
+                                <LockOpenRounded />
+                            </NavLink>
                         </IconButton>
                         <IconButton
                             edge="end"
@@ -202,6 +245,7 @@ const NavBarMui: React.FC = () => {
             </AppBar>
             {renderMobileMenu}
             {renderMenu}
+            {renderMainMenu}
            
         </div>
     );
