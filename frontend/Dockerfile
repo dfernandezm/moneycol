@@ -1,7 +1,7 @@
-FROM node:12-stretch
+FROM node:12-alpine
 
-RUN useradd -c "App User" -d /home/app -m app
-RUN apt-get update && apt-get install -y curl wget vim sudo
+RUN addgroup -S app && adduser -S app -G app -h /home/app
+RUN apk add curl wget vim sudo
 RUN npm install -g serve
 
 USER app
