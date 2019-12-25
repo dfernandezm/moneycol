@@ -28,7 +28,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
   const { isAuthenticated, isVerifying } = props;
 
   //TODO: put containers here to avoid style={{paddingTop: 64}}
-  
+
   return ( 
     <BrowserRouter>
       <NavBarMui />
