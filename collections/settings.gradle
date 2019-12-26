@@ -1,0 +1,4 @@
+rootProject.name = 'collections'
+
+include 'app'
+include 'server'
