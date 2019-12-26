@@ -50,6 +50,9 @@ dependencies {
     testRuntime "org.junit.jupiter:junit-jupiter-engine"
     testCompile "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
     testCompile "io.rest-assured:rest-assured:$restAssuredVersion"
+    testCompile(
+            "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+    )
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
     testImplementation "io.rest-assured:json-path:$restAssuredVersion"
     //implementation project(":talib-adapters")
@@ -63,6 +66,7 @@ mainClassName = "com.moneycol.collections.server.Application"
 test {
     useJUnitPlatform()
 }
+
 tasks.withType(JavaCompile){
     options.encoding = "UTF-8"
     //options.compilerArgs.add('-parameters')
