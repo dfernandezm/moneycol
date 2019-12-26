@@ -1,0 +1,7 @@
+gradlew.bat
+.gradle
+.gradle/**
+*.iml
+app/out
+build
+out
