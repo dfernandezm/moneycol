@@ -31,6 +31,7 @@ ext {
     junitVersion = "5.1.0"
     mockitoJunitJupiterVersion = "2.22.0"
     restAssuredVersion = "4.1.2"
+    firebaseSdkVersion = "6.11.0"
 }
 
 dependencies {
@@ -45,7 +46,7 @@ dependencies {
     compile "org.projectlombok:lombok:$lombokVersion"
     runtime "ch.qos.logback:logback-classic:$logbackVersion"
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
-    testCompile "org.junit.jupiter:junit-jupiter-application"
+
     testCompile "io.micronaut.test:micronaut-test-junit5"
     testRuntime "org.junit.jupiter:junit-jupiter-engine"
     testCompile "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
@@ -55,6 +56,7 @@ dependencies {
     )
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
     testImplementation "io.rest-assured:json-path:$restAssuredVersion"
+    implementation "com.google.firebase:firebase-admin:$firebaseSdkVersion"
     //implementation project(":talib-adapters")
 }
 
@@ -65,6 +67,10 @@ mainClassName = "com.moneycol.collections.server.Application"
 // use JUnit 5 platform
 test {
     useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 tasks.withType(JavaCompile){
