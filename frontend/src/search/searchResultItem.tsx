@@ -18,6 +18,14 @@ const useStyles = makeStyles({
     width: "100%",
     marginBottom: 10
   },
+  square: {
+    height: "auto",
+    width: "auto"
+  },
+  imgStyle: {
+    maxWidth: "100%",
+    maxHeight: "100%"
+  }
 });
 
 type SearchResultsItemProps = {
@@ -32,13 +40,21 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({item, index}) => {
       
         <Grid container spacing={3}>
             <Grid item xs={6}>
-                <CardMedia
+                {/* <CardMedia
                     component="img"
                     alt="image"
                     height="200"
                     image={item.imageFront}
                     title="image"
-                />
+                /> */}
+                <div className={classes.square}>
+                 <img src={item.imageFront} className={classes.imgStyle} />
+                </div>
+                <div className={classes.square}>
+                 <img src={item.imageBack} className={classes.imgStyle} />
+                </div>
+                
+               
             </Grid>
             <Grid item xs={6}>
                 <CardContent>
