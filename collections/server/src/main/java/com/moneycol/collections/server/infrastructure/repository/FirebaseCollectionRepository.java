@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 //https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/firestore/src/main/java/com/example/firestore/Quickstart.java
-
+//https://github.com/golobitch/fun7/blob/e0e641b449d4b6d46a2a13e3c9fd1f30c3722d4b/src/test/java/ch/golobit/fun7/service/MultiplayerServiceTest.java
 @Slf4j
 @Primary
 @Singleton
