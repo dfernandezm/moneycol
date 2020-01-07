@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { SearchResult } from './types/SearchResult';
 
@@ -12,20 +12,34 @@ import Typography from '@material-ui/core/Typography';
 
 import Grid from '@material-ui/core/Grid';
 
+import { useMediaQuery } from '../hooks';
+
 
 const useStyles = makeStyles({
-  card: {
-    width: "100%",
-    marginBottom: 10
-  },
-  square: {
-    height: "auto",
-    width: "auto"
-  },
-  imgStyle: {
-    maxWidth: "100%",
-    maxHeight: "100%"
-  }
+    card: {
+        width: "100%",
+        marginBottom: 10,
+        boxShadow: 'none',
+        borderBottom: '1px solid #80808057',
+    },
+    square: {
+        height: "auto",
+        width: "auto"
+    },
+    imgStyle: {
+        maxWidth: "100%",
+        maxHeight: "100%"
+    },
+    imgFrame: {
+        paddingTop: "16px"
+    },
+    alignText: {
+        textAlign: 'right',
+        justifyContent: 'flex-end'
+    },
+    floatingImages: {
+        display: 'flex'
+    }
 });
 
 type SearchResultsItemProps = {
@@ -33,58 +47,80 @@ type SearchResultsItemProps = {
     index: number
 }
 
-const SearchResultItem: React.FC<SearchResultsItemProps> = ({item, index}) => {
-  const classes = useStyles();
-  return (
-    <Card className={classes.card}>
-      
-        <Grid container spacing={3}>
-            <Grid item xs={6}>
-                {/* <CardMedia
-                    component="img"
-                    alt="image"
-                    height="200"
-                    image={item.imageFront}
-                    title="image"
-                /> */}
-                <div className={classes.square}>
-                 <img src={item.imageFront} className={classes.imgStyle} />
+const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => {
+    const classes = useStyles();
+    const isSmall = useMediaQuery('(min-width: 650px)');
+
+    const floatingImages = (
+        <Grid container spacing={1} className="floatingImages">
+            
+            {item.imageBack !== 'https:undefined' ?
+                <>
+                <Grid item xs={6}>
+                <div className={classes.square + ' ' + classes.imgFrame}>
+                    <img src={item.imageFront} className={classes.imgStyle} />
                 </div>
-                <div className={classes.square}>
-                 <img src={item.imageBack} className={classes.imgStyle} />
-                </div>
-                
-               
-            </Grid>
-            <Grid item xs={6}>
-                <CardContent>
-                    <Typography gutterBottom variant="h5" component="h3">
-                        {item.country} - {item.banknoteName}
-                    </Typography>
-                    <Typography gutterBottom variant="h6" component="h3">
-                        {item.year}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        {item.description}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        <a href={item.detailLink} target="_blank">Detail</a>
-                    </Typography>
-                </CardContent>
-            </Grid>
-            <Grid item xs={12}>
-                <CardActions>
-                    <Button size="small" color="primary">
-                    Share
-                    </Button>
-                    <Button size="small" color="primary">
-                    Add to Collection
-                    </Button>
-                </CardActions>
-            </Grid>
+                </Grid>
+                    <Grid item xs={6}>
+                    <div className={classes.square + ' ' + classes.imgFrame}>
+                        <img src={item.imageBack} className={classes.imgStyle} />
+                    </div>
+                </Grid> 
+                </>
+                :
+                <Grid item xs={12}>
+                    <div className={classes.square + ' ' + classes.imgFrame}>
+                        <img src={item.imageFront} className={classes.imgStyle} />
+                    </div>
+                </Grid>
+            }
         </Grid>
-    </Card>
-  );
+    )
+
+    const stackedDivs = (
+        <>
+             <div className={classes.square + ' ' + classes.imgFrame}>
+                <img src={item.imageFront} className={classes.imgStyle} />
+            </div>
+            <div className={classes.square + ' ' + classes.imgFrame}>
+                <img src={item.imageBack} className={classes.imgStyle} />
+            </div>
+           
+        </>
+    )
+
+    return (
+        <Card className={classes.card}>
+
+            <Grid container spacing={2}>
+                <Grid item xs={7} className={classes.imgFrame}>
+
+                    {isSmall ? floatingImages : stackedDivs}
+
+                </Grid>
+                <Grid item xs={5}>
+                    <CardContent>
+                        <Typography gutterBottom variant="h6" component="h4">
+                            {item.country} {item.banknoteName}, {item.year}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" component="p">
+                            {item.description}
+                        </Typography>
+                    </CardContent>
+                </Grid>
+                <Grid item xs={12}>
+                    <CardActions className={classes.alignText}>
+                        <Button size="small" color="primary" href={item.detailLink} target="_blank">
+                           Detail
+                        </Button>
+                        <Button size="small" color="primary">
+                            Add to Collection
+                    </Button>
+                    </CardActions>
+                </Grid>
+            </Grid>
+        </Card>
+    );
 }
 
 export default SearchResultItem;
