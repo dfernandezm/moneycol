@@ -5,12 +5,14 @@ import { BankNote } from '../types/BankNote';
 
 // it should include endpoint:port
 const ELASTICSEARCH_ENDPOINT_WITH_PORT = process.env.ELASTICSEARCH_ENDPOINT_WITH_PORT || "elasticsearch";
+const DEFAULT_RESULT_SIZE = 100;
+const DEFAULT_FROM_OFFSET = 0;
 
 class ElasticSearchService implements SearchService {
 
     async search(language: string, searchTerm: string, from: number, size: number): Promise<SearchResult> {
-        let fromParam = from ? from : 0;
-        let sizeParam = size ? size : 24;
+        let fromParam = from ? from : DEFAULT_FROM_OFFSET;
+        let sizeParam = size ? size : DEFAULT_RESULT_SIZE;
         let theIndexName = "banknotes-catalog-" + language;
 
         console.log("Searching in index " + theIndexName + ", query is " + searchTerm);
