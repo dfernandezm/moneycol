@@ -14,8 +14,9 @@ type SearchResultsListProps = {
 const SearchResultsList: React.FC<SearchResultsListProps> = ({ resultList = [], searchTerm = "" }) => {
   return (
     <Container maxWidth="lg">
-       <SearchResultsMessage searchTerm={searchTerm} />
+       
        <Container maxWidth="md">
+            <SearchResultsMessage searchTerm={searchTerm} />
             {resultList.map((banknote, index) => {
               return <SearchResultItem item={banknote} index={index} key={banknote.catalogCode} />;
             })}  
