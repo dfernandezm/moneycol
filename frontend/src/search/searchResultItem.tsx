@@ -82,10 +82,10 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
              <div className={classes.square + ' ' + classes.imgFrame}>
                 <img src={item.imageFront} className={classes.imgStyle} />
             </div>
-            <div className={classes.square + ' ' + classes.imgFrame}>
+            {/* <div className={classes.square + ' ' + classes.imgFrame}>
                 <img src={item.imageBack} className={classes.imgStyle} />
             </div>
-           
+            */}
         </>
     )
 
