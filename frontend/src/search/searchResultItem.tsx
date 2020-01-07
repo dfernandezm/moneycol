@@ -14,7 +14,6 @@ import Grid from '@material-ui/core/Grid';
 
 import { useMediaQuery } from '../hooks';
 
-
 const useStyles = makeStyles({
     card: {
         width: "100%",
@@ -82,10 +81,6 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
              <div className={classes.square + ' ' + classes.imgFrame}>
                 <img src={item.imageFront} className={classes.imgStyle} />
             </div>
-            {/* <div className={classes.square + ' ' + classes.imgFrame}>
-                <img src={item.imageBack} className={classes.imgStyle} />
-            </div>
-            */}
         </>
     )
 
