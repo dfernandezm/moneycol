@@ -4,7 +4,6 @@ import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
-import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
 
 import javax.inject.Inject;
@@ -20,10 +19,8 @@ public class CollectionApplicationService {
 
     public CollectionCreatedResult createCollection(CreateCollectionDTO createCollectionDTO) {
 
-        //TODO: should be inside a domain method in collection itself?
         CollectionId collectionId = CollectionId.of(Id.randomId());
-        CollectorId collectorId = CollectorId.of(createCollectionDTO.getCollectorId());
-        Collector collector = Collector.of(collectorId);
+        Collector collector = Collector.withCollectorId(createCollectionDTO.getCollectorId());
 
         Collection collection = Collection.withNameAndDescription(collectionId,
                                         createCollectionDTO.getName(),
@@ -32,9 +29,9 @@ public class CollectionApplicationService {
 
         Collection createdCollection = collectionRepository.create(collection);
 
-        return new CollectionCreatedResult(createdCollection.id().id(),
+        return new CollectionCreatedResult(createdCollection.id(),
                                             createdCollection.name(),
                                             createdCollection.description(),
-                                            collector.id().id());
+                                            collector.id());
     }
 }

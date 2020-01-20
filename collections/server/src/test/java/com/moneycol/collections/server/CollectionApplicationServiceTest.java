@@ -3,7 +3,15 @@ package com.moneycol.collections.server;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CreateCollectionDTO;
+import com.moneycol.collections.server.domain.Collection;
+import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
+import com.moneycol.collections.server.domain.Collector;
+import com.moneycol.collections.server.domain.CollectorId;
+import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
+import com.moneycol.collections.server.infrastructure.repository.SourceCredentials;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
@@ -42,10 +50,44 @@ public class CollectionApplicationServiceTest {
     }
 
 
+    @Test
+    public void firebaseCollectionShouldntExist() {
+        SourceCredentials c = new TestSourceCredentials();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(c);
+        collectionRepository.firebaseCollectionExistsSingle("collections").subscribe(e -> {
+            System.out.print("Result: " + e);
+
+        }, error -> {
+            System.out.print("Error: " + error);
+        });
+    }
+
+    //TODO: this test actually creates collections in firestore, so needs to mock the Firestore
+    @ParameterizedTest
+    @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\"",
+            "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
+    public void firebaseCollectionCreationForReal(String name, String description) {
+        SourceCredentials c = new TestSourceCredentials();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(c);
+        String collectorId = UUID.randomUUID().toString();
+
+        Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
+                description, Collector.of(CollectorId.of(collectorId)));
+
+        collectionRepository.create(col);
+    }
+
 
     private CollectionRepository mockRepository() {
         CollectionRepository collectionRepo = Mockito.mock(CollectionRepository.class);
         Mockito.when(collectionRepo.create(any())).thenAnswer((r) -> r.getArgument(0));
         return collectionRepo;
+    }
+
+    private static class TestSourceCredentials extends SourceCredentials {
+        @Override
+        public String getCredentials() {
+            return "/Users/david/account.json";
+        }
     }
 }
