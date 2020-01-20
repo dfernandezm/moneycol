@@ -35,4 +35,8 @@ public class Collection {
             items.add(item);
         }
     }
+
+    public String id() {
+        return id.id();
+    }
 }

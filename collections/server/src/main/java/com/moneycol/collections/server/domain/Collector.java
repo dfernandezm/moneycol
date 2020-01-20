@@ -7,4 +7,13 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class Collector {
     private CollectorId id;
+
+    public static Collector withCollectorId(String collectorId) {
+        CollectorId cid =CollectorId.of(collectorId);
+        return Collector.of(cid);
+    }
+
+    public String id() {
+        return id.id();
+    }
 }
