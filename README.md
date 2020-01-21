@@ -1,4 +1,4 @@
-# Banknotes collection organiser
+# Collections organiser
 
 This project aims at helping collectors manage, organise, store and share their coins and banknotes collections. Key features:
 
