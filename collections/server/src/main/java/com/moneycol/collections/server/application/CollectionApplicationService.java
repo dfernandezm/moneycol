@@ -1,5 +1,6 @@
 package com.moneycol.collections.server.application;
 
+import com.google.common.eventbus.EventBus;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
@@ -28,6 +29,8 @@ public class CollectionApplicationService {
                                         collector);
 
         Collection createdCollection = collectionRepository.create(collection);
+
+
 
         return new CollectionCreatedResult(createdCollection.id(),
                                             createdCollection.name(),

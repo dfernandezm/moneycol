@@ -9,7 +9,9 @@ import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
+import com.moneycol.collections.server.infrastructure.repository.FirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.SourceCredentials;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,8 +54,8 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void firebaseCollectionShouldntExist() {
-        SourceCredentials c = new TestSourceCredentials();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(c);
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
         collectionRepository.firebaseCollectionExistsSingle("collections").subscribe(e -> {
             System.out.print("Result: " + e);
 
@@ -67,15 +69,49 @@ public class CollectionApplicationServiceTest {
     @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\"",
             "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
     public void firebaseCollectionCreationForReal(String name, String description) {
-        SourceCredentials c = new TestSourceCredentials();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(c);
+
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
         String collectorId = UUID.randomUUID().toString();
 
         Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
                 description, Collector.of(CollectorId.of(collectorId)));
 
         collectionRepository.create(col);
+        String id = col.id();
+
+        Collection res = collectionRepository.byId(CollectionId.of(id));
+
+        assertEquals(id, res.id());
+
+        collectionRepository.delete(CollectionId.of(id));
     }
+
+    @ParameterizedTest
+    @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\",BanknotesUpdated",
+            "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\",\"Banknotes only\""})
+    public void updateCollectionTest(String name, String description, String newName) {
+
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        String collectorId = UUID.randomUUID().toString();
+
+        Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
+                description, Collector.of(CollectorId.of(collectorId)));
+
+        collectionRepository.create(col);
+
+        Collection toUpdate =  Collection.withNameAndDescription(CollectionId.of(col.id()), newName,
+                description, Collector.of(CollectorId.of(collectorId)));
+
+        Collection updated = collectionRepository.update(toUpdate);
+
+        assertEquals(updated.name(), newName);
+        collectionRepository.delete(CollectionId.of(updated.id()));
+    }
+
 
 
     private CollectionRepository mockRepository() {
