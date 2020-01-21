@@ -12,7 +12,6 @@ import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseProvider;
-import com.moneycol.collections.server.infrastructure.repository.SourceCredentials;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -26,6 +25,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+/**
+ * Use emulator support for Firebase:
+ * Frontend folder has firebase.json, that needs to be around
+ * firebase emulators:start
+ *
+ */
 public class CollectionApplicationServiceTest {
 
     @ParameterizedTest
@@ -112,18 +117,10 @@ public class CollectionApplicationServiceTest {
         collectionRepository.delete(CollectionId.of(updated.id()));
     }
 
-
-
     private CollectionRepository mockRepository() {
         CollectionRepository collectionRepo = Mockito.mock(CollectionRepository.class);
         Mockito.when(collectionRepo.create(any())).thenAnswer((r) -> r.getArgument(0));
         return collectionRepo;
     }
 
-    private static class TestSourceCredentials extends SourceCredentials {
-        @Override
-        public String getCredentials() {
-            return "/Users/david/account.json";
-        }
-    }
 }
