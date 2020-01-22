@@ -1,4 +1,28 @@
-## Setup of Backup/Restore using snapshot API
+## Setup locally with Docker
+
+You'll need `docker-compose` which comes bundled with Docker for Mac.
+
+First, some folders need to be created in your local machine to store ES data across container runs. By default Docker for Mac shares the `/Users` folder, so any subfolder would work for this purpose.
+
+```
+$ export ES_DATA_PATH=/Users/path/to/data
+$ mkdir -p $ES_DATA_PATH
+$ export ES_BACKUPS_PATH=/Users/path/to/backups
+$ mkdir -p $ES_BACKUPS_PATH
+$ export ES_PLUGINS_PATH=/Users/path/to/plugins
+$ mkdir -p $ES_PLUGINS_PATH
+```
+
+To get the data in, unzip `data.zip` and make sure its contents are into `$ES_DATA_PATH`.
+
+Start up Elasticsearch:
+```
+$ docker-compose up
+```
+
+Check the data is loaded by running in the browser http://localhost:9200/_cat/indices
+
+## Setup of Backup/Restore using snapshot API
 
 The Dockerfile already sets up a bucket in GCP for backups and the corresponding keystore to access it.
 The service account keys are in the bucket `gs://moneycol-dev`.
