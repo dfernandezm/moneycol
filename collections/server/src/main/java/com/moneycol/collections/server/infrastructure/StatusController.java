@@ -1,7 +1,7 @@
 package com.moneycol.collections.server.infrastructure;
 
 import com.moneycol.collections.server.application.CollectionApplicationService;
-import com.moneycol.collections.server.application.CreateCollectionDTO;
+import com.moneycol.collections.server.application.CollectionDTO;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -21,7 +21,7 @@ public class StatusController {
 
     @Get(produces = MediaType.APPLICATION_JSON)
     public Single<String> status() {
-        CreateCollectionDTO createCollectionDTO = new CreateCollectionDTO("aC", "desc", "id");
+        CollectionDTO createCollectionDTO = new CollectionDTO("aC", "desc", "id");
         collectionApplicationService.createCollection(createCollectionDTO);
         log.info("Calling status endpoint");
         return Single.just("{\"message\": \"alive\"}");

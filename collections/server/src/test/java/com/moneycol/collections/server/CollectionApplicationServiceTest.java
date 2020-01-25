@@ -2,7 +2,7 @@ package com.moneycol.collections.server;
 
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
-import com.moneycol.collections.server.application.CreateCollectionDTO;
+import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
@@ -42,7 +42,7 @@ public class CollectionApplicationServiceTest {
 
         // Given
         String collectorId = UUID.randomUUID().toString();
-        CreateCollectionDTO createCollectionDTO = new CreateCollectionDTO(name, description, collectorId);
+        CollectionDTO createCollectionDTO = new CollectionDTO(name, description, collectorId);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
 
         // when

@@ -58,6 +58,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
             log.info("Created collection with id {} at {}", documentReference.getId(), result.get().getUpdateTime());
         } catch (Exception e) {
             log.error("Error creating", e);
+            throw new RuntimeException("Error creating collection", e);
         }
 
         return collection;
@@ -123,6 +124,17 @@ public class FirebaseCollectionRepository implements CollectionRepository {
 
     @Override
     public List<Collection> byCollector(CollectorId collectorId) {
+
+        return null;
+    }
+
+    @Override
+    public List<Collection> getAllCollections() {
+        //TOOD: here
+//       CollectionUtils.iterableToList(firestore.collection("collections").listDocuments())
+//               .stream()
+//               .map(docRef -> docRef.get().get())
+
         return null;
     }
 
