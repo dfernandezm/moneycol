@@ -2,32 +2,38 @@ import React, { useState, useEffect } from 'react';
 import { Player } from 'video-react';
 import 'video-react/dist/video-react.css';
 
-import Button from "@material-ui/core/Button";
+import { VideoP } from './videop';
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 
+// look here -----> https://stackoverflow.com/questions/41303012/updating-source-url-on-html5-video-with-react/41303748
 const VideoPlayer: React.FC = () => {
-  const url1 = "https://cdndaily11.azureedge.net/daily/1/playlist.m3u8";
+  const url1 = "http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8";
   const url2 = "https://media.w3.org/2010/05/sintel/trailer_hd.mp4";
-  const [videoUrl, setVideoUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState(url2);
 
-  useEffect(()=> {
+  useEffect(() => {
     console.log("Video url>>>>>: ", videoUrl);
-  },[videoUrl]);
+  }, [videoUrl]);
 
   //https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/index.d.ts#L485
 
 
   const handlePaste = (event: React.ClipboardEvent) => {
-    event.clipboardData.items[0].getAsString(text=>{
+    event.clipboardData.items[0].getAsString(text => {
       // do something
       setVideoUrl(text);
-     //console.log(">>>>>>Video url: ", text);
+      //console.log(">>>>>>Video url: ", text);
     })
     //setVideoUrl(event.clipboardData.getData('Text'));
-    
+
   };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setVideoUrl(event.target.value);
+  }
+
 
   return (
     <>
@@ -40,15 +46,14 @@ const VideoPlayer: React.FC = () => {
           fullWidth
           id="videoUrl"
           onPaste={handlePaste}
+          onChange={handleChange}
           value={videoUrl}
           label="Video URL"
           name="videoUrl"
         />
       </Container>
       <Container component="main" maxWidth="md">
-        <Player>
-          <source src={videoUrl} />
-        </Player>
+        <VideoP videoUrl={videoUrl} />
       </Container>
     </>
   );
