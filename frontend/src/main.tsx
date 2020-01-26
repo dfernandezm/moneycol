@@ -17,6 +17,7 @@ import ProtectedRoute from "./login/protectedRoute";
 import Protected  from "./login/protected";
 import Login from "./login/login";
 import { RootState } from './login/reducers';
+import { VideoPlayer } from './home/video/videoplayer';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -37,6 +38,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
           <Switch>
             <Route exact={true} path="/" component={Home} />
             <Route path="/searchResultsPage" component={withRouter(SearchResultsPage)} />
+            <Route path="/video" component={withRouter(VideoPlayer)} />
 
             <ProtectedRoute
               exact
