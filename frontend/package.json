@@ -57,8 +57,10 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@types/hls.js": "^0.12.5",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
+    "hls.js": "^0.13.1",
     "jest-enzyme": "^7.0.2",
     "react-test-renderer": "^16.8.5",
     "video-react": "^0.14.1"

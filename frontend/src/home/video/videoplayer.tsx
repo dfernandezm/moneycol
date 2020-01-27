@@ -5,20 +5,43 @@ import 'video-react/dist/video-react.css';
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
+import { HLSSource } from "./hlsSource";
 
 // Documentation here: https://video-react.js.org/components/player/
-
-const VideoPlayer: React.FC = () => {
+// https://video-react.js.org/customize/customize-source/
+const VideoPlayer: React.FC = (props) => {
   const url1 = "https://cdndaily11.azureedge.net/daily/18/playlist.m3u8";
   const url3 = "https://www.radiantmediaplayer.com/media/bbb-360p.mp4";
   const url2 = "https://media.w3.org/2010/05/sintel/trailer_hd.mp4";
 
   const [videoUrl, setVideoUrl] = useState(url1);
 
-  const [thePlayer, setThePlayer] = useState({ load: () => { } });
+  const [thePlayer, setThePlayer] = useState({ load: () => { }, play: () => { } });
+
+  const hlsSource = (
+    <HLSSource
+      isVideoChild
+      src={videoUrl}
+    />
+  );
+
+  const regularSource = (
+    <source src={videoUrl} />
+  );
+
+  const [aSource, setASource] = useState(regularSource);
+
 
   useEffect(() => {
     console.log("Video url>>>>>: ", videoUrl);
+
+    if (videoUrl.indexOf("m3u8") !== -1) {
+      console.log("HLS stream: ", videoUrl);
+      setASource(hlsSource);
+    } else {
+      console.log("Regular stream: ", videoUrl);
+      setASource(regularSource);
+    }
   }, [videoUrl]);
 
   //https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/index.d.ts#L485
@@ -65,9 +88,8 @@ const VideoPlayer: React.FC = () => {
       <Container component="main" maxWidth="md">
         <Player
           ref={setPlayerRef}
-          autoPlay
-        >
-          <source src={videoUrl} />
+          autoPlay>
+          {aSource}
           <ControlBar autoHide={false} />
         </Player>
       </Container>
