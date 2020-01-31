@@ -3,11 +3,15 @@ package com.moneycol.collections.server.infrastructure.repository;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
+import io.micronaut.context.annotation.Requires;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 @Slf4j
+@Singleton
+@Requires(notEnv="test")
 public class CloudFirebaseProvider implements FirebaseProvider {
     private static String PROJECT_ID = "moneycol";
     private SourceCredentials sourceCredentials;

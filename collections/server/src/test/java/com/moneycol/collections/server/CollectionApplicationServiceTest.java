@@ -73,7 +73,7 @@ public class CollectionApplicationServiceTest {
     @ParameterizedTest
     @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\"",
             "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
-    public void firebaseCollectionCreationForReal(String name, String description) {
+    public void testCreateFirebaseCollection(String name, String description) {
 
         FirebaseProvider f = new EmulatedFirebaseProvider();
 

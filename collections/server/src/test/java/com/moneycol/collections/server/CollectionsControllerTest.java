@@ -2,9 +2,6 @@ package com.moneycol.collections.server;
 
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
-import com.moneycol.collections.server.infrastructure.repository.CloudFirebaseProvider;
-import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
-import com.moneycol.collections.server.infrastructure.repository.FirebaseProvider;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -13,7 +10,6 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.test.annotation.MicronautTest;
-import io.micronaut.test.annotation.MockBean;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -23,18 +19,19 @@ import static io.micronaut.http.HttpRequest.POST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
-@MicronautTest
+//https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+@MicronautTest(environments = "test")
 public class CollectionsControllerTest {
 
     @Inject
     @Client("/")
     private RxHttpClient client;
 
-    @MockBean(CloudFirebaseProvider.class)
-    FirebaseProvider firebaseService() {
-        return new EmulatedFirebaseProvider();
-    }
+// In-place replacement of inner dependency
+//    @MockBean(CloudFirebaseProvider.class)
+//    FirebaseProvider firebaseService() {
+//        return new EmulatedFirebaseProvider();
+//    }
 
     @ParameterizedTest
     @CsvSource({"\"A banknote collection\",\"All the banknotes in London\", \"collectorId1\""})
