@@ -4,10 +4,12 @@ import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
+import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CollectionApplicationService {
 
@@ -36,9 +38,21 @@ public class CollectionApplicationService {
                                             collector.id());
     }
 
-    //TODO: for collector
     public List<CollectionDTO> byCollector(CollectorDTO collectorDTO) {
-        return null;
+        Collector collector = Collector.withCollectorId(collectorDTO.collectorId());
+
+        List<Collection> collections = collectionRepository.byCollector(CollectorId.of(collector.id()));
+
+        return collections
+                    .stream()
+                    .map(collection ->
+                            new CollectionDTO(collection.id(), collection.name(),
+                                            collection.description(), collection.collector().id()))
+                    .collect(Collectors.toList());
+    }
+
+    public void deleteCollection(String collectionId) {
+        collectionRepository.delete(CollectionId.of(collectionId));
     }
 
     public CollectionDTO updateCollection(CollectorDTO collectorDTO) {

@@ -4,6 +4,8 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.gson.Gson;
@@ -23,6 +25,7 @@ import javax.inject.Singleton;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 //https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/firestore/src/main/java/com/example/firestore/Quickstart.java
 //https://github.com/golobitch/fun7/blob/e0e641b449d4b6d46a2a13e3c9fd1f30c3722d4b/src/test/java/ch/golobit/fun7/service/MultiplayerServiceTest.java
@@ -30,6 +33,7 @@ import java.util.Map;
 //TODO: wrap in RX
 //TODO: convert futures to Flowables
 //TODO: https://github.com/google/guava/wiki/EventBusExplained
+// Querying: https://firebase.google.com/docs/firestore/query-data/get-data
 @Slf4j
 @Primary
 @Singleton
@@ -55,7 +59,10 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         try {
             DocumentReference documentReference = firestore.collection("collections").document(collection.id());
             ApiFuture<WriteResult> result = documentReference.set(data);
-            log.info("Created collection with id {} at {}", documentReference.getId(), result.get().getUpdateTime());
+            log.info("Created collection with id {} for collector {} at {}",
+                    documentReference.getId(),
+                    collection.collector().id(),
+                    result.get().getUpdateTime());
         } catch (Exception e) {
             log.error("Error creating", e);
             throw new RuntimeException("Error creating collection", e);
@@ -105,17 +112,17 @@ public class FirebaseCollectionRepository implements CollectionRepository {
     @Override
     public Collection byId(CollectionId collectionId) {
         try {
+
             DocumentReference docRef = firestore.collection("collections").document(collectionId.id());
             DocumentSnapshot documentSnapshot = docRef.get().get();
             String collectionName = documentSnapshot.getString("name");
             String collectionDescription = documentSnapshot.getString("description");
             String collectorId = documentSnapshot.getString("collectorId");
             Collector collector = Collector.withCollectorId(collectorId);
-            Collection result = Collection.withNameAndDescription(collectionId,
+            return  Collection.withNameAndDescription(collectionId,
                                                                 collectionName,
                                                                 collectionDescription,
                                                                 collector);
-            return result;
         } catch(Exception e) {
             log.error("Error querying data");
             throw new RuntimeException(e);
@@ -124,8 +131,31 @@ public class FirebaseCollectionRepository implements CollectionRepository {
 
     @Override
     public List<Collection> byCollector(CollectorId collectorId) {
+        try {
 
-        return null;
+            Query query = firestore.collection("collections").whereEqualTo("collectorId", collectorId.id());
+            ApiFuture<QuerySnapshot> querySnapshotFuture = query.get();
+            List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshotFuture.get().getDocuments();
+
+            return queryDocumentSnapshots
+                            .stream()
+                            .map(this::toCollection)
+                            .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("Error querying collections for collectorId: {}", collectorId, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Collection toCollection(DocumentSnapshot documentSnapshot) {
+        String collectionId = documentSnapshot.getId();
+        String name = documentSnapshot.getString("name");
+        String description = documentSnapshot.getString("description");
+        String collectorId = documentSnapshot.getString("collectorId");
+        return Collection.withNameAndDescription(
+                CollectionId.of(collectionId), name, description,
+                Collector.of(CollectorId.of(collectorId)));
     }
 
     @Override
@@ -134,6 +164,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
 //       CollectionUtils.iterableToList(firestore.collection("collections").listDocuments())
 //               .stream()
 //               .map(docRef -> docRef.get().get())
+
 
         return null;
     }

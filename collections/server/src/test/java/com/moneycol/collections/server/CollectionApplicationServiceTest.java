@@ -17,10 +17,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -42,7 +44,7 @@ public class CollectionApplicationServiceTest {
 
         // Given
         String collectorId = UUID.randomUUID().toString();
-        CollectionDTO createCollectionDTO = new CollectionDTO(name, description, collectorId);
+        CollectionDTO createCollectionDTO = new CollectionDTO("", name, description, collectorId);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
 
         // when
@@ -117,10 +119,57 @@ public class CollectionApplicationServiceTest {
         collectionRepository.delete(CollectionId.of(updated.id()));
     }
 
+    @Test
+    public void findByCollectorWithMultipleTest() {
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        String name = "Banknotes";
+        String description = "A collection for storing my banknotes in London";
+        String collectorId = "collectorId1";
+
+        Collection col1 = aCollection(name, description, collectorId);
+        collectionRepository.create(col1);
+
+        name = "BanknotesName2";
+        description = "A collection in London";
+
+        // same collector Id
+        Collection col2 = aCollection(name, description, collectorId);
+        collectionRepository.create(col2);
+
+        List<Collection> collectionsForCollector =
+                collectionRepository.byCollector(CollectorId.of(collectorId));
+
+        assertEquals(collectionsForCollector.size(), 2);
+        assertEquals(collectionsForCollector.get(0).collector().id(), collectorId);
+        assertEquals(collectionsForCollector.get(1).collector().id(), collectorId);
+
+        collectionRepository.delete(CollectionId.of(col1.id()));
+        collectionRepository.delete(CollectionId.of(col2.id()));
+    }
+
+    @Test
+    public void findByCollectorWithEmptySetTest() {
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        String collectorId = "collectorId1";
+
+        List<Collection> collectionsForCollector =
+                collectionRepository.byCollector(CollectorId.of(collectorId));
+
+        assertTrue(collectionsForCollector.isEmpty());
+    }
+
     private CollectionRepository mockRepository() {
         CollectionRepository collectionRepo = Mockito.mock(CollectionRepository.class);
         Mockito.when(collectionRepo.create(any())).thenAnswer((r) -> r.getArgument(0));
         return collectionRepo;
     }
 
+    private Collection aCollection(String name, String description, String collectorId) {
+        return Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
+                description, Collector.of(CollectorId.of(collectorId)));
+    }
 }
