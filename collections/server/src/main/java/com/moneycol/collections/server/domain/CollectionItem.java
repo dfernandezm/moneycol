@@ -5,7 +5,7 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 
 @EqualsAndHashCode
-@Value
+@Value(staticConstructor = "of")
 @Accessors(fluent = true)
 public class CollectionItem {
     private String itemId;

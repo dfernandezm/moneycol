@@ -1,9 +1,11 @@
 package com.moneycol.collections.server.infrastructure.api;
 
 
+import com.moneycol.collections.server.application.AddItemToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
+import com.moneycol.collections.server.application.CollectionItemDTO;
 import com.moneycol.collections.server.application.CollectorDTO;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
@@ -13,6 +15,7 @@ import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.Put;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +45,26 @@ public class CollectionController {
         return Single.just(collectionApplicationService.createCollection(collectionDTO));
     }
 
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Put(uri = "/{collectionId}")
+    Single<CollectionCreatedResult> updateCollection(@PathVariable String collectionId, @Body CollectionDTO collectionDTO) {
+        log.info("Attempt to update collection with ID: {}, {}", collectionId, collectionDTO);
+        collectionDTO.setId(collectionId);
+        return Single.just(collectionApplicationService.updateCollection(collectionDTO));
+    }
+
     @Delete(uri="/{collectionId}")
     void deleteCollection(@PathVariable String collectionId) {
         log.info("Deleting collection with ID: {}", collectionId);
         collectionApplicationService.deleteCollection(collectionId);
+    }
+
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Post(uri = "/{collectionId}/items")
+    void addItemToCollection(@PathVariable String collectionId, @Body CollectionItemDTO collectionItemDTO) {
+        log.info("Adding item to collection with ID: {}", collectionId);
+        AddItemToCollectionCommand addItemToCollectionCommand =
+                AddItemToCollectionCommand.of(collectionId, collectionItemDTO);
+        collectionApplicationService.addItemToCollection(addItemToCollectionCommand);
     }
 }

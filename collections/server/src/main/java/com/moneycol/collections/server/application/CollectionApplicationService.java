@@ -2,6 +2,7 @@ package com.moneycol.collections.server.application;
 
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
+import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
@@ -55,7 +56,16 @@ public class CollectionApplicationService {
         collectionRepository.delete(CollectionId.of(collectionId));
     }
 
-    public CollectionDTO updateCollection(CollectorDTO collectorDTO) {
-        return null;
+    public CollectionCreatedResult updateCollection(CollectionDTO collectionDTO) {
+        //TODO:
+        return new CollectionCreatedResult();
+    }
+
+    public void addItemToCollection(AddItemToCollectionCommand addItemToCollectionCommand) {
+        CollectionId collectionId = CollectionId.of(addItemToCollectionCommand.getCollectionId());
+        Collection collection = collectionRepository.byId(collectionId);
+        CollectionItem collectionItem =  CollectionItem.of(addItemToCollectionCommand.getItem().itemId);
+        collection.addItem(collectionItem);
+        collectionRepository.update(collection);
     }
 }

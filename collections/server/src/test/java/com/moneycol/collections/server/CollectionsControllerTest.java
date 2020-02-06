@@ -3,6 +3,7 @@ package com.moneycol.collections.server;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.domain.CollectionId;
+import com.moneycol.collections.server.domain.base.Id;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -80,6 +81,22 @@ public class CollectionsControllerTest {
         assertNotNull(foundCollectionsResp.body(), "Body of response is null");
         assertCollectionReturnedForCollector(foundCollectionsResp.body(), 1, collectorId);
     }
+
+    @Test
+    void testUpdateCollectionsEndpointCanBeInvoked() {
+        String collectionId = Id.randomId();
+        CollectionDTO collectionDTO =
+                new CollectionDTO(collectionId, "aName", "aDesc", "aCollector");
+        HttpRequest<CollectionDTO> updateCollectionEndpoint =
+                HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
+        HttpResponse<CollectionCreatedResult> collectionCreatedResp =
+                client.toBlocking().exchange(updateCollectionEndpoint, Argument.of(CollectionCreatedResult.class));
+
+        assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
+
+    }
+
+
 
     private void assertCollectionReturnedForCollector(List<CollectionDTO> collectionDTOs,  int expectedSize, String collectorId) {
         assertEquals(collectionDTOs.size(), expectedSize);

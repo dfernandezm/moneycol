@@ -1,18 +1,25 @@
 package com.moneycol.collections.server;
 
+import com.moneycol.collections.server.application.AddItemToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
+import com.moneycol.collections.server.application.CollectionItemDTO;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseProvider;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
@@ -20,8 +27,10 @@ import org.mockito.Mockito;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -34,6 +43,16 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  *
  */
 public class CollectionApplicationServiceTest {
+
+    @BeforeEach
+    public void setup() {
+        FirebaseUtil.init();
+    }
+
+    @AfterEach
+    public void cleanup() {
+        FirebaseUtil.deleteAllCollections();
+    }
 
     @ParameterizedTest
     @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\"",
@@ -154,12 +173,51 @@ public class CollectionApplicationServiceTest {
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
 
-        String collectorId = "collectorId1";
+        String inexistentCollectorId = "collectorId1";
 
         List<Collection> collectionsForCollector =
-                collectionRepository.byCollector(CollectorId.of(collectorId));
+                collectionRepository.byCollector(CollectorId.of(inexistentCollectorId));
 
         assertTrue(collectionsForCollector.isEmpty());
+    }
+
+    @Test
+    public void findByIdNotFound() {
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        String nonExistingCollectionId = "nonExistingId";
+
+        Executable s = () -> collectionRepository.byId(CollectionId.of(nonExistingCollectionId));
+
+        Exception e = assertThrows(CollectionNotFoundException.class, s);
+
+        assertThat(e.getMessage(), Matchers.containsString(nonExistingCollectionId));
+    }
+
+    @Test
+    public void testAddItemToExistingCollection() {
+
+        // Given: a collection
+        String aCollectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
+
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        // When: adding an item to it
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        String itemId = "itemId";
+        CollectionItemDTO collectionItemDTO = new CollectionItemDTO(itemId);
+        AddItemToCollectionCommand addItemToCollectionCommand = AddItemToCollectionCommand.of(aCollectionId, collectionItemDTO);
+        cas.addItemToCollection(addItemToCollectionCommand);
+
+        // Then: collection is updated containing the item
+        Collection updatedCollection = collectionRepository.byId(CollectionId.of(aCollectionId));
+        assertThat(updatedCollection, Matchers.notNullValue());
+        assertThat(updatedCollection.items(), Matchers.hasSize(1));
+        assertThat(updatedCollection.items().get(0).itemId(), Matchers.is(itemId));
+
     }
 
     private CollectionRepository mockRepository() {

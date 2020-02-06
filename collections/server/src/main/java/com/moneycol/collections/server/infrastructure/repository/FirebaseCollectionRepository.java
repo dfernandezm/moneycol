@@ -82,7 +82,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         data.put("name", collection.name());
         data.put("description", collection.description());
         data.put("collectorId", collection.collector().id());
-
+        data.put("items", collection.items());
         try {
             DocumentReference documentReference = firestore.collection("collections").document(collection.id());
             if (!documentReference.get().get().exists()) {
@@ -115,16 +115,22 @@ public class FirebaseCollectionRepository implements CollectionRepository {
 
             DocumentReference docRef = firestore.collection("collections").document(collectionId.id());
             DocumentSnapshot documentSnapshot = docRef.get().get();
-            String collectionName = documentSnapshot.getString("name");
-            String collectionDescription = documentSnapshot.getString("description");
-            String collectorId = documentSnapshot.getString("collectorId");
-            Collector collector = Collector.withCollectorId(collectorId);
-            return  Collection.withNameAndDescription(collectionId,
-                                                                collectionName,
-                                                                collectionDescription,
-                                                                collector);
+            if (documentSnapshot.exists()) {
+                String collectionName = documentSnapshot.getString("name");
+                String collectionDescription = documentSnapshot.getString("description");
+                String collectorId = documentSnapshot.getString("collectorId");
+                Collector collector = Collector.withCollectorId(collectorId);
+                return Collection.withNameAndDescription(collectionId,
+                        collectionName,
+                        collectionDescription,
+                        collector);
+            } else {
+                throw new CollectionNotFoundException("Collection with ID " + collectionId.id() + " not found");
+            }
+        } catch (CollectionNotFoundException cnfe) {
+            throw cnfe;
         } catch(Exception e) {
-            log.error("Error querying data");
+            log.error("Error querying data", e);
             throw new RuntimeException(e);
         }
     }
@@ -156,17 +162,6 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         return Collection.withNameAndDescription(
                 CollectionId.of(collectionId), name, description,
                 Collector.of(CollectorId.of(collectorId)));
-    }
-
-    @Override
-    public List<Collection> getAllCollections() {
-        //TOOD: here
-//       CollectionUtils.iterableToList(firestore.collection("collections").listDocuments())
-//               .stream()
-//               .map(docRef -> docRef.get().get())
-
-
-        return null;
     }
 
     private void printAllElementsOf(String firebaseCollectionName) {
