@@ -19,4 +19,5 @@ export class BankNote {
         this.imageBack = searchResultJson.ImageBack;
         this.imageFront = searchResultJson.ImageFront;
     }
+
 }

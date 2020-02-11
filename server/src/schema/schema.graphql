@@ -16,14 +16,52 @@ type SearchResult {
   total: Int
 }
 
+
+type BankNoteCollection {
+  collectionId: String!,
+  name: String!,
+  description: String!,
+  bankNotes: [BankNote]!
+}
+
+type CollectionResult {
+  collections: [BankNoteCollection!]!
+}
+
+input BankNoteInputCollectionItem {
+  # TODO: This should be an id present in BankNote too
+  catalogCode: String!
+}
+
+input NewCollectionInput {
+  name: String!,
+  description: String!,
+  collectorId: String!
+}
+
+input AddBankNoteToCollection {
+  collectionId: String!,
+  collectorId: String!,
+  bankNoteCollectionItem: BankNoteInputCollectionItem!
+}
+
+input UpdateCollectionInput { 
+  name: String!,
+  description: String!
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
+  collections(collectorId: String!): [BankNoteCollection]!
 }
 
 type Mutation {
-  # Placeholder
-  addUser(name: String!): SearchResult!
+  addCollection(collection: NewCollectionInput): BankNoteCollection!
+  addBankNoteToCollection(data: AddBankNoteToCollection): BankNoteCollection!
+  removeBankNoteFromCollection(banknoteId: String!, collectionId: String!): BankNoteCollection!
+  updateCollection(collectionId: String!, data: UpdateCollectionInput): BankNoteCollection!
+  deleteCollection(collectionId: String!): Boolean
 }
 
 schema {

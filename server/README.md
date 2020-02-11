@@ -218,3 +218,87 @@ kubectl get nodes -o json | jq '.items[i].status.addresses[1].address'
 - In the GKE dashboard, observe a new `traefik-dev` service
 - The DNS can now be updated to the IP of **any** node in the cluster
 - The service should be available in port 80/443 now through its DNS after the update
+
+
+## GraphQL for Collections
+
+```
+mutation AddCollection($collection: NewCollectionInput!) {
+  addCollection(collection: $collection) {
+    name
+    description
+  }
+}
+---
+{
+  "collection": {
+    "name": "My second collection",
+    "description": "This is my second collection",
+    "collectorId": "collectorId9"
+  }
+}
+```
+
+```
+query collectionsForCollector($collectorId: String!) {
+  collections(collectorId: $collectorId) {
+    name
+    collectionId
+  }
+}
+---
+{
+  "collectorId": "collectorId9"
+}
+```
+
+```
+mutation AddBankNoteToCollection($input: AddBankNoteToCollection) {
+  addBankNoteToCollection(data: $input) {
+    collectionId
+    name
+    description
+    bankNotes {
+      country
+      catalogCode
+    }
+  }
+}
+---
+{
+  "input": {
+    "collectionId": "2d5e70fb-0645-4a17-9a8b-82537a39ed77",
+    "collectorId": "collectorId9",
+    "bankNoteCollectionItem": {
+      "catalogCode": "Wor.y99.95"
+    }
+  }
+}
+```
+
+```
+mutation RemoveBankNoteFromCollection($bankNoteId: String!, $collectionId: String!) {
+  removeBankNoteFromCollection(banknoteId: $bankNoteId, collectionId: $collectionId) {
+    name
+    description
+    bankNotes {
+      catalogCode
+    }
+  }
+}
+---
+{
+  "collectionId": "abc03b16-740e-4e74-878b-e8724f6a1dc1",
+  "bankNoteId": "Wor.rr99.95" 
+}
+```
+
+```
+mutation RemoveCollection($collectionId: String!) {
+  deleteCollection(collectionId: $collectionId) 
+}
+---
+{
+  "collectionId": "0125da25-a1a0-405a-8ff9-00af42341869"
+}
+```

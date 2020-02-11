@@ -8,4 +8,5 @@ public interface CollectionRepository {
     void delete(CollectionId collectionId);
     Collection byId(CollectionId collectionId);
     List<Collection> byCollector(CollectorId collectorId);
+    Boolean existsWithName(String name);
 }

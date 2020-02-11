@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 //TODO: there should be several Dtos (command input, and outputs)
@@ -15,15 +17,18 @@ public class CollectionDTO {
     private  String name;
     private  String description;
     private  String collectorId;
+    private List<CollectionItemDTO> items;
 
     @JsonCreator
     public CollectionDTO(@JsonProperty("id")  String id,
                          @JsonProperty("name")  String name,
                          @JsonProperty("description") String description,
-                         @JsonProperty("collectorId") String collectorId) {
+                         @JsonProperty("collectorId") String collectorId,
+                         @JsonProperty("items") List<CollectionItemDTO> items) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.collectorId = collectorId;
+        this.items = items;
     }
 }

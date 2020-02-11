@@ -1,5 +1,6 @@
 package com.moneycol.collections.server.domain;
 
+import com.moneycol.collections.server.infrastructure.repository.CollectionItemNotFoundException;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
@@ -34,6 +35,14 @@ public class Collection {
         if(!items.contains(item)) {
             items.add(item);
         }
+    }
+
+    public void removeItem(CollectionItem item) {
+        if (!items.contains(item)) {
+            throw new CollectionItemNotFoundException("Item with id: " +
+                    item.getItemId() + " can't be found in collection " + id.id());
+        }
+        items.remove(item);
     }
 
     public void addItems(List<CollectionItem> items) {

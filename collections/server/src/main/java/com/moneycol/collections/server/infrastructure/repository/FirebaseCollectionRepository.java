@@ -88,13 +88,12 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("name", collection.name());
         data.put("description", collection.description());
-        data.put("collectorId", collection.collector().id());
 
         try {
             DocumentReference documentReference =
                     firestore.collection("collections").document(collection.id());
             if (!documentReference.get().get().exists()) {
-                throw new RuntimeException("Collection does not exist with id: " + collection.id());
+                throw new CollectionNotFoundException("Collection does not exist with id: " + collection.id());
             }
 
             documentReference.update(data).get();
@@ -102,20 +101,28 @@ public class FirebaseCollectionRepository implements CollectionRepository {
                      .document(collection.id())
                      .collection("items");
 
-            addBatchOfCollectionItems(collectionReference, collection.items());
+            updateBatchOfCollectionItems(collectionReference, collection.items());
 
             log.info("Updated collection with id {} to {}", collection.id(), gson.toJson(data));
             return collection;
-        } catch (Exception e) {
+        }  catch (CollectionNotFoundException cnfe) {
+            throw cnfe;
+        }catch (Exception e) {
             log.error("Error updating", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void addBatchOfCollectionItems(CollectionReference items, List<CollectionItem> collectionItems) {
-
+    private void updateBatchOfCollectionItems(CollectionReference items, List<CollectionItem> collectionItems) {
+        // deletions
         WriteBatch batch = firestore.batch();
+        items.listDocuments().forEach(doc -> {
+            if (!collectionItems.contains(CollectionItem.of(doc.getId()))) {
+                batch.delete(doc);
+            }
+        });
 
+        // additions
         collectionItems.forEach(item -> {
             DocumentReference itemRef = items.document(item.getItemId());
             batch.set(itemRef, item);
@@ -124,7 +131,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         ApiFuture<List<WriteResult>> results = batch.commit();
 
         try {
-            results.get().forEach(writeResult -> log.info("Wrote item at {}", writeResult.getUpdateTime()));
+            results.get().forEach(writeResult -> log.info("Updated item at {}", writeResult.getUpdateTime()));
 
         } catch (InterruptedException | ExecutionException ie) {
             log.error("Error inserting items batch", ie);
@@ -136,10 +143,50 @@ public class FirebaseCollectionRepository implements CollectionRepository {
     public void delete(CollectionId collectionId) {
         DocumentReference docRef = firestore.collection("collections").document(collectionId.id());
         try {
+            if (!docRef.get().get().exists()) {
+                throw new CollectionNotFoundException("Collection does not exist with id: " + collectionId.id());
+            }
+
+            CollectionReference itemsReference = docRef.collection("items");
+            int itemsSize = itemsReference.get().get().size();
+            if (itemsReference.get().get().size() > 0) {
+                log.info("[ {} ] items are present in Collection to delete", itemsSize);
+                deleteSubCollectionInBatches(itemsReference, 20);
+            }
+
             docRef.delete().get();
             log.info("Collection deleted {}", collectionId.id());
+        }  catch (CollectionNotFoundException cnfe) {
+            throw cnfe;
         } catch (Exception e) {
             log.error("Error deleting", e);
+        }
+    }
+
+    private void deleteSubCollectionInBatches(CollectionReference collection, int batchSize) {
+        log.info("Deleting batch of documents for subcollection with id {} (batch: {})",
+                collection.getId(),
+                batchSize);
+        try {
+            // retrieve a small batch of documents to avoid out-of-memory errors
+            ApiFuture<QuerySnapshot> future = collection.limit(batchSize).get();
+            int deleted = 0;
+            // future.get() blocks on document retrieval
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for (QueryDocumentSnapshot document : documents) {
+                log.info("Deleting document with id in batch: {}", document.getId());
+                document.getReference().delete();
+                ++deleted;
+            }
+            if (deleted >= batchSize) {
+                // retrieve and delete another batch
+                deleteSubCollectionInBatches(collection, batchSize);
+            }
+
+            log.info("Finished deleting batch of documents fo collection: {}", collection.getId());
+
+        } catch (Exception e) {
+            log.error("Error deleting collection : " + e.getMessage());
         }
     }
 
@@ -214,6 +261,20 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         }
     }
 
+    @Override
+    public Boolean existsWithName(String name) {
+        try {
+
+            Query query = firestore.collection("collections").whereEqualTo("name", name);
+            ApiFuture<QuerySnapshot> querySnapshotFuture = query.get();
+            List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshotFuture.get().getDocuments();
+            return queryDocumentSnapshots.size() > 0;
+        } catch (Exception e) {
+            log.error("Error querying collections for name: {}", name, e);
+            throw new RuntimeException(e);
+        }
+    }
+
     private Collection toCollection(DocumentSnapshot documentSnapshot) {
         String collectionId = documentSnapshot.getId();
         String name = documentSnapshot.getString("name");
@@ -222,20 +283,5 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         return Collection.withNameAndDescription(
                 CollectionId.of(collectionId), name, description,
                 Collector.of(CollectorId.of(collectorId)));
-    }
-
-    private void printAllElementsOf(String firebaseCollectionName) {
-        List<DocumentReference> docRefs = CollectionUtils.iterableToList(firestore.collection(firebaseCollectionName).listDocuments());
-        docRefs.forEach(docRef -> {
-            try {
-                Map<String, Object> d = docRef.get().get().getData();
-                d.forEach((key, value) -> {
-                    log.info("{} -> {}", key, value);
-                });
-
-            } catch(Exception e) {
-                log.error("Error querying document", e);
-            }
-        });
     }
 }
