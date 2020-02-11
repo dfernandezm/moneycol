@@ -3,9 +3,11 @@ package com.moneycol.collections.server.application;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor(staticName = "of")
-public class AddItemToCollectionCommand {
+public class AddItemsToCollectionCommand {
     private final String collectionId;
-    private final CollectionItemDTO item;
+    private final List<CollectionItemDTO> items;
 }

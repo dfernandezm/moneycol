@@ -1,12 +1,13 @@
 package com.moneycol.collections.server;
 
-import com.moneycol.collections.server.application.AddItemToCollectionCommand;
+import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.application.CollectionItemDTO;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
+import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
@@ -24,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -147,14 +149,14 @@ public class CollectionApplicationServiceTest {
         String description = "A collection for storing my banknotes in London";
         String collectorId = "collectorId1";
 
-        Collection col1 = aCollection(name, description, collectorId);
+        Collection col1 = aCollection(CollectionId.randomId(), name, description, collectorId);
         collectionRepository.create(col1);
 
         name = "BanknotesName2";
         description = "A collection in London";
 
         // same collector Id
-        Collection col2 = aCollection(name, description, collectorId);
+        Collection col2 = aCollection(CollectionId.randomId(), name, description, collectorId);
         collectionRepository.create(col2);
 
         List<Collection> collectionsForCollector =
@@ -196,6 +198,30 @@ public class CollectionApplicationServiceTest {
     }
 
     @Test
+    public void updateCollectionByAddingItemsTest() {
+        // Given: a collection
+        String aCollectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
+
+        FirebaseProvider f = new EmulatedFirebaseProvider();
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        Collection collection = collectionWithItemsToUpdate(aCollectionId);
+        Collection updated = collectionRepository.update(collection);
+
+        assertThat(updated.items(), Matchers.hasSize(2));
+    }
+
+    private Collection collectionWithItemsToUpdate(String id) {
+        Collection collection = aCollection(id,"aCollection", "desc", "colId");
+        List<CollectionItem> items = new ArrayList<>();
+        items.add(CollectionItem.of("itemId1"));
+        items.add(CollectionItem.of("itemId2"));
+        collection.addItems(items);
+        return collection;
+    }
+
+    @Test
     public void testAddItemToExistingCollection() {
 
         // Given: a collection
@@ -209,14 +235,16 @@ public class CollectionApplicationServiceTest {
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
         String itemId = "itemId";
         CollectionItemDTO collectionItemDTO = new CollectionItemDTO(itemId);
-        AddItemToCollectionCommand addItemToCollectionCommand = AddItemToCollectionCommand.of(aCollectionId, collectionItemDTO);
-        cas.addItemToCollection(addItemToCollectionCommand);
+        List<CollectionItemDTO> items = new ArrayList<>();
+        items.add(collectionItemDTO);
+        AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.of(aCollectionId, items);
+        cas.addItemsToCollection(addItemToCollectionCommand);
 
         // Then: collection is updated containing the item
         Collection updatedCollection = collectionRepository.byId(CollectionId.of(aCollectionId));
         assertThat(updatedCollection, Matchers.notNullValue());
         assertThat(updatedCollection.items(), Matchers.hasSize(1));
-        assertThat(updatedCollection.items().get(0).itemId(), Matchers.is(itemId));
+        assertThat(updatedCollection.items().get(0).getItemId(), Matchers.is(itemId));
 
     }
 
@@ -226,8 +254,8 @@ public class CollectionApplicationServiceTest {
         return collectionRepo;
     }
 
-    private Collection aCollection(String name, String description, String collectorId) {
-        return Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
+    private Collection aCollection(String id, String name, String description, String collectorId) {
+        return Collection.withNameAndDescription(CollectionId.of(id), name,
                 description, Collector.of(CollectorId.of(collectorId)));
     }
 }

@@ -1,12 +1,20 @@
 package com.moneycol.collections.server.domain;
 
 import lombok.EqualsAndHashCode;
-import lombok.Value;
-import lombok.experimental.Accessors;
+import lombok.Getter;
+import lombok.Setter;
 
 @EqualsAndHashCode
-@Value(staticConstructor = "of")
-@Accessors(fluent = true)
+@Getter
+@Setter
 public class CollectionItem {
     private String itemId;
+
+    private CollectionItem() {}
+
+    public static CollectionItem of(String itemId) {
+        CollectionItem item = new CollectionItem();
+        item.itemId = itemId;
+        return item;
+    }
 }

@@ -61,11 +61,13 @@ public class CollectionApplicationService {
         return new CollectionCreatedResult();
     }
 
-    public void addItemToCollection(AddItemToCollectionCommand addItemToCollectionCommand) {
-        CollectionId collectionId = CollectionId.of(addItemToCollectionCommand.getCollectionId());
+    public void addItemsToCollection(AddItemsToCollectionCommand addItemsToCollectionCommand) {
+        CollectionId collectionId = CollectionId.of(addItemsToCollectionCommand.getCollectionId());
         Collection collection = collectionRepository.byId(collectionId);
-        CollectionItem collectionItem =  CollectionItem.of(addItemToCollectionCommand.getItem().itemId);
-        collection.addItem(collectionItem);
+        List<CollectionItem> collectionItems = addItemsToCollectionCommand.getItems()
+                                            .stream().map(item -> CollectionItem.of(item.getItemId()))
+                                            .collect(Collectors.toList());
+        collection.addItems(collectionItems);
         collectionRepository.update(collection);
     }
 }

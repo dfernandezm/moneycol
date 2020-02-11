@@ -36,6 +36,10 @@ public class Collection {
         }
     }
 
+    public void addItems(List<CollectionItem> items) {
+        items.forEach(this::addItem);
+    }
+
     public String id() {
         return id.id();
     }

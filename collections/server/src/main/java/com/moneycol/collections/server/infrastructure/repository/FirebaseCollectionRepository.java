@@ -1,16 +1,19 @@
 package com.moneycol.collections.server.infrastructure.repository;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.WriteBatch;
 import com.google.cloud.firestore.WriteResult;
 import com.google.gson.Gson;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
+import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
@@ -25,6 +28,7 @@ import javax.inject.Singleton;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 //https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/firestore/src/main/java/com/example/firestore/Quickstart.java
@@ -76,25 +80,55 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         return s.map(query -> query.size() > 0);
     }
 
+    // Firestore subcollections usecases:
+    // https://firebase.google.com/docs/firestore/manage-data/structure-data?authuser=0
+    // https://firebase.google.com/docs/firestore/manage-data/transactions#batched-writes
     @Override
     public Collection update(Collection collection) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("name", collection.name());
         data.put("description", collection.description());
         data.put("collectorId", collection.collector().id());
-        data.put("items", collection.items());
+
         try {
-            DocumentReference documentReference = firestore.collection("collections").document(collection.id());
+            DocumentReference documentReference =
+                    firestore.collection("collections").document(collection.id());
             if (!documentReference.get().get().exists()) {
                 throw new RuntimeException("Collection does not exist with id: " + collection.id());
             }
 
             documentReference.update(data).get();
+            CollectionReference collectionReference = firestore.collection("collections")
+                     .document(collection.id())
+                     .collection("items");
+
+            addBatchOfCollectionItems(collectionReference, collection.items());
+
             log.info("Updated collection with id {} to {}", collection.id(), gson.toJson(data));
             return collection;
         } catch (Exception e) {
             log.error("Error updating", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addBatchOfCollectionItems(CollectionReference items, List<CollectionItem> collectionItems) {
+
+        WriteBatch batch = firestore.batch();
+
+        collectionItems.forEach(item -> {
+            DocumentReference itemRef = items.document(item.getItemId());
+            batch.set(itemRef, item);
+        });
+
+        ApiFuture<List<WriteResult>> results = batch.commit();
+
+        try {
+            results.get().forEach(writeResult -> log.info("Wrote item at {}", writeResult.getUpdateTime()));
+
+        } catch (InterruptedException | ExecutionException ie) {
+            log.error("Error inserting items batch", ie);
+            throw new RuntimeException("Error inserting items batch", ie);
         }
     }
 
@@ -120,10 +154,16 @@ public class FirebaseCollectionRepository implements CollectionRepository {
                 String collectionDescription = documentSnapshot.getString("description");
                 String collectorId = documentSnapshot.getString("collectorId");
                 Collector collector = Collector.withCollectorId(collectorId);
-                return Collection.withNameAndDescription(collectionId,
+
+                List<CollectionItem> items = findItemsForCollection(docRef);
+
+                Collection collection = Collection.withNameAndDescription(collectionId,
                         collectionName,
                         collectionDescription,
                         collector);
+                collection.addItems(items);
+
+                return collection;
             } else {
                 throw new CollectionNotFoundException("Collection with ID " + collectionId.id() + " not found");
             }
@@ -132,6 +172,26 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         } catch(Exception e) {
             log.error("Error querying data", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private List<CollectionItem> findItemsForCollection(DocumentReference docRef) {
+
+            return  CollectionUtils
+                    .iterableToList(docRef.collection("items")
+                    .listDocuments())
+                    .stream()
+                    .map(this::fetchDocReferenceHandlingError)
+                    .map(documentSnapshot -> documentSnapshot.toObject(CollectionItem.class))
+                    .collect(Collectors.toList());
+    }
+
+    private DocumentSnapshot fetchDocReferenceHandlingError(DocumentReference docRef) {
+        try {
+            return docRef.get().get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Error returning items for collection");
+            throw new RuntimeException("Error returning items for collection", e);
         }
     }
 

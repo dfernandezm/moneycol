@@ -35,8 +35,10 @@ public class FirebaseUtil {
         }
     }
 
+    //TODO: delete nested collections
     public static void deleteAllCollections() {
         deleteCollection(firestore.collection("collections"),10);
+
     }
 
     private static void deleteCollection(CollectionReference collection, int batchSize) {

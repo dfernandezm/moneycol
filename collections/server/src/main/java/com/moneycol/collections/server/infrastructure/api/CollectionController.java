@@ -1,11 +1,11 @@
 package com.moneycol.collections.server.infrastructure.api;
 
 
-import com.moneycol.collections.server.application.AddItemToCollectionCommand;
+import com.moneycol.collections.server.application.AddItemsDTO;
+import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
-import com.moneycol.collections.server.application.CollectionItemDTO;
 import com.moneycol.collections.server.application.CollectorDTO;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
@@ -59,12 +59,14 @@ public class CollectionController {
         collectionApplicationService.deleteCollection(collectionId);
     }
 
+
+    //TODO: multiple items
     @Consumes(MediaType.APPLICATION_JSON)
     @Post(uri = "/{collectionId}/items")
-    void addItemToCollection(@PathVariable String collectionId, @Body CollectionItemDTO collectionItemDTO) {
+    void addItemToCollection(@PathVariable String collectionId, @Body AddItemsDTO addItemsDTO) {
         log.info("Adding item to collection with ID: {}", collectionId);
-        AddItemToCollectionCommand addItemToCollectionCommand =
-                AddItemToCollectionCommand.of(collectionId, collectionItemDTO);
-        collectionApplicationService.addItemToCollection(addItemToCollectionCommand);
+        AddItemsToCollectionCommand addItemToCollectionCommand =
+                AddItemsToCollectionCommand.of(collectionId, addItemsDTO.getItems());
+        collectionApplicationService.addItemsToCollection(addItemToCollectionCommand);
     }
 }
