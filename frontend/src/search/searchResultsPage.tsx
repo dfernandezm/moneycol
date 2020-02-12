@@ -65,7 +65,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
     <div className="searchResults">
       {resultsValues &&
 
-        (resultsValues.searchResults.length == 0 || !shouldRenderResults() ?
+        (resultsValues.searchResults.length === 0 || !shouldRenderResults() ?
           <EmptyResults message="No results found" /> :
           <SearchResultsList
             resultList={resultsValues.searchResults}

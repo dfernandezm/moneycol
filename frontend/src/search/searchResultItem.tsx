@@ -57,12 +57,12 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
                 <>
                 <Grid item xs={6}>
                 <div className={classes.square + ' ' + classes.imgFrame}>
-                    <img src={item.imageFront} className={classes.imgStyle} />
+                    <img  alt='imageFront' src={item.imageFront} className={classes.imgStyle} />
                 </div>
                 </Grid>
                     <Grid item xs={6}>
                     <div className={classes.square + ' ' + classes.imgFrame}>
-                        <img src={item.imageBack} className={classes.imgStyle} />
+                        <img alt='imgBack' src={item.imageBack} className={classes.imgStyle} />
                     </div>
                 </Grid> 
                 </>
