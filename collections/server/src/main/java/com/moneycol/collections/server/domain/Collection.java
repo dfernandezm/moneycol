@@ -1,6 +1,7 @@
 package com.moneycol.collections.server.domain;
 
 import com.moneycol.collections.server.infrastructure.repository.CollectionItemNotFoundException;
+import io.micronaut.core.util.StringUtils;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
@@ -24,6 +25,11 @@ public class Collection {
                                                     String description,
                                                     Collector collector) {
         Collection c = new Collection();
+
+        if (StringUtils.isEmpty(name)) {
+            throw new InvalidCollectionException("A collection cannot have an empty name");
+        }
+
         c.name = name;
         c.collector = collector;
         c.description = description;

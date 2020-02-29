@@ -5,7 +5,8 @@ import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.application.CollectionItemDTO;
-import com.moneycol.collections.server.application.DuplicateCollectionNameException;
+import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
+import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -195,7 +197,7 @@ public class CollectionApplicationServiceTest {
 
         Exception e = assertThrows(CollectionNotFoundException.class, s);
 
-        assertThat(e.getMessage(), Matchers.containsString(nonExistingCollectionId));
+        assertThat(e.getMessage(), containsString(nonExistingCollectionId));
     }
 
     @Test
@@ -413,7 +415,26 @@ public class CollectionApplicationServiceTest {
         assertThat(itemsInCollection.contains("item2"), is(true));
     }
 
+    @Test
+    public void shouldNotCreateCollectionWithEmptyName() {
 
+        CollectionRepository collectionRepo = mockRepository();
+
+        // Given: a collection with empty name
+        String collectorId = UUID.randomUUID().toString();
+        String collectionName = "";
+        String description = "A description";
+        CollectionDTO createCollectionDTO = new CollectionDTO("", collectionName,
+                description, collectorId, new ArrayList<>());
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
+
+        // When: creating it
+        Executable s = () ->  cas.createCollection(createCollectionDTO);
+
+        // Then: an error is thrown
+        Exception e = assertThrows(InvalidCollectionException.class, s);
+        assertThat(e.getMessage(), containsString("collection cannot have an empty name"));
+    }
 
     private CollectionRepository mockRepository() {
         CollectionRepository collectionRepo = Mockito.mock(CollectionRepository.class);

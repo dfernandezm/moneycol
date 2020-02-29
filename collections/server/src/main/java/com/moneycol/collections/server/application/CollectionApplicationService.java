@@ -1,5 +1,6 @@
 package com.moneycol.collections.server.application;
 
+import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;

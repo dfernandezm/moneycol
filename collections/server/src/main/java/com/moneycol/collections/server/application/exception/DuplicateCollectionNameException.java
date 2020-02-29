@@ -1,4 +1,4 @@
-package com.moneycol.collections.server.application;
+package com.moneycol.collections.server.application.exception;
 
 public class DuplicateCollectionNameException extends RuntimeException {
     public DuplicateCollectionNameException(String message) {

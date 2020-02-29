@@ -7,6 +7,7 @@ import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.application.CollectorDTO;
+import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -54,6 +55,15 @@ public class CollectionController {
         log.warn(errorMessage);
         map.put("error", errorMessage);
         return HttpResponse.notFound().body(map);
+    }
+
+    @Error(exception = InvalidCollectionException.class)
+    public MutableHttpResponse<Object> onInvalidCollection(HttpRequest request, InvalidCollectionException ex) {
+        Map<String, Object > map = new LinkedHashMap<>();
+        String errorMessage = "Collection is invalid: " + ex.getMessage();
+        log.warn(errorMessage);
+        map.put("error", errorMessage);
+        return HttpResponse.badRequest().body(map);
     }
 
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)

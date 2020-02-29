@@ -318,6 +318,20 @@ public class CollectionsControllerTest {
         assertThat(itemIds.contains("item2"), is(false));
     }
 
+    @Test
+    void testCollectionWithNoNameReturns400() {
+        CollectionDTO cdto = new CollectionDTO("","","", "", new ArrayList<>());
+        String endpoint = "/collections";
+        HttpRequest<CollectionDTO> createCollectionEndpoint = HttpRequest.POST(endpoint, cdto);
+
+        HttpResponse<JsonNode> createCollectionResp =
+                client.toBlocking().exchange(createCollectionEndpoint,
+                        Argument.of(JsonNode.class),
+                        Argument.of(JsonNode.class));
+
+        assertThat(createCollectionResp.getStatus(), is(HttpStatus.BAD_REQUEST));
+    }
+
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {
         List<String> itemIds = FirebaseUtil.findItemsForCollection(collectionId);
         assertThat(itemIds, Matchers.contains(expectedItemIds));
