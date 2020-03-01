@@ -4,7 +4,10 @@ plugins {
     id "net.ltgt.apt-idea" version "0.21"
     id "com.github.johnrengelman.shadow" version "4.0.2"
     id "application"
+    id 'com.google.cloud.tools.jib' version '2.1.0'
 }
+
+jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
 
 version "0.1.0"
 group "server"
