@@ -11,7 +11,7 @@ export class CollectionsRestDatasource extends RESTDataSource {
     return this.get('cars');
   }
 
-  async getACar(plateNumber) {
+  async getACar(plateNumber: string) {
     const result = await this.get('car', {
       plateNumber
     });
