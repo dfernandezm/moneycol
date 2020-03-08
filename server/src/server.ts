@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import compression from 'compression';
 import cors from 'cors';
 import schema from './schema';
+import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 
 const app = express();
 
@@ -21,13 +22,18 @@ const FIREBASE_CONFIG = {
 
 const server = new ApolloServer({
   schema,
+  dataSources: () => {
+    return {
+      collectionsAPI: new CollectionsRestDatasource()
+    };
+  },
   validationRules: [depthLimit(7)],
 });
 
 app.use('*', cors());
 app.use(compression());
 
-app.get('/api/firebaseConfig',  (req, res) => {
+app.get('/api/firebaseConfig', (req, res) => {
   res.json(FIREBASE_CONFIG);
 });
 

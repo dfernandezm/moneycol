@@ -302,3 +302,52 @@ mutation RemoveCollection($collectionId: String!) {
   "collectionId": "0125da25-a1a0-405a-8ff9-00af42341869"
 }
 ```
+
+```
+query itemsForCollection($collectionId: String!) {
+  itemsForCollection(collectionId: $collectionId) {
+    collectionId
+    name
+    description
+    bankNotes {
+      country
+      year
+      banknoteName
+    }
+  }
+}
+---
+{
+  "collectionId": "9119d775-2fbe-4957-acab-0f6a6829cb4c"
+}
+```
+
+### Smoke test calls to Collections API
+
+```
+# Collections for collectorId
+curl -i -XGET http://localhost:8001/collections/collector/collectorId9 -H 'Content-Type: application/json'
+
+# Create collection
+curl -i -XPOST http://localhost:8080/collections -H 'Content-Type: application/json' -d '{"name": "A collection1", "description": "Desc1", "collectorId": "collectorId9"}'
+
+# add items to collection
+curl -i -XPOST http://localhost:8001/collections/9119d775-2fbe-4957-acab-0f6a6829cb4c/items -H 'Content-Type: application/json' -d '{ "items": [{"itemId":"17516"},{"itemId":"55042"}]}'
+
+# Delete item from collection
+curl -i -XDELETE http://localhost:8001/collections/9119d775-2fbe-4957-acab-0f6a6829cb4c/items/Wor:P-157a.2 -H 'Content-Type: application/json'
+
+```
+
+
+## Use service account to access Firestore
+
+In order to authenticate against Firestore when running `collections-api` inside GKE, a service account is required, otherwise there will be a failure like:
+
+```
+Caused by: io.grpc.StatusRuntimeException: PERMISSION_DENIED: Request had insufficient authentication scopes.
+```
+
+This is due to the default service account of GKE being used. By default, when no credentials are passed, anything running in GCP will default its credentials to the ones of the Service Account of the underlying service.
+
+In order to fine tune scopes and access rights, it's best practice to create a service account for the deployed service and integrate it as part of it, see: 

@@ -45,11 +45,32 @@ class ElasticSearchService implements SearchService {
         const bankNotes: BankNote[] = results.map(result => new BankNote(result));
 
         const searchResult = new SearchResult(bankNotes, total);
-        //console.log("Results: " + JSON.stringify(results));
         console.log("Banknotes", searchResult.results);
         console.log("Total: " + searchResult.total);
         console.log("Search Result", searchResult);
         return searchResult;
+    }
+
+    async decorateUsingIds (language: string, docIds: string[]): Promise<BankNote[]> {
+        let theIndexName = "banknotes-catalog-" + language;
+        const idsQuery = {
+            "query": {
+                "ids" : {
+                    "values" : docIds
+                }
+            }
+        }
+
+        console.log("Decorator Querystring: ", idsQuery);
+        
+        const result = await this.elasticClient().search({
+            index: theIndexName,
+            body: idsQuery
+        });
+
+        const results = result.hits.hits.map(hit => hit._source)
+        const bankNotes: BankNote[] = results.map(result => new BankNote(result));
+        return bankNotes;
     }
 
     private elasticClient() {
