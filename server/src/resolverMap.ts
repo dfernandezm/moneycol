@@ -6,29 +6,38 @@ import { SearchService } from './infrastructure/SearchService';
 import { ElasticSearchService } from './infrastructure/ElasticSearchService';
 import { SearchResult } from './infrastructure/SearchResult';
 import { BankNoteCollection } from './infrastructure/SearchResult';
-import { CollectionResult } from './infrastructure/SearchResult';
 import { NewCollectionInput } from './infrastructure/SearchResult';
 import { AddBankNoteToCollection } from './infrastructure/SearchResult';
 import { UpdateCollectionInput } from './infrastructure/SearchResult';
-
-
-import fakeData from './fakeData';
 import { BankNote } from './types/BankNote';
+import fakeData from './fakeData';
+import decorator from './decorator';
+import { CollectionApiResult } from "./infrastructure/collections/types";
 
 const searchService: SearchService = new ElasticSearchService();
+
+
 
 const resolverMap: IResolvers = {
     Query: {
         async search(_: void, args: { term: string, from: number, to: number }, ctx): Promise<SearchResult> {
             return searchService.search("en", args.term, args.from, args.to);
         },
-        async collections(_: void, args: {collectorId: string}): Promise<BankNoteCollection[]> {
-            let collectionsForCollector = fakeData.byCollector(args.collectorId);
-            return Promise.resolve(collectionsForCollector);
+        async collections(_: void, args: { collectorId: string }, { dataSources }): Promise<BankNoteCollection[]> {
+            let collections: CollectionApiResult[] = await dataSources.collectionsAPI.getCollectionsForCollector(args.collectorId);
+            // These collections won't require the items for now, so we send it empty for now
+            return collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []));   
+        },
+        async itemsForCollection(_: void, args: { collectionId: string }, { dataSources }): Promise<BankNoteCollection> {
+            let collection: CollectionApiResult = await dataSources.collectionsAPI.getItemsForCollection(args.collectionId);
+            console.log("Items in collection:", collection.items);
+            let bankNotes: BankNote[] = await decorator.decorateItems("en", collection.items);
+            console.log("Decorated banknotes:", bankNotes);
+            return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);   
         }
     },
     Mutation: {
-        async addCollection(_: void, args: {collection: NewCollectionInput}): Promise<BankNoteCollection | null>  {
+        async addCollection(_: void, args: { collection: NewCollectionInput }): Promise<BankNoteCollection | null> {
             console.log(`About to create collection for ${args.collection.collectorId}: ${args.collection.name}, ${args.collection.description}`)
             let bankNoteCollection = fakeData.addCollection(args.collection);
             return Promise.resolve(bankNoteCollection);
@@ -41,10 +50,10 @@ const resolverMap: IResolvers = {
                 return bankNoteCollection;
             } else {
                 console.log(`Collection with ${args.data.collectionId} not found`);
-                return Promise.reject({error: `Collection with ${args.data.collectionId} not found`});
+                return Promise.reject({ error: `Collection with ${args.data.collectionId} not found` });
             }
         },
-        async updateCollection(_: void, args: {collectionId: string, data: UpdateCollectionInput}): Promise<BankNoteCollection> {
+        async updateCollection(_: void, args: { collectionId: string, data: UpdateCollectionInput }): Promise<BankNoteCollection> {
             let bankNoteCollection = fakeData.updateCollection(args.collectionId, args.data)
             if (bankNoteCollection) {
                 return Promise.resolve(bankNoteCollection)
@@ -52,14 +61,14 @@ const resolverMap: IResolvers = {
                 return Promise.reject(`Cannot update collection ${args.collectionId}, ${bankNoteCollection}`)
             }
         },
-        async deleteCollection(_: void, args: {collectionId: string}): Promise<Boolean> {
+        async deleteCollection(_: void, args: { collectionId: string }): Promise<Boolean> {
             console.log(`Deleting collection ${args.collectionId}`);
 
-            
+
             fakeData.deleteCollection(args.collectionId)
             return Promise.resolve(true);
         },
-        async removeBankNoteFromCollection(_: void, args: {banknoteId: string, collectionId: string}): Promise<BankNoteCollection> {
+        async removeBankNoteFromCollection(_: void, args: { banknoteId: string, collectionId: string }): Promise<BankNoteCollection> {
             let bankNoteCollection = fakeData.removeBankNoteFromCollection(args.banknoteId, args.collectionId);
             return bankNoteCollection;
         }
