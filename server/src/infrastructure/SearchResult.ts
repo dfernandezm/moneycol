@@ -61,7 +61,3 @@ export type CollectionCreatedResult = {
     description: string,
     collectorId: string
 }
-
-export type CollectionItem = {
-
-}
