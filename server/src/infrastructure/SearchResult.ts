@@ -12,7 +12,7 @@ export class BankNoteCollection {
 }
 
 export type BankNoteCollectionItem = {
-    catalogCode: string
+    id: string
 }
 
 export class StoredBankNoteCollection {
@@ -60,4 +60,8 @@ export type CollectionCreatedResult = {
     name: string,
     description: string,
     collectorId: string
+}
+
+export type CollectionItem = {
+
 }
