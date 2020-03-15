@@ -64,7 +64,7 @@ const mapToBankNotes = (bankNoteCollectionItems: BankNoteCollectionItem[]): Bank
         country: "",
         banknoteName: "",
         year: "",
-        catalogCode: b.catalogCode,
+        catalogCode: b.id,
         description: "",
         detailLink: "",
         imageFront: "",
@@ -107,7 +107,7 @@ const updateCollection = (collectionId: string, collection: UpdateCollectionInpu
 const removeBankNoteFromCollection =  (banknoteId: string, collectionId: string): BankNoteCollection => {
     let col  = findStoredCollection(collectionId);
     if (col) {
-        let index = col.bankNotes.findIndex( b => b.catalogCode == banknoteId);
+        let index = col.bankNotes.findIndex( b => b.id == banknoteId);
         console.log(`Index: ${index}`);
         if (index) {
             col.bankNotes.splice(index, 1);

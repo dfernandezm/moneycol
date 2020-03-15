@@ -26,18 +26,18 @@ const resolverMap: IResolvers = {
         async collections(_: void, args: { collectorId: string }, { dataSources }): Promise<BankNoteCollection[]> {
             let collections: CollectionApiResult[] = await dataSources.collectionsAPI.getCollectionsForCollector(args.collectorId);
             // These collections won't require the items for now, so we send it empty for now
-            return collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []));   
+            return collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []));
         },
         async itemsForCollection(_: void, args: { collectionId: string }, { dataSources }): Promise<BankNoteCollection> {
             let collection: CollectionApiResult = await dataSources.collectionsAPI.getItemsForCollection(args.collectionId);
             console.log("Items in collection:", collection.items);
             let bankNotes: BankNote[] = await decorator.decorateItems("en", collection.items);
             console.log("Decorated banknotes:", bankNotes);
-            return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);   
+            return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);
         }
     },
     Mutation: {
-        
+
         async addCollection(_: void, args: { collection: NewCollectionInput }, { dataSources }): Promise<BankNoteCollection | null> {
             let { collection } = args
             console.log(`About to create collection for ${collection.collectorId}: ${collection.name}, ${collection.description}`);
@@ -45,17 +45,19 @@ const resolverMap: IResolvers = {
             return new BankNoteCollection(collectionId, name, description, collectorId, []);
         },
 
-        async addBankNoteToCollection(_: void, args: { data: AddBankNoteToCollection }): Promise<BankNoteCollection> {
-            console.log(`Adding banknote to collection: ${args.data.collectionId}`)
-            let bankNoteCollection: BankNoteCollection = fakeData.addBankNoteToCollection(args.data.collectionId, args.data.bankNoteCollectionItem);
-            if (bankNoteCollection) {
-                console.log(`Returning banknote collection:`, bankNoteCollection);
-                return bankNoteCollection;
-            } else {
-                console.log(`Collection with ${args.data.collectionId} not found`);
-                return Promise.reject({ error: `Collection with ${args.data.collectionId} not found` });
-            }
+        async addBankNoteToCollection(_: void, args: { data: AddBankNoteToCollection }, { dataSources }): Promise<BankNoteCollection> {
+            let { data: { collectionId, collectorId, bankNoteCollectionItem: { id } } } = args;
+            console.log(`Adding banknote to collection: ${collectionId}`);
+
+            await dataSources.collectionsAPI.addItemsToCollection(collectionId, [id]);
+            
+            //TODO: the API should return the collection back (1st page or so): issue #133
+            let fetchedCollection: CollectionApiResult = await dataSources.collectionsAPI.getCollectionById(collectionId);
+            let bankNotes: BankNote[] = await decorator.decorateItems("en", fetchedCollection.items);
+            return new BankNoteCollection(collectionId, fetchedCollection.name, 
+                                        fetchedCollection.description, collectorId, bankNotes);
         },
+
         async updateCollection(_: void, args: { collectionId: string, data: UpdateCollectionInput }): Promise<BankNoteCollection> {
             let bankNoteCollection = fakeData.updateCollection(args.collectionId, args.data)
             if (bankNoteCollection) {

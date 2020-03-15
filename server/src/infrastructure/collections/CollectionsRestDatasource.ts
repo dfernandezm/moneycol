@@ -1,6 +1,6 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
 import { CollectionApiResult } from './types';
-import { NewCollectionInput } from '../SearchResult';
+import { NewCollectionInput, AddBankNoteToCollection, BankNoteCollection } from '../SearchResult';
 import { CollectionCreatedResult } from '../SearchResult';
 import {
   Request
@@ -26,6 +26,14 @@ export class CollectionsRestDatasource extends RESTDataSource {
 
   async createCollection(collection: NewCollectionInput): Promise<CollectionCreatedResult> {
     return this.post(`collections`, collection);
+  }
+
+  async addItemsToCollection(collectionId: string, itemIds: string[]): Promise<void> {
+    return this.post(`collections/${collectionId}/items`, { items: itemIds });
+  }
+
+  async getCollectionById(collectionId: string): Promise<CollectionApiResult> {
+      return this.getItemsForCollection(collectionId);
   }
 
   //TODO: workaround for now, the server should return this already. Created bug #130 for this
