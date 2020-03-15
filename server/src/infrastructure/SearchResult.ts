@@ -30,6 +30,21 @@ export class StoredBankNoteCollection {
     }
 }
 
+export type UpdateCollectionInput = {
+    name: string,
+    description: string
+}
+
+export type BankNoteInputCollectionItem = {   
+    id: string
+}
+
+export type AddBankNoteToCollection = {
+    collectionId: string,
+    collectorId: string,
+    bankNoteCollectionItem: BankNoteCollectionItem
+}
+
 export class CollectionResult {
     constructor(public collections: BankNoteCollection[]) {}
 }
@@ -40,17 +55,9 @@ export type NewCollectionInput = {
     collectorId: string
 }
 
-export type UpdateCollectionInput = {
+export type CollectionCreatedResult = {
+    collectionId: string, //TODO: inconsistent with the above in the API, raised #127 to fix
     name: string,
-    description: string
-}
-
-export type BankNoteInputCollectionItem = {   
-    catalogCode: string
-}
-
-export type AddBankNoteToCollection = {
-    collectionId: string,
-    collectorId: string,
-    bankNoteCollectionItem: BankNoteCollectionItem
+    description: string,
+    collectorId: string
 }

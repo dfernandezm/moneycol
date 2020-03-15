@@ -8,7 +8,6 @@ import { ElasticSearchService } from '../../src/infrastructure/ElasticSearchServ
 import { SearchService } from '../../src/infrastructure/SearchService';
 
 const searcher : SearchService = new ElasticSearchService();
-
 const userModel = require("../infrastructure/user");
 const bodyParser = require('body-parser'); 
 

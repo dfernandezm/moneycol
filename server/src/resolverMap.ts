@@ -4,7 +4,7 @@
 import { IResolvers, addSchemaLevelResolveFunction } from 'graphql-tools';
 import { SearchService } from './infrastructure/SearchService';
 import { ElasticSearchService } from './infrastructure/ElasticSearchService';
-import { SearchResult } from './infrastructure/SearchResult';
+import { SearchResult, CollectionResult } from './infrastructure/SearchResult';
 import { BankNoteCollection } from './infrastructure/SearchResult';
 import { NewCollectionInput } from './infrastructure/SearchResult';
 import { AddBankNoteToCollection } from './infrastructure/SearchResult';
@@ -37,11 +37,14 @@ const resolverMap: IResolvers = {
         }
     },
     Mutation: {
-        async addCollection(_: void, args: { collection: NewCollectionInput }): Promise<BankNoteCollection | null> {
-            console.log(`About to create collection for ${args.collection.collectorId}: ${args.collection.name}, ${args.collection.description}`)
-            let bankNoteCollection = fakeData.addCollection(args.collection);
-            return Promise.resolve(bankNoteCollection);
+        
+        async addCollection(_: void, args: { collection: NewCollectionInput }, { dataSources }): Promise<BankNoteCollection | null> {
+            let { collection } = args
+            console.log(`About to create collection for ${collection.collectorId}: ${collection.name}, ${collection.description}`);
+            let { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
+            return new BankNoteCollection(collectionId, name, description, collectorId, []);
         },
+
         async addBankNoteToCollection(_: void, args: { data: AddBankNoteToCollection }): Promise<BankNoteCollection> {
             console.log(`Adding banknote to collection: ${args.data.collectionId}`)
             let bankNoteCollection: BankNoteCollection = fakeData.addBankNoteToCollection(args.data.collectionId, args.data.bankNoteCollectionItem);
