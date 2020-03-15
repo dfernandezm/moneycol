@@ -58,21 +58,22 @@ const resolverMap: IResolvers = {
                                         fetchedCollection.description, collectorId, bankNotes);
         },
 
-        async updateCollection(_: void, args: { collectionId: string, data: UpdateCollectionInput }): Promise<BankNoteCollection> {
-            let bankNoteCollection = fakeData.updateCollection(args.collectionId, args.data)
-            if (bankNoteCollection) {
-                return Promise.resolve(bankNoteCollection)
-            } else {
-                return Promise.reject(`Cannot update collection ${args.collectionId}, ${bankNoteCollection}`)
-            }
+        async updateCollection(_: void, args: { collectionId: string, data: UpdateCollectionInput }, { dataSources }): Promise<BankNoteCollection> {
+            let { name, description } = args.data;
+            let bankNoteCollection = await dataSources.collectionsAPI.updateCollection(args.collectionId, name, description);
+            return new BankNoteCollection(
+                bankNoteCollection.collectionId, 
+                bankNoteCollection.name,
+                bankNoteCollection.description,
+                bankNoteCollection.collectorId, []);
         },
+
         async deleteCollection(_: void, args: { collectionId: string }): Promise<Boolean> {
             console.log(`Deleting collection ${args.collectionId}`);
-
-
             fakeData.deleteCollection(args.collectionId)
             return Promise.resolve(true);
         },
+
         async removeBankNoteFromCollection(_: void, args: { banknoteId: string, collectionId: string }): Promise<BankNoteCollection> {
             let bankNoteCollection = fakeData.removeBankNoteFromCollection(args.banknoteId, args.collectionId);
             return bankNoteCollection;

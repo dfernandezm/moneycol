@@ -14,9 +14,9 @@ import java.util.List;
 //@RequiredArgsConstructor(onConstructor=@__(@JsonCreator(mode = JsonCreator.Mode.PROPERTIES)))
 public class CollectionDTO {
     private String id;
-    private  String name;
-    private  String description;
-    private  String collectorId;
+    private String name;
+    private String description;
+    private String collectorId;
     private List<CollectionItemDTO> items;
 
     @JsonCreator

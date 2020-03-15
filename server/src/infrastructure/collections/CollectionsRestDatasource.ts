@@ -36,6 +36,12 @@ export class CollectionsRestDatasource extends RESTDataSource {
       return this.getItemsForCollection(collectionId);
   }
 
+  async updateCollection(collectionId: string, name: string, description: string): Promise<CollectionCreatedResult> {
+    //TODO: the API is not behaving as expected, it should just update these 2 values, but it's also batching the items 
+    // so it's deleting them if present as they aren't being sent. Created bug #136 to fix.
+    return this.put(`/collections/${collectionId}`, { name: name, description: description });
+  }
+
   //TODO: workaround for now, the server should return this already. Created bug #130 for this
   protected didEncounterError(error: ApolloError, _request: Request) {
     let message = error.extensions.response.body.message;
