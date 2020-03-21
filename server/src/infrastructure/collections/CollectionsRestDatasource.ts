@@ -1,6 +1,6 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
 import { CollectionApiResult } from './types';
-import { NewCollectionInput, AddBankNoteToCollection, BankNoteCollection } from '../SearchResult';
+import { NewCollectionInput } from '../SearchResult';
 import { CollectionCreatedResult } from '../SearchResult';
 import {
   Request
@@ -13,7 +13,8 @@ export class CollectionsRestDatasource extends RESTDataSource {
   
   constructor() {
     super();
-    this.baseURL = 'http://localhost:8001/';
+    this.baseURL = process.env.COLLECTIONS_API_HOST ? `http://${process.env.COLLECTIONS_API_HOST}/` : 'http://localhost:8001/';
+    console.log("Base url for collections datasource is " + this.baseURL)
   }
 
   async getCollectionsForCollector(collectorId: string): Promise<CollectionApiResult[]> {
