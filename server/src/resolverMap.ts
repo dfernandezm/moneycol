@@ -68,10 +68,10 @@ const resolverMap: IResolvers = {
                 bankNoteCollection.collectorId, []);
         },
 
-        async deleteCollection(_: void, args: { collectionId: string }): Promise<Boolean> {
+        async deleteCollection(_: void, args: { collectionId: string }, { dataSources }): Promise<Boolean> {
             console.log(`Deleting collection ${args.collectionId}`);
-            fakeData.deleteCollection(args.collectionId)
-            return Promise.resolve(true);
+            await dataSources.collectionsAPI.deleteCollection(args.collectionId);
+            return true;
         },
 
         async removeBankNoteFromCollection(_: void, args: { banknoteId: string, collectionId: string }): Promise<BankNoteCollection> {
