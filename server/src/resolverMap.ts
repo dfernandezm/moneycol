@@ -70,8 +70,8 @@ const resolverMap: IResolvers = {
 
         async deleteCollection(_: void, args: { collectionId: string }): Promise<Boolean> {
             console.log(`Deleting collection ${args.collectionId}`);
-            fakeData.deleteCollection(args.collectionId)
-            return Promise.resolve(true);
+            //fakeData.deleteCollection(args.collectionId)
+            //return Promise.resolve(true);
         },
 
         async removeBankNoteFromCollection(_: void, args: { banknoteId: string, collectionId: string }): Promise<BankNoteCollection> {
