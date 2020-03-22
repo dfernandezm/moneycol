@@ -43,6 +43,10 @@ export class CollectionsRestDatasource extends RESTDataSource {
     return this.put(`/collections/${collectionId}`, { name: name, description: description });
   }
 
+  async deleteCollection(collectionId: string): Promise<void> {
+    return this.delete(`/collections/${collectionId}`);
+  }
+
   //TODO: workaround for now, the server should return this already. Created bug #130 for this
   protected didEncounterError(error: ApolloError, _request: Request) {
     let message = error.extensions.response.body.message;
