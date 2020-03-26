@@ -7,6 +7,8 @@ import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.application.CollectorDTO;
+import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
+import com.moneycol.collections.server.application.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import io.micronaut.http.HttpRequest;
@@ -82,10 +84,13 @@ public class CollectionController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Put(uri = "/{collectionId}")
     Single<CollectionCreatedResult> updateCollection(@PathVariable String collectionId,
-                                                     @Body CollectionDTO collectionDTO) {
+                                                     @Body UpdateCollectionDataDTO collectionDTO) {
         log.info("Attempt to update collection with ID: {}, {}", collectionId, collectionDTO);
-        collectionDTO.setId(collectionId);
-        return Single.just(collectionApplicationService.updateCollection(collectionDTO));
+        UpdateCollectionDataCommand cmd = UpdateCollectionDataCommand.of(collectionId,
+                collectionDTO.getName(),
+                collectionDTO.getDescription(),
+                collectionDTO.getCollectorId());
+        return Single.just(collectionApplicationService.updateCollectionData(cmd));
     }
 
     @Delete(uri="/{collectionId}")

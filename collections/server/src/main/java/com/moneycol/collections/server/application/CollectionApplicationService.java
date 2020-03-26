@@ -25,7 +25,7 @@ public class CollectionApplicationService {
 
     public CollectionCreatedResult createCollection(CollectionDTO createCollectionDTO) {
 
-        if (collectionRepository.existsWithName(createCollectionDTO.getName())) {
+        if (collectionRepository.existsWithName(null, createCollectionDTO.getName())) {
             throw new DuplicateCollectionNameException("Collection already exists with name " +
                     createCollectionDTO.getName());
         }
@@ -77,7 +77,7 @@ public class CollectionApplicationService {
 
     public CollectionCreatedResult updateCollection(CollectionDTO collectionDTO) {
 
-        if (collectionRepository.existsWithName(collectionDTO.getName())) {
+        if (collectionRepository.existsWithName(collectionDTO.getId(), collectionDTO.getName())) {
             throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDTO.getName());
         }
 
@@ -90,6 +90,19 @@ public class CollectionApplicationService {
         collectionRepository.update(collection);
         return new CollectionCreatedResult(collection.id(), collection.name(),
                                            collection.description(), collection.collector().id());
+    }
+
+    public CollectionCreatedResult updateCollectionData(UpdateCollectionDataCommand collectionDataCommand) {
+        if (collectionRepository.existsWithName(collectionDataCommand.getId(), collectionDataCommand.getName())) {
+            throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDataCommand.getName());
+        }
+
+        Collection collection = collectionRepository.byId(CollectionId.of(collectionDataCommand.getId()));
+        collection.name(collectionDataCommand.getName());
+        collection.description(collectionDataCommand.getDescription());
+        collectionRepository.update(collection);
+        return new CollectionCreatedResult(collection.id(), collection.name(),
+                collection.description(), collection.collector().id());
     }
 
     public void addItemsToCollection(AddItemsToCollectionCommand addItemsToCollectionCommand) {
