@@ -262,13 +262,20 @@ public class FirebaseCollectionRepository implements CollectionRepository {
     }
 
     @Override
-    public Boolean existsWithName(String name) {
+    public Boolean existsWithName(String existingId, String name) {
         try {
 
-            Query query = firestore.collection("collections").whereEqualTo("name", name);
+            Query query = firestore
+                    .collection("collections")
+                    .whereEqualTo("name", name);
             ApiFuture<QuerySnapshot> querySnapshotFuture = query.get();
             List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshotFuture.get().getDocuments();
-            return queryDocumentSnapshots.size() > 0;
+
+            if (existingId == null) {
+                return queryDocumentSnapshots.size() > 0;
+            }
+
+            return queryDocumentSnapshots.stream().anyMatch(qde -> qde.getId().equals(existingId));
         } catch (Exception e) {
             log.error("Error querying collections for name: {}", name, e);
             throw new RuntimeException(e);

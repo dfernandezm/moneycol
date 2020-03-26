@@ -332,6 +332,47 @@ public class CollectionsControllerTest {
         assertThat(createCollectionResp.getStatus(), is(HttpStatus.BAD_REQUEST));
     }
 
+    @Test
+    void shouldJustUpdateCollectionAttributesLeavingItemsUntouched() {
+
+        // Given: existing collection
+        String collectorId = "aCollectorId";
+        String aName = "aCollectionName";
+        String aDescription = "aDescription";
+        String collectionId = CollectionId.randomId();
+        CollectionItem item1 = CollectionItem.of("item1");
+        CollectionItem item2 = CollectionItem.of("item2");
+        List<CollectionItem> items = new ArrayList<>();
+        items.add(item1);
+        items.add(item2);
+        FirebaseUtil.createCollectionWithItems(collectionId, aName, aDescription, collectorId, items);
+
+        delayMilliseconds(500);
+        // When: updating its name/description
+
+        String newName = "newName";
+        String newDescription = "newDescription";
+        CollectionDTO collectionDTO =
+                new CollectionDTO(collectionId, newName, newDescription, collectorId, new ArrayList<>());
+
+        HttpRequest<CollectionDTO> updateCollectionEndpoint =
+                HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
+        HttpResponse<CollectionCreatedResult> collectionCreatedResp =
+                client.toBlocking().exchange(updateCollectionEndpoint, Argument.of(CollectionCreatedResult.class));
+
+        assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
+        assertTrue(collectionCreatedResp.getBody().isPresent());
+        assertThat(collectionCreatedResp.getBody().get().getName(), is(newName));
+        assertThat(collectionCreatedResp.getBody().get().getDescription(), is(newDescription));
+        assertCollectionHasItems(collectionId, items.get(0).getItemId(), items.get(1).getItemId());
+    }
+
+    @Test
+    public void shouldAllowChangingNameOnlyIfThereIsntAnotherWithSameTest() {
+        //TODO: existsWithName: check if any other collection has the name taken
+        // updating: check if any other collection different than this one has the new name
+    }
+
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {
         List<String> itemIds = FirebaseUtil.findItemsForCollection(collectionId);
         assertThat(itemIds, Matchers.contains(expectedItemIds));

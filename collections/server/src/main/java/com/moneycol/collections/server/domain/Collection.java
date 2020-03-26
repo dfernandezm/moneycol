@@ -58,4 +58,12 @@ public class Collection {
     public String id() {
         return id.id();
     }
+
+    public void name(String newName) {
+        this.name = newName;
+    }
+
+    public void description(String description) {
+        this.description = description;
+    }
 }
