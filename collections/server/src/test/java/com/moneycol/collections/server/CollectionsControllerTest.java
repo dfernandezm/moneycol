@@ -368,9 +368,72 @@ public class CollectionsControllerTest {
     }
 
     @Test
-    public void shouldAllowChangingNameOnlyIfThereIsntAnotherWithSameTest() {
-        //TODO: existsWithName: check if any other collection has the name taken
-        // updating: check if any other collection different than this one has the new name
+    public void shouldNotAllowChangingNameIfThereIsAnotherWithSameTest() {
+
+        // Given: 2 collections exist with different names
+        String collectorId = "aCollectorId";
+        String aName = "aCollectionName";
+        String aDescription = "aDescription";
+        String collectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+
+        String anotherCollectorId = "aCollectorId";
+        String anotherName = "anotherCollectionName";
+        String anotherDescription = "anotherDescription";
+        String anotherCollectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
+
+        delayMilliseconds(500);
+
+        // When: we update one with a name that is already in use by a different collection (different id)
+        String newName = anotherName;
+
+        CollectionDTO collectionDTO =
+                new CollectionDTO(collectionId, newName, aDescription, collectorId, new ArrayList<>());
+        HttpRequest<CollectionDTO> updateCollectionEndpoint =
+                HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
+
+        HttpResponse<JsonNode> collectionUpdatedResp =
+                client.toBlocking().exchange(updateCollectionEndpoint,
+                        Argument.of(JsonNode.class),
+                        Argument.of(JsonNode.class));
+
+        // Then: bad request due to duplicated name
+        assertThat(collectionUpdatedResp.getStatus(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    public void shouldAllowChangingNameIfThereIsNotAnotherWithSameTest() {
+
+        // Given: 2 collections exist with different names
+        String collectorId = "aCollectorId";
+        String aName = "aCollectionName";
+        String aDescription = "aDescription";
+        String collectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+
+        String anotherCollectorId = "aCollectorId";
+        String anotherName = "anotherCollectionName";
+        String anotherDescription = "anotherDescription";
+        String anotherCollectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
+
+        // When: we update one with a name that is already in use by a different collection (different id)
+        String newName = "aThirdName";
+
+        CollectionDTO collectionDTO =
+                new CollectionDTO(collectionId, newName, aDescription, collectorId, new ArrayList<>());
+        HttpRequest<CollectionDTO> updateCollectionEndpoint =
+                HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
+
+        HttpResponse<CollectionCreatedResult> collectionUpdateResp =
+                client.toBlocking().exchange(updateCollectionEndpoint, Argument.of(CollectionCreatedResult.class));
+
+        // Then: the update of the name should be successful
+        assertEquals(collectionUpdateResp.getStatus(), HttpStatus.OK);
+        assertTrue(collectionUpdateResp.getBody().isPresent());
+        assertThat(collectionUpdateResp.getBody().get().getName(), is(newName));
+        assertThat(collectionUpdateResp.getBody().get().getDescription(), is(aDescription));
     }
 
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {

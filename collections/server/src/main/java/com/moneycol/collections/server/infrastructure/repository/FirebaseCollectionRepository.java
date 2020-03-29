@@ -275,7 +275,10 @@ public class FirebaseCollectionRepository implements CollectionRepository {
                 return queryDocumentSnapshots.size() > 0;
             }
 
-            return queryDocumentSnapshots.stream().anyMatch(qde -> qde.getId().equals(existingId));
+            // Any other collection (different id) has the same name
+            return queryDocumentSnapshots.stream().anyMatch(qde ->
+                                                            !qde.getId().equals(existingId) &&
+                                                            qde.getString("name").equals(name));
         } catch (Exception e) {
             log.error("Error querying collections for name: {}", name, e);
             throw new RuntimeException(e);
