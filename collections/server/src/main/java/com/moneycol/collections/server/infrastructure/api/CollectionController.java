@@ -9,6 +9,7 @@ import com.moneycol.collections.server.application.CollectionDTO;
 import com.moneycol.collections.server.application.CollectorDTO;
 import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
 import com.moneycol.collections.server.application.UpdateCollectionDataDTO;
+import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import io.micronaut.http.HttpRequest;
@@ -63,6 +64,15 @@ public class CollectionController {
     public MutableHttpResponse<Object> onInvalidCollection(HttpRequest request, InvalidCollectionException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection is invalid: " + ex.getMessage();
+        log.warn(errorMessage);
+        map.put("error", errorMessage);
+        return HttpResponse.badRequest().body(map);
+    }
+
+    @Error(exception = DuplicateCollectionNameException.class)
+    public MutableHttpResponse<Object> onDuplicatedCollectionName(HttpRequest request, DuplicateCollectionNameException ex) {
+        Map<String, Object > map = new LinkedHashMap<>();
+        String errorMessage = "Collection name duplicated: " + ex.getMessage();
         log.warn(errorMessage);
         map.put("error", errorMessage);
         return HttpResponse.badRequest().body(map);
