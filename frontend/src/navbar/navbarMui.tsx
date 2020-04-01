@@ -202,7 +202,7 @@ const NavBarMui: React.FC = () => {
                        
                             <IconButton
                                 edge="end"
-                                aria-label="collections"
+                                aria-label="protected"
                                 aria-controls={menuId}
                                 color="inherit">
                                   <NavLink exact={true} to="/protected" className={classes.theNavLink}>      
@@ -221,14 +221,23 @@ const NavBarMui: React.FC = () => {
                             </NavLink>
                         </IconButton>
                         <IconButton
+                                edge="end"
+                                aria-label="collections"
+                                aria-controls={menuId}
+                                color="inherit">
+                                  <NavLink exact={true} to="/collections" className={classes.theNavLink}>      
+                                    <PermMediaRounded />
+                                  </NavLink>
+                                
+                            </IconButton>
+                        <IconButton
                             edge="end"
                             aria-label="account of current user"
                             aria-controls={menuId}
                             aria-haspopup="true"
                             onClick={handleProfileMenuOpen}
-                            color="inherit"
-                        >
-                            <AccountCircle />
+                            color="inherit" >
+                        <AccountCircle />
                         </IconButton>
                     </div>
                     <div className={classes.sectionMobile}>
