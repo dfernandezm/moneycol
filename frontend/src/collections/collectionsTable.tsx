@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { withStyles, Theme, createStyles, makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -7,36 +7,68 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import Container from '@material-ui/core/Container';
-
 
 import { useQuery } from '@apollo/react-hooks';
 import { COLLECTIONS_FOR_COLLECTOR } from './gql/collectionsForCollector';
 import { BankNoteCollection } from './types';
 
-const useStyles = makeStyles({
-    table: {
-        minWidth: 650,
-    },
-});
+const StyledTableCell = withStyles((theme: Theme) =>
+    createStyles({
+        head: {
+            backgroundColor: theme.palette.common.black,
+            color: theme.palette.common.white,
+        },
+        body: {
+            fontSize: 14,
+        },
+    }),
+)(TableCell);
+
+const StyledTableRow = withStyles((theme: Theme) =>
+        createStyles({
+            root: {
+                '&:nth-of-type(odd)': {
+                    backgroundColor: theme.palette.background.default,
+                },
+                border: 'none'
+            },
+        }),
+    )(TableRow);
+
+    const StyledTable = withStyles({
+        root: {
+            border: 'none'
+        }
+    })(TableRow);
 
 interface Props {
     collector: string
 }
 
+const useStyles = makeStyles({
+    table: {
+        minWidth: 700,
+    },
+    th: {
+        border: 'none',
+        borderBottom: '1px solid #fafafa'
+    }
+});
+
 const CollectionsTable: React.FC<Props> = ({ collector }) => {
-    const classes = useStyles();
     const { data, loading, error } = useQuery(COLLECTIONS_FOR_COLLECTOR, {
         variables: { collectorId: collector },
     });
 
+    const classes = useStyles();
+
     if (loading) return <p>Loading</p>;
     if (error) return <p>Error: {error}</p>;
     return (
-        <Container maxWidth="lg">
+
         <TableContainer component={Paper}>
-            <Table className={classes.table} aria-label="simple table">
-                <TableHead>
+            <StyledTable className={classes.table} aria-label="simple table">
+                <TableHead className={classes.th}>
                     <TableRow>
                         <TableCell>Name</TableCell>
                         <TableCell align="right">Description</TableCell>
@@ -44,18 +76,16 @@ const CollectionsTable: React.FC<Props> = ({ collector }) => {
                 </TableHead>
                 <TableBody>
                     {data.collections.map((collection: BankNoteCollection) => (
-                        <TableRow key={collection.name}>
-                            <TableCell component="th" scope="row">
+                        <StyledTableRow key={collection.name}>
+                            <StyledTableCell component="th" scope="row">
                                 {collection.name}
-                            </TableCell>
-                            <TableCell align="right">{collection.description}</TableCell>
-                        </TableRow>
+                            </StyledTableCell>
+                            <StyledTableCell align="right">{collection.description}</StyledTableCell>
+                        </StyledTableRow>
                     ))}
                 </TableBody>
-            </Table>
+            </StyledTable>
         </TableContainer>
-        </Container>
-
     )
 }
 
