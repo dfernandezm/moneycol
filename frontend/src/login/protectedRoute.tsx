@@ -22,7 +22,7 @@ const ProtectedRoute = ({
     isVerifying,
     ...rest
 }: TheProps) => {
-        //type LocationProp = { location: string }
+
         type ComponentProps = React.ComponentProps<typeof Component> & RouteComponentProps
 
         return (<Route

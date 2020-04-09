@@ -73,6 +73,7 @@ const Protected: React.FC<ProtectedComponentProps> = (props: ProtectedComponentP
     );
 }
 
+// Map Redux state to props for this component
 const mapState = (state: RootState) => {
     return {
         isLoggingOut: state.auth.isLoggingOut,
