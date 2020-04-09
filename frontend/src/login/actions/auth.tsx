@@ -1,9 +1,5 @@
-//import { Dispatch } from 'redux';
-import { Action, ActionCreator, Dispatch } from 'redux';
-
 import { myFirebase } from "../../firebase/firebase";
-
-//import AuthenticationState from "../reducers"
+import { Action, ActionCreator, Dispatch } from 'redux';
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
@@ -30,7 +26,8 @@ export interface AuthenticationState {
   logoutError: boolean,
   isAuthenticated: boolean,
   verifyingError: boolean,
-  user?: firebase.User | {}
+  user?: firebase.User | {},
+  token?: string | null
 }
 
 interface RequestLoginAction {
@@ -39,7 +36,8 @@ interface RequestLoginAction {
 
 interface ReceiveLoginAction {
   type: typeof LOGIN_SUCCESS
-  user?: firebase.User
+  user?: firebase.User,
+  token?: string | undefined
 }
 
 interface ReceiveLoginFailureAction {
@@ -78,10 +76,11 @@ const requestLogin: ActionCreator<RequestLoginAction> = () => {
   };
 };
 
-const receiveLogin: ActionCreator<ReceiveLoginAction> = (user: firebase.User) => {
+const receiveLogin: ActionCreator<ReceiveLoginAction> = (user: firebase.User, token: string) => {
   return {
     type: LOGIN_SUCCESS,
-    user
+    user,
+    token
   };
 };
 
@@ -131,23 +130,33 @@ export const loginUser = (email: string, password: string) =>
       firebase
         .auth()
         .signInWithEmailAndPassword(email, password)
-        .then((userCredential: firebase.auth.UserCredential) => {
-          dispatch(receiveLogin(userCredential.user));
+        .then(async (userCredential: firebase.auth.UserCredential) => {
+          const token = await tokenFromUser(userCredential.user);
+          if (token) {
+            //FIXME: for security, token shouldn't be stored in localStorage
+            localStorage.setItem("token", token);
+            dispatch(receiveLogin(userCredential.user, token));
+          } else {
+            console.log("Login error due to invalid or missing token");
+            dispatch(loginError());
+          }
         })
         .catch(() => {
-          //Do something with the error if you want!
+          // Do something with the error
           dispatch(loginError());
         })
     );
   }
 
-const tokenFromUser = async (user: firebase.User) => {
-  //const user = myFirebase.auth().currentUser;
+const tokenFromUser = async (user: firebase.User | null) => {
   if (user) {
     try {
-      const idToken = await user.getIdToken(/* forceRefresh */ true)
+      // flag for forceRefresh
+      const idToken = await user.getIdToken(true);
+      return idToken;
     } catch (error) {
-      console.log("Error retrieving token: ", error)
+      console.log("Error retrieving token: ", error);
+      return null;
     }
   }
 }
@@ -159,9 +168,9 @@ export const logoutUser = () =>
       .then(firebase => 
         firebase.auth().signOut()
         .then(() => {
+          localStorage.removeItem("token");
           dispatch(receiveLogout());
         }).catch(() => {
-          //Do something with the error if you want!
           dispatch(logoutError());
         })
       ); 
@@ -171,10 +180,15 @@ export const verifyAuthWithDispatch = (dispatch: Dispatch) => {
   dispatch(verifyRequest());
   myFirebase()
       .then(firebase => {
-        console.log("Firebase", firebase); 
-        firebase.auth().onAuthStateChanged((user: firebase.User) => {
+        firebase.auth().onAuthStateChanged(async (user: firebase.User) => {
           if (user !== null) {
-            dispatch(receiveLogin(user));
+            const token = await tokenFromUser(user);
+            if (token) {
+              localStorage.setItem("token", token);
+              dispatch(receiveLogin(user, token));
+            } else {
+              console.log("Token is missing, cannot re-login");
+            }
           }
           dispatch(verifySuccess());
         })

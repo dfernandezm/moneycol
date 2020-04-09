@@ -9,7 +9,6 @@ export class BankNote {
     readonly imageBack: string
 
     constructor(searchResultJson: any) {
-        console.log("SearchResult: ", searchResultJson);
         this.country = searchResultJson.Country;
         this.banknoteName = searchResultJson.BanknoteName;
         this.year = searchResultJson.Year;
@@ -19,5 +18,4 @@ export class BankNote {
         this.imageBack = searchResultJson.ImageBack;
         this.imageFront = searchResultJson.ImageFront;
     }
-
 }

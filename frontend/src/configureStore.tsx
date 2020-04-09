@@ -12,6 +12,7 @@ const configureStore = (persistedState = {}): Store => {
   );
 
   verifyAuthWithDispatch(store.dispatch)
+  
   return store;
 }
 

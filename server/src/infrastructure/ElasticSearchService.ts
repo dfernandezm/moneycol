@@ -45,9 +45,7 @@ class ElasticSearchService implements SearchService {
         const bankNotes: BankNote[] = results.map(result => new BankNote(result));
 
         const searchResult = new SearchResult(bankNotes, total);
-        console.log("Banknotes", searchResult.results);
         console.log("Total: " + searchResult.total);
-        console.log("Search Result", searchResult);
         return searchResult;
     }
 

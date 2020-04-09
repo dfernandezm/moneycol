@@ -19,7 +19,8 @@ import {
     logoutError: false,
     isAuthenticated: false,
     verifyingError: false,
-    user: {}
+    user: {},
+    token: ""
   }
 
     export default (state = defaultState, action: AuthenticationActionTypes ): AuthenticationState => {
@@ -35,7 +36,8 @@ import {
                     ...state,
                     isLoggingIn: false,
                     isAuthenticated: true,
-                    user: action.user
+                    user: action.user,
+                    token: action.token
                 };
             case LOGIN_FAILURE:
                 return {

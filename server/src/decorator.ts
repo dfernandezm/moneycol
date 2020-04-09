@@ -7,7 +7,6 @@ const decorateItems = async (language: string = "en", items: CollectionItemResul
     return elasticService.decorateUsingIds(language, items.map(item => item.itemId));
 }
 
-
 const decorator = {
     decorateItems
 }

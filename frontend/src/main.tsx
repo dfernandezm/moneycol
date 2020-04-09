@@ -44,7 +44,8 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               path="/protected"
               component={Protected}
               isAuthenticated={isAuthenticated}
-              isVerifying={isVerifying} />
+              isVerifying={isVerifying}
+              />
             
             <Route path="/login" component={Login} />
             <Route path="/collections" component={CollectionsScreen} />
