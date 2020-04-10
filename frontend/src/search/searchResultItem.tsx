@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from 'react';
-
-import { SearchResult } from './types/SearchResult';
-
-import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-
+//import CardMedia from '@material-ui/core/CardMedia';
 import Grid from '@material-ui/core/Grid';
-
+import React from 'react';
+import { SearchResult } from './types/SearchResult';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import { useMediaQuery } from '../hooks';
 
 const useStyles = makeStyles({
@@ -52,24 +48,24 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
 
     const floatingImages = (
         <Grid container spacing={1} className="floatingImages">
-            
+
             {item.imageBack !== 'https:undefined' ?
                 <>
-                <Grid item xs={6}>
-                <div className={classes.square + ' ' + classes.imgFrame}>
-                    <img src={item.imageFront} className={classes.imgStyle} />
-                </div>
-                </Grid>
                     <Grid item xs={6}>
-                    <div className={classes.square + ' ' + classes.imgFrame}>
-                        <img src={item.imageBack} className={classes.imgStyle} />
-                    </div>
-                </Grid> 
+                        <div className={classes.square + ' ' + classes.imgFrame}>
+                            <img  alt="bankNoteFront" src={item.imageFront} className={classes.imgStyle} />
+                        </div>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <div className={classes.square + ' ' + classes.imgFrame}>
+                            <img alt="bankNoteBack" src={item.imageBack} className={classes.imgStyle} />
+                        </div>
+                    </Grid>
                 </>
                 :
                 <Grid item xs={12}>
                     <div className={classes.square + ' ' + classes.imgFrame}>
-                        <img src={item.imageFront} className={classes.imgStyle} />
+                        <img alt="bankNoteFront" src={item.imageFront} className={classes.imgStyle} />
                     </div>
                 </Grid>
             }
@@ -78,8 +74,8 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
 
     const stackedDivs = (
         <>
-             <div className={classes.square + ' ' + classes.imgFrame}>
-                <img src={item.imageFront} className={classes.imgStyle} />
+            <div className={classes.square + ' ' + classes.imgFrame}>
+                <img alt="bankNoteFront" src={item.imageFront} className={classes.imgStyle} />
             </div>
         </>
     )
@@ -106,7 +102,7 @@ const SearchResultItem: React.FC<SearchResultsItemProps> = ({ item, index }) => 
                 <Grid item xs={12}>
                     <CardActions className={classes.alignText}>
                         <Button size="small" color="primary" href={item.detailLink} target="_blank">
-                           Detail
+                            Detail
                         </Button>
                         <Button size="small" color="primary">
                             Add to Collection
