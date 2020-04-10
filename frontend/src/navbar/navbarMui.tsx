@@ -1,22 +1,23 @@
-import React, {useEffect, useState} from 'react';
-import { fade, makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import React, { useState } from 'react';
+//import React, {useEffect, useState} from 'react';
+import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+
+//import { Theme, createStyles, fade, makeStyles } from '@material-ui/core/styles';
+import AccountCircle from '@material-ui/icons/AccountCircle';
 import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import MenuItem from '@material-ui/core/MenuItem';
+import LockOpenRounded from '@material-ui/icons/LockOpenRounded';
 import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
-import AccountCircle from '@material-ui/icons/AccountCircle';
+import MenuItem from '@material-ui/core/MenuItem';
 import MoreIcon from '@material-ui/icons/MoreVert';
-import LockOpenRounded from '@material-ui/icons/LockOpenRounded';
-import PermMediaRounded from '@material-ui/icons/PermMediaRounded';
-
 import {
     NavLink
 } from "react-router-dom";
-
+import PermMediaRounded from '@material-ui/icons/PermMediaRounded';
 import SearchInTopBar from '../search/searchInTopBar'
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({

@@ -1,7 +1,9 @@
-import { myFirebase } from "../../firebase/firebase";
 //import { Dispatch } from 'redux';
 import { Action, ActionCreator, Dispatch } from 'redux';
-import AuthenticationState from "../reducers"
+
+import { myFirebase } from "../../firebase/firebase";
+
+//import AuthenticationState from "../reducers"
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";

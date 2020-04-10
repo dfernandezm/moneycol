@@ -1,10 +1,11 @@
-import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
 
+import firebase from "firebase/app";
+
 //TODO: Firebase should be in server side under an interface as Auth provider
 // This works in production/deployed as there is an ingress rule for /api that points to moneycolserver
-const FIREBASE_CONFIG_URL = process.env.NODE_ENV == 'production' ? "api/firebaseConfig" : 
+const FIREBASE_CONFIG_URL = process.env.NODE_ENV === 'production' ? "api/firebaseConfig" : 
                                     "http://localhost:4000/api/firebaseConfig"
 
 const findFirebaseConfig = async () => {
@@ -22,7 +23,7 @@ export const myFirebase = async () => {
  
   if (!firebaseApp.auth) {
     firebaseApp = firebase.initializeApp(firebaseConfig);
-    const baseDb = firebaseApp.firestore();
+    //const baseDb = firebaseApp.firestore();
   }
   
   return firebaseApp;

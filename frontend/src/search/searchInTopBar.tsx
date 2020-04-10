@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import SearchBox from '../navbar/searchBox';
 import RenderRedirect from './redirectToResultsPage';
+import SearchBox from '../navbar/searchBox';
 
 const SearchInTopBar: React.FC = () => {
 
@@ -18,7 +18,7 @@ const SearchInTopBar: React.FC = () => {
       setRedirectToResults(true);
       setUsableSearchTerm(searchTerm);
     }
-  }, [submittingSearch])
+  }, [searchTerm, submittingSearch])
 
   // While typing, we only consider search term with at least 3 characters
   useEffect(() => {

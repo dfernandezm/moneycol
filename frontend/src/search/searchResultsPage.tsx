@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import SearchResultsList from './searchResultsList';
 import EmptyResults from './emptySearchResults';
-import queryString from 'query-string';
-import { SearchResult } from './types/SearchResult';
-import { RouteComponentProps } from 'react-router';
-import { useApolloClient } from '@apollo/react-hooks';
 import RenderRedirect from './redirectToResultsPage';
+import { RouteComponentProps } from 'react-router';
+import { SearchResult } from './types/SearchResult';
+import SearchResultsList from './searchResultsList';
+import queryString from 'query-string';
+
+//import { useApolloClient } from '@apollo/react-hooks';
 
 // If we want bookmarks, this component should re-search if state from redirect is not present 
 // and the url contains the search term
@@ -25,12 +26,12 @@ type SearchResultsData = {
   results?: SearchResult[]
 }
 
-const style = {
-  height: 30,
-  border: "1px solid green",
-  margin: 6,
-  padding: 8
-};
+// const style = {
+//   height: 30,
+//   border: "1px solid green",
+//   margin: 6,
+//   padding: 8
+// };
 
 const searchTermFromQueryString = (searchLocation: string) => {
   const queryStringValues = queryString.parse(searchLocation);
@@ -42,7 +43,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
 
   const [newSearchTerm, setNewSearchTerm] = useState("");
   const resultsValues = props.location.state;
-  const client = useApolloClient();
+  //const client = useApolloClient();
 
   //console.log("REDIRECT HERE: Result from the previous search (props)", props.location.state);
   //console.log("REDIRECT HERE: RESULTS-STATE", resultsState.searchResults);
@@ -65,7 +66,7 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
     <div className="searchResults">
       {resultsValues &&
 
-        (resultsValues.searchResults.length == 0 || !shouldRenderResults() ?
+        (resultsValues.searchResults.length === 0 || !shouldRenderResults() ?
           <EmptyResults message="No results found" /> :
           <SearchResultsList
             resultList={resultsValues.searchResults}
