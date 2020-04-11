@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import EmptyResults from './emptySearchResults';
 import RenderRedirect from './redirectToResultsPage';
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, StaticContext } from 'react-router';
 import { SearchResult } from './types/SearchResult';
 import SearchResultsList from './searchResultsList';
 import queryString from 'query-string';
@@ -26,12 +26,9 @@ type SearchResultsData = {
   results?: SearchResult[]
 }
 
-// const style = {
-//   height: 30,
-//   border: "1px solid green",
-//   margin: 6,
-//   padding: 8
-// };
+//type Props = RouteComponentProps<{}, StaticContext, { searchTerm: string, searchResults: Array<any> }>;
+
+type Props = RouteComponentProps<{}, StaticContext, ResultsPageState>;
 
 const searchTermFromQueryString = (searchLocation: string) => {
   const queryStringValues = queryString.parse(searchLocation);
@@ -39,14 +36,10 @@ const searchTermFromQueryString = (searchLocation: string) => {
   return qs as string;
 }
 
-const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
+const SearchResultsPage: React.FC<Props> = (props: Props) => {
 
   const [newSearchTerm, setNewSearchTerm] = useState("");
   const resultsValues = props.location.state;
-  //const client = useApolloClient();
-
-  //console.log("REDIRECT HERE: Result from the previous search (props)", props.location.state);
-  //console.log("REDIRECT HERE: RESULTS-STATE", resultsState.searchResults);
 
   const shouldRenderResults = () => {
     let hasBeenRedirected = props.location !== undefined;
@@ -80,4 +73,3 @@ const SearchResultsPage: React.FC<RouteComponentProps> = (props: RouteComponentP
 }
 
 export default SearchResultsPage;
-//https://stackoverflow.com/questions/48219432/react-router-typescript-errors-on-withrouter-after-updating-version
