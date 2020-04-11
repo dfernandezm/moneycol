@@ -7,8 +7,6 @@ import { SearchResult } from './types/SearchResult';
 import SearchResultsList from './searchResultsList';
 import queryString from 'query-string';
 
-//import { useApolloClient } from '@apollo/react-hooks';
-
 // If we want bookmarks, this component should re-search if state from redirect is not present 
 // and the url contains the search term
 
@@ -25,8 +23,6 @@ type SearchResultsData = {
   total?: number,
   results?: SearchResult[]
 }
-
-//type Props = RouteComponentProps<{}, StaticContext, { searchTerm: string, searchResults: Array<any> }>;
 
 type Props = RouteComponentProps<{}, StaticContext, ResultsPageState>;
 
