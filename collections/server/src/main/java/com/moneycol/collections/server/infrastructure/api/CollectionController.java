@@ -1,6 +1,7 @@
 package com.moneycol.collections.server.infrastructure.api;
 
 
+import com.google.firebase.database.annotations.Nullable;
 import com.moneycol.collections.server.application.AddItemsDTO;
 import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
@@ -27,15 +28,19 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.http.hateoas.JsonError;
+import io.micronaut.security.annotation.Secured;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Controller("/collections")
+//TODO: Temporary
+@Secured("isAnonymous()")
 public class CollectionController {
 
     private final CollectionApplicationService collectionApplicationService;
@@ -78,8 +83,10 @@ public class CollectionController {
         return HttpResponse.badRequest().body(map);
     }
 
+    @Secured("isAuthenticated()")
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)
-    Single<CollectionDTO> collectionsById(@PathVariable String collectionId) {
+    Single<CollectionDTO> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
+        log.info("User Id is: {}", principal.getName());
         log.info("Finding collection for ID: {}", collectionId);
         return Single.just(collectionApplicationService.byId(collectionId));
     }

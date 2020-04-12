@@ -11,11 +11,5 @@ micronaut:
       jwt:
         enabled: ${SECURITY_ENABLED:true}
 
-
-authentication:
-  firebase: # For testing tokens
-    testUser:
-      email: moneycoltest1@mailinator.com
-      userId: ${FIREBASE_TEST_USER_ID}
-    signInWithCustomTokenEndpoint: https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken
-    webApiKey: ${FIREBASE_WEB_API_KEY}
+testUser:
+  email: moneycoltest1@mailinator.com

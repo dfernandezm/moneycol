@@ -205,10 +205,9 @@ public class CollectionApplicationServiceTest {
         // Given: a collection
         String aCollectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
-
+        delaySecond(1);
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
-
         Collection collection = collectionWithItemsToUpdate(aCollectionId);
         Collection updated = collectionRepository.update(collection);
 
@@ -217,20 +216,28 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void testFailUpdatingCollectionWithExistingName() {
-        // Given: a collection exists with name
+        // Given: a collection exists with a name
         String collectionName = "collectionName1";
         String collectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId, collectionName, "desc", "colId");
+
+        // And: another collection exists with a different name
+        String collectionName2 = "collectionName2";
+        String collectionId2 = CollectionId.randomId();
+        FirebaseUtil.createCollection(collectionId2, collectionName2, "desc", "colId");
+        delaySecond(1);
 
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
 
-        // When: updating it
-        CollectionDTO collectionDTO = new CollectionDTO(collectionId, collectionName,
+        // When: updating the first collection providing name2 instead of name1
+        CollectionDTO collectionDTO = new CollectionDTO(collectionId, collectionName2,
                 "differentDescription", "colId", new ArrayList<>());
         Executable updateExec = () -> cas.updateCollection(collectionDTO);
         delaySecond(1);
+
+        // Then: it fails with DuplicateCollectionName, as the name is already taken
         assertThrows(DuplicateCollectionNameException.class, updateExec);
     }
 
@@ -308,6 +315,7 @@ public class CollectionApplicationServiceTest {
         // Given: a collection exists with known id
         String aCollectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
+        delaySecond(1);
 
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);

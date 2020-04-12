@@ -1,4 +1,4 @@
-import { RESTDataSource } from 'apollo-datasource-rest';
+import { RESTDataSource, RequestOptions } from 'apollo-datasource-rest';
 import { CollectionApiResult } from './types';
 import { NewCollectionInput } from '../SearchResult';
 import { CollectionCreatedResult } from '../SearchResult';
@@ -49,6 +49,11 @@ export class CollectionsRestDatasource extends RESTDataSource {
 
   async deleteCollectionItem(collectionId: string, itemId: string): Promise<void> {
     return this.delete(`/collections/${collectionId}/items/${itemId}`);
+  }
+
+  protected willSendRequest?(request: RequestOptions) {
+    console.log("Setting token in request to collections API", this.context.token);
+    request.headers.set('Authorization', "Bearer " + this.context.token);
   }
 
   //TODO: workaround for now, the server should return this already. Created bug #130 for this
