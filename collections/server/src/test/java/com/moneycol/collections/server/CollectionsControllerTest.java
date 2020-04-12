@@ -18,6 +18,7 @@ import io.micronaut.test.annotation.MicronautTest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -117,6 +118,8 @@ public class CollectionsControllerTest {
         assertThat(collectionCreatedResp.getBody().get().getDescription(), is(newDescription));
     }
 
+    //TODO: "Move to secured one"
+    @Disabled
     @Test
     void testGetCollectionById() {
 
@@ -127,19 +130,19 @@ public class CollectionsControllerTest {
         String collectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
         delaySecond(1);
+
         // When: getting it by Id
         HttpRequest<CollectionDTO> getCollectionByIdEndpoint =
                 HttpRequest.GET("/collections/" + collectionId);
         HttpResponse<CollectionDTO> collectionCreatedResp =
                 client.toBlocking().exchange(getCollectionByIdEndpoint, Argument.of(CollectionDTO.class));
 
+        // Then: the result is the expected
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
         assertThat(collectionCreatedResp.getBody().get().getId(), is(collectionId));
         assertThat(collectionCreatedResp.getBody().get().getName(), is(aName));
         assertThat(collectionCreatedResp.getBody().get().getDescription(), is(aDescription));
-
-        //TODO: missing test for collection with Items
     }
 
     void delaySecond(int second) {
@@ -169,6 +172,8 @@ public class CollectionsControllerTest {
      * Compatible responses are detailed here:
      * https://github.com/micronaut-projects/micronaut-core/pull/2372#issuecomment-569520454
      */
+    //TODO: "Move to secured one"
+    @Disabled
     @Test
     void testGetCollectionByIdGives404() {
 
@@ -211,7 +216,7 @@ public class CollectionsControllerTest {
         // Given: an inexistent ID
         String collectionId = CollectionId.randomId();
 
-        // When: delete a collection with it
+        // When: deleting a collection with it
         HttpRequest<?> deleteCollectionEndpoint =
                 HttpRequest.DELETE("/collections/" + collectionId);
         HttpResponse<JsonNode> deleteCollectionResp =
