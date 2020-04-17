@@ -6,7 +6,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import io.micronaut.context.annotation.Value;
+import com.google.firebase.auth.UserRecord;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpRequest;
@@ -20,6 +20,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
@@ -29,41 +30,62 @@ import java.util.Map;
 @Secured("isAnonymous()")
 public class TokenController {
 
-    @Value("${authentication.firebase.signInWithCustomTokenEndpoint}")
-    private String signInWithCustomTokenEndpoint;
+    private static final String DEFAULT_FIREBASE_APP_NAME = "[DEFAULT]";
 
-    @Client("https://identitytoolkit.googleapis.com/v1")
+    @Client("${authentication.firebase.signInWithCustomTokenEndpoint}")
     @Inject
     RxHttpClient client;
 
     @Get
-    Single<Map> getAccessToken(@QueryValue("userId") String userId, @QueryValue("apiKey") String apiKey) {
-        log.info("Getting token for Test User ID: {}, {}", userId, apiKey.hashCode());
+    Single<Map> getAccessToken(@Nullable @QueryValue("userId") final String userId,
+                               @QueryValue("apiKey") final String apiKey,
+                               @Nullable @QueryValue("email") final String email) {
+        log.info("Getting token for Test User ID: {}, {}, {}", userId, email, apiKey.hashCode());
 
         try {
+
             FirebaseOptions firebaseOptions = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.getApplicationDefault())
                     .setProjectId("moneycol")
                     .build();
 
-            FirebaseApp firebaseApp = FirebaseApp.initializeApp(firebaseOptions);
+            boolean hasBeenInitialized = FirebaseApp.getApps()
+                    .stream()
+                    .anyMatch(app -> app.getName().equals(FirebaseApp.DEFAULT_APP_NAME));
+
+            FirebaseApp firebaseApp;
+
+            if (hasBeenInitialized) {
+                firebaseApp = FirebaseApp.getInstance(FirebaseApp.DEFAULT_APP_NAME);
+            } else {
+                firebaseApp = FirebaseApp.initializeApp(firebaseOptions, FirebaseApp.DEFAULT_APP_NAME);
+            }
+
             FirebaseAuth firebaseAuth = FirebaseAuth.getInstance(firebaseApp);
-            String token = firebaseAuth.createCustomToken(userId);
+            String uid = "";
+
+            if (email != null) {
+                UserRecord userRecord = firebaseAuth.getUserByEmail(email);
+                log.info("User for email: {}", userRecord.getUid());
+                uid = userRecord.getUid();
+            } else if (userId != null) {
+                uid = userId;
+            }
+
+            String token = firebaseAuth.createCustomToken(uid);
             log.info("Custom token: {}", token);
             return signInWithCustomToken(token, apiKey).map(idToken -> ImmutableMap.of("token", idToken));
 
         } catch (FirebaseAuthException | IOException e) {
-            //TODO: throw custom exception
-            log.error("Error generating token for testUid: {}", userId, e);
+            log.error("Error generating token for test user: {}, {}", userId, email, e);
             return Single.just(ImmutableMap.of("error", "Error generating token for testUser"));
         }
     }
 
     private Single<String> signInWithCustomToken(String customToken, String apikey) {
-        signInWithCustomTokenEndpoint = "/accounts:signInWithCustomToken";
-        String endpoint = signInWithCustomTokenEndpoint + "?key=" + apikey;
         Map<String, Object> payload = ImmutableMap.of("token", customToken, "returnSecureToken", true);
-        MutableHttpRequest<?> request = HttpRequest.POST(endpoint, payload);
+        MutableHttpRequest<?> request = HttpRequest.POST("?key=" + apikey, payload);
+
         Flowable<HttpResponse<Map>> response = client.exchange(request, Map.class);
         return response
                 .firstOrError()

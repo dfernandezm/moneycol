@@ -41,9 +41,6 @@ public class CollectionsControllerSecuredTest {
     @Value("${testUser.email}")
     String testUserEmail;
 
-    @Value("${testUser.userId}")
-    String testUserId;
-
     private static final String FAKE_TOKEN = "fakeToken";
     private static final String FAKE_UID = "fakeUid";
 
@@ -54,12 +51,6 @@ public class CollectionsControllerSecuredTest {
         assertNotNull(map);
         assertEquals(map.get("enabled"), "true");
         assertEquals(map.get("token.jwt.enabled"), "true");
-    }
-
-    @Test
-    public void canReturnTestUserTest() {
-        assertNotNull(testUserEmail);
-        assertNotNull(testUserId);
     }
 
     @Test
