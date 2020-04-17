@@ -1,12 +1,10 @@
 package com.moneycol.collections.server.infrastructure.api;
 
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.collect.ImmutableMap;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
+import com.moneycol.collections.server.infrastructure.security.FirebaseHelper;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpRequest;
@@ -44,24 +42,7 @@ public class TokenController {
 
         try {
 
-            FirebaseOptions firebaseOptions = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.getApplicationDefault())
-                    .setProjectId("moneycol")
-                    .build();
-
-            boolean hasBeenInitialized = FirebaseApp.getApps()
-                    .stream()
-                    .anyMatch(app -> app.getName().equals(FirebaseApp.DEFAULT_APP_NAME));
-
-            FirebaseApp firebaseApp;
-
-            if (hasBeenInitialized) {
-                firebaseApp = FirebaseApp.getInstance(FirebaseApp.DEFAULT_APP_NAME);
-            } else {
-                firebaseApp = FirebaseApp.initializeApp(firebaseOptions, FirebaseApp.DEFAULT_APP_NAME);
-            }
-
-            FirebaseAuth firebaseAuth = FirebaseAuth.getInstance(firebaseApp);
+            FirebaseAuth firebaseAuth = FirebaseHelper.initializeFirebaseAuth();
             String uid = "";
 
             if (email != null) {

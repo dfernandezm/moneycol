@@ -14,7 +14,6 @@ public class StatusController {
 
     @Get(produces = MediaType.APPLICATION_JSON)
     public Single<String> status() {
-        log.info("Calling status endpoint");
         return Single.just("{\"message\": \"alive\"}");
     }
 }
