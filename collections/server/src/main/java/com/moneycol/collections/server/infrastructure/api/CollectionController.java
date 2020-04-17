@@ -49,8 +49,10 @@ public class CollectionController {
         this.collectionApplicationService = collectionApplicationService;
     }
 
+    @Secured("isAuthenticated()")
     @Get(uri="/collector/{collectorId}", produces = MediaType.APPLICATION_JSON)
-    Single<List<CollectionDTO>> collectionsByCollector(@PathVariable String collectorId) {
+    Single<List<CollectionDTO>> collectionsByCollector(@Nullable Principal principal, @PathVariable String collectorId) {
+        log.info("User Id is: {}", principal.getName());
         log.info("Finding collections for collector with ID: {}", collectorId);
         CollectorDTO collectorDTO = new CollectorDTO(collectorId);
         return Single.just(collectionApplicationService.byCollector(collectorDTO));
