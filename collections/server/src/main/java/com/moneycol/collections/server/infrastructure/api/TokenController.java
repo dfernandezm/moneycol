@@ -35,7 +35,7 @@ public class TokenController {
     RxHttpClient client;
 
     @Get
-    Single<Map> getAccessToken(@Nullable @QueryValue("userId") final String userId,
+    public Single<Map> getAccessToken(@Nullable @QueryValue("userId") final String userId,
                                @QueryValue("apiKey") final String apiKey,
                                @Nullable @QueryValue("email") final String email) {
         log.info("Getting token for Test User ID: {}, {}, {}", userId, email, apiKey.hashCode());

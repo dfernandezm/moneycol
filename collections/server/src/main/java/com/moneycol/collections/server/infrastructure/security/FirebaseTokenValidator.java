@@ -21,6 +21,7 @@ public class FirebaseTokenValidator implements TokenValidator {
             FirebaseAuth firebaseAuth = FirebaseHelper.initializeFirebaseAuth();
             FirebaseToken firebaseToken = firebaseAuth.verifyIdToken(token);
 
+
             return Flowable.just(new FirebaseAuthentication(firebaseToken));
         } catch (FirebaseAuthException | IOException ex) {
             return Flowable.empty();

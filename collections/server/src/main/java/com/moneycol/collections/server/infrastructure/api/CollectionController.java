@@ -2,16 +2,17 @@ package com.moneycol.collections.server.infrastructure.api;
 
 
 import com.google.firebase.database.annotations.Nullable;
-import com.moneycol.collections.server.application.AddItemsDTO;
 import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
-import com.moneycol.collections.server.application.CollectionDTO;
-import com.moneycol.collections.server.application.CollectorDTO;
+import com.moneycol.collections.server.application.CollectionUpdatedResult;
+import com.moneycol.collections.server.application.CreateCollectionCommand;
 import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
-import com.moneycol.collections.server.application.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
+import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -39,8 +40,7 @@ import java.util.Map;
 
 @Slf4j
 @Controller("/collections")
-//TODO: Temporary
-@Secured("isAnonymous()")
+@Secured("isAuthenticated()")
 public class CollectionController {
 
     private final CollectionApplicationService collectionApplicationService;
@@ -49,13 +49,16 @@ public class CollectionController {
         this.collectionApplicationService = collectionApplicationService;
     }
 
-    @Secured("isAuthenticated()")
-    @Get(uri="/collector/{collectorId}", produces = MediaType.APPLICATION_JSON)
-    Single<List<CollectionDTO>> collectionsByCollector(@Nullable Principal principal, @PathVariable String collectorId) {
-        log.info("User Id is: {}", principal.getName());
-        log.info("Finding collections for collector with ID: {}", collectorId);
-        CollectorDTO collectorDTO = new CollectorDTO(collectorId);
-        return Single.just(collectionApplicationService.byCollector(collectorDTO));
+    /**
+     *  Get my own collections
+     *
+     * @param principal the authenticated user
+     * @return a List of collections this user owns
+     */
+    @Get(produces = MediaType.APPLICATION_JSON)
+    public Single<List<CollectionDTO>> myCollections(@Nullable Principal principal) {
+        log.info("Finding collections for user: {}", principal.getName());
+        return Single.just(collectionApplicationService.byCollector(principal.getName()));
     }
 
     @Error(exception = CollectionNotFoundException.class)
@@ -85,7 +88,13 @@ public class CollectionController {
         return HttpResponse.badRequest().body(map);
     }
 
-    @Secured("isAuthenticated()")
+    /**
+     * Get a collection by its ID
+     *
+     * @param principal the authenticated user
+     * @param collectionId the collection Id
+     * @return
+     */
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)
     Single<CollectionDTO> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("User Id is: {}", principal.getName());
@@ -93,28 +102,44 @@ public class CollectionController {
         return Single.just(collectionApplicationService.byId(collectionId));
     }
 
+    /**
+     * Create a collection
+     *
+     * @param collectionDTO the payload of the collection to create
+     * @return
+     */
     @Consumes(MediaType.APPLICATION_JSON)
-    @Post()
-    Single<CollectionCreatedResult> createCollection(@Body CollectionDTO collectionDTO) {
-        log.info("Attempt to create collection: {}", collectionDTO);
-        return Single.just(collectionApplicationService.createCollection(collectionDTO));
+    @Post
+    public Single<CollectionCreatedResult> createCollection(@Nullable Principal principal,
+                                                            @Body CollectionDTO collectionDTO) {
+        log.info("Attempt to create collection for user {}: {}", principal.getName(), collectionDTO);
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                                                            .collectorId(principal.getName())
+                                                            .description(collectionDTO.getDescription())
+                                                            .name(collectionDTO.getName())
+                                                            .build();
+        return Single.just(collectionApplicationService.createCollection(createCollectionCommand));
     }
 
     @Consumes(MediaType.APPLICATION_JSON)
     @Put(uri = "/{collectionId}")
-    Single<CollectionCreatedResult> updateCollection(@PathVariable String collectionId,
+    public Single<CollectionUpdatedResult> updateCollection(@Nullable Principal principal,
+                                                     @PathVariable String collectionId,
                                                      @Body UpdateCollectionDataDTO collectionDTO) {
         log.info("Attempt to update collection with ID: {}, {}", collectionId, collectionDTO);
-        UpdateCollectionDataCommand cmd = UpdateCollectionDataCommand.of(collectionId,
-                collectionDTO.getName(),
-                collectionDTO.getDescription(),
-                collectionDTO.getCollectorId());
+        UpdateCollectionDataCommand cmd = UpdateCollectionDataCommand.builder()
+                .id(collectionId)
+                .name(collectionDTO.getName())
+                .description(collectionDTO.getDescription())
+                .collectorId(principal.getName())
+                .build();
         return Single.just(collectionApplicationService.updateCollectionData(cmd));
     }
 
     @Delete(uri="/{collectionId}")
-    HttpResponse deleteCollection(@PathVariable String collectionId) {
+    public HttpResponse deleteCollection(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("Deleting collection with ID: {}", collectionId);
+        //TODO: check this is my collection, create command
         collectionApplicationService.deleteCollection(collectionId);
         return HttpResponse.ok();
     }

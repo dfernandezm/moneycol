@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor //Jackson requires a non argument constructor for JSON deserialization
 @Builder
-public class CollectionCreatedResult {
+public class CollectionUpdatedResult {
     private   String collectionId;
     private   String name;
     private   String description;
