@@ -3,17 +3,18 @@ package com.moneycol.collections.server;
 import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
-import com.moneycol.collections.server.application.CollectionDTO;
-import com.moneycol.collections.server.application.CollectionItemDTO;
+import com.moneycol.collections.server.application.CreateCollectionCommand;
+import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
 import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
-import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
+import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
@@ -73,18 +74,22 @@ public class CollectionApplicationServiceTest {
        CollectionRepository collectionRepo = mockRepository();
 
         // Given
-        String collectorId = UUID.randomUUID().toString();
-        CollectionDTO createCollectionDTO = new CollectionDTO("", name, description, collectorId, new ArrayList<>());
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                                            .name(name)
+                                            .description(description)
+                                            .items(new ArrayList<>())
+                                            .collectorId("aCollectorId")
+                                            .build();
+
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
 
-        // when
-        CollectionCreatedResult collectionCreatedResult = cas.createCollection(createCollectionDTO);
+        // When
+        CollectionCreatedResult collectionCreatedResult = cas.createCollection(createCollectionCommand);
 
-        // then
+        // Then
         verify(collectionRepo, times(1)).create(any());
         assertEquals(collectionCreatedResult.getName(), name);
         assertEquals(collectionCreatedResult.getDescription(), description);
-        assertEquals(collectionCreatedResult.getCollectorId(), collectorId);
         assertNotNull(collectionCreatedResult.getCollectionId());
     }
 
@@ -232,9 +237,15 @@ public class CollectionApplicationServiceTest {
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
 
         // When: updating the first collection providing name2 instead of name1
-        CollectionDTO collectionDTO = new CollectionDTO(collectionId, collectionName2,
-                "differentDescription", "colId", new ArrayList<>());
-        Executable updateExec = () -> cas.updateCollection(collectionDTO);
+        UpdateCollectionDataCommand updateCollectionDataCommand =
+                UpdateCollectionDataCommand.builder()
+                    .id(collectionId)
+                    .name(collectionName2)
+                    .description("aDescription")
+                    .build();
+
+
+        Executable updateExec = () -> cas.updateCollectionData(updateCollectionDataCommand);
         delaySecond(1);
 
         // Then: it fails with DuplicateCollectionName, as the name is already taken
@@ -254,13 +265,16 @@ public class CollectionApplicationServiceTest {
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
 
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
-        CollectionDTO collectionDTO =
-                new CollectionDTO(CollectionId.randomId(), collectionName, "newDesc", collectorId, new ArrayList<>());
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                                                            .name(collectionName)
+                                                            .description("newDesc")
+                                                            .build();
 
         // When: creating it
-        Executable updateExec = () ->  cas.createCollection(collectionDTO);
+        Executable updateExec = () ->  cas.createCollection(createCollectionCommand);
 
         delaySecond(1);
+
         // Then: error should occur
         assertThrows(DuplicateCollectionNameException.class, updateExec);
 
@@ -405,11 +419,10 @@ public class CollectionApplicationServiceTest {
         collectionDTOS.add(item1Dto);
         collectionDTOS.add(item2Dto);
 
-        AddItemsToCollectionCommand addItemsToCollectionCommand = AddItemsToCollectionCommand
-                .builder()
-                .collectionId(aCollectionId)
-                .items(collectionDTOS)
-                .build();
+        AddItemsToCollectionCommand addItemsToCollectionCommand = AddItemsToCollectionCommand.builder()
+                                                                    .collectionId(aCollectionId)
+                                                                    .items(collectionDTOS)
+                                                                    .build();
 
         cas.addItemsToCollection(addItemsToCollectionCommand);
         cas.removeItemFromCollection(aCollectionId, "item1");
@@ -429,15 +442,21 @@ public class CollectionApplicationServiceTest {
         CollectionRepository collectionRepo = mockRepository();
 
         // Given: a collection with empty name
-        String collectorId = UUID.randomUUID().toString();
         String collectionName = "";
         String description = "A description";
-        CollectionDTO createCollectionDTO = new CollectionDTO("", collectionName,
-                description, collectorId, new ArrayList<>());
+        String aCollectorId = "aCollectorId";
+
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                                                            .name(collectionName)
+                                                            .description(description)
+                                                            .items(new ArrayList<>())
+                                                            .collectorId(aCollectorId)
+                                                            .build();
+
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
 
         // When: creating it
-        Executable s = () ->  cas.createCollection(createCollectionDTO);
+        Executable s = () ->  cas.createCollection(createCollectionCommand);
 
         // Then: an error is thrown
         Exception e = assertThrows(InvalidCollectionException.class, s);

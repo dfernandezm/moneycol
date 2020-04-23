@@ -2,9 +2,7 @@ package com.moneycol.collections.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.moneycol.collections.server.domain.CollectionId;
-import com.moneycol.collections.server.infrastructure.security.FirebaseTokenValidator;
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.annotation.Replaces;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
@@ -13,16 +11,10 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
-import io.micronaut.security.authentication.Authentication;
 import io.micronaut.test.annotation.MicronautTest;
-import io.reactivex.Flowable;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,7 +56,7 @@ public class CollectionsControllerSecuredTest {
                 client.toBlocking().exchange(getRequestWithBearerToken)
         );
 
-        assertNotEquals(HttpStatus.UNAUTHORIZED, thrown.getResponse().getStatus());
+        assertEquals(HttpStatus.UNAUTHORIZED, thrown.getResponse().getStatus());
     }
 
     @Test
@@ -75,24 +67,24 @@ public class CollectionsControllerSecuredTest {
         assertNotEquals(HttpStatus.OK, response);
     }
 
-    @Replaces(FirebaseTokenValidator.class)
-    @Singleton
-    public static class FakeFirebaseTokenValidator extends FirebaseTokenValidator {
-        @Override
-        public Publisher<Authentication> validateToken(String token) {
-            assertEquals(token, FAKE_TOKEN);
-            return Flowable.just(new Authentication() {
-                @Nonnull
-                @Override
-                public Map<String, Object> getAttributes() {
-                    return new HashMap<>();
-                }
-
-                @Override
-                public String getName() {
-                    return FAKE_UID;
-                }
-            });
-        }
-    }
+//    @Replaces(FirebaseTokenValidator.class)
+//    @Singleton
+//    public static class FakeFirebaseTokenValidator extends FirebaseTokenValidator {
+//        @Override
+//        public Publisher<Authentication> validateToken(String token) {
+//            assertEquals(token, FAKE_TOKEN);
+//            return Flowable.just(new Authentication() {
+//                @Nonnull
+//                @Override
+//                public Map<String, Object> getAttributes() {
+//                    return new HashMap<>();
+//                }
+//
+//                @Override
+//                public String getName() {
+//                    return FAKE_UID;
+//                }
+//            });
+//        }
+//    }
 }

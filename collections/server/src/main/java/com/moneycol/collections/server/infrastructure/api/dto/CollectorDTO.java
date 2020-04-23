@@ -1,4 +1,4 @@
-package com.moneycol.collections.server.application;
+package com.moneycol.collections.server.infrastructure.api.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

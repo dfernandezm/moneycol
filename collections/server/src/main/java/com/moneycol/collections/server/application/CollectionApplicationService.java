@@ -8,12 +8,18 @@ import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import io.micronaut.core.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
 //TODO: when with auth, check the owner of the collection
+@Slf4j
 public class CollectionApplicationService {
 
     private CollectionRepository collectionRepository;
@@ -23,76 +29,87 @@ public class CollectionApplicationService {
         this.collectionRepository = collectionRepository;
     }
 
-    public CollectionCreatedResult createCollection(CollectionDTO createCollectionDTO) {
+    public CollectionCreatedResult createCollection(CreateCollectionCommand createCollectionCommand) {
 
-        if (collectionRepository.existsWithName(null, createCollectionDTO.getName())) {
+        if (collectionRepository.existsWithName(null, createCollectionCommand.getName())) {
             throw new DuplicateCollectionNameException("Collection already exists with name " +
-                    createCollectionDTO.getName());
+                    createCollectionCommand.getName());
         }
 
+        if (StringUtils.isEmpty(createCollectionCommand.getCollectorId())) {
+            throw new InvalidStateException("Cannot create a collection without collector");
+        }
+
+        log.info("Creating collection for user {}", createCollectionCommand.getCollectorId());
+
         CollectionId collectionId = CollectionId.of(Id.randomId());
-        Collector collector = Collector.withCollectorId(createCollectionDTO.getCollectorId());
+        Collector collector = Collector.withCollectorId(createCollectionCommand.getCollectorId());
 
         Collection collection = Collection.withNameAndDescription(collectionId,
-                                        createCollectionDTO.getName(),
-                                        createCollectionDTO.getDescription(),
+                                        createCollectionCommand.getName(),
+                                        createCollectionCommand.getDescription(),
                                         collector);
 
         Collection createdCollection = collectionRepository.create(collection);
 
-        return new CollectionCreatedResult(createdCollection.id(),
-                                            createdCollection.name(),
-                                            createdCollection.description(),
-                                            collector.id());
+        return CollectionCreatedResult.builder()
+                                    .collectionId(createdCollection.id())
+                                    .name(createdCollection.name())
+                                    .description(createdCollection.description())
+                                    .build();
     }
 
-    public List<CollectionDTO> byCollector(CollectorDTO collectorDTO) {
-        Collector collector = Collector.withCollectorId(collectorDTO.collectorId());
+    public List<CollectionDTO> byCollector(String collectorId) {
+        Collector collector = Collector.withCollectorId(collectorId);
 
         List<Collection> collections = collectionRepository.byCollector(CollectorId.of(collector.id()));
 
         return collections
                     .stream()
                     .map(collection ->
-                            new CollectionDTO(
-                                    collection.id(), collection.name(),
-                                    collection.description(), collection.collector().id(),
-                                    toCollectionItemDTOs(collection)))
+                            CollectionDTO.builder()
+                            .id(collection.id())
+                            .name(collection.name())
+                            .description(collection.description())
+                            .items(toCollectionItemDTOs(collection))
+                            .build())
                     .collect(Collectors.toList());
     }
 
     public CollectionDTO byId(String collectionId) {
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
-
         List<CollectionItemDTO> collectionItemDTOS = toCollectionItemDTOs(collection);
 
-        CollectionDTO collectionDTO = new CollectionDTO(collection.id(), collection.name(), collection.description(),
-                collection.collector().id(), collectionItemDTOS);
-        return collectionDTO;
+        return CollectionDTO.builder()
+                .id(collection.id())
+                .name(collection.name())
+                .description(collection.description())
+                .items(collectionItemDTOS)
+                .build();
     }
 
     public void deleteCollection(String collectionId) {
         collectionRepository.delete(CollectionId.of(collectionId));
     }
 
-    public CollectionCreatedResult updateCollection(CollectionDTO collectionDTO) {
+//    public CollectionCreatedResult updateCollection(UpdateColle collectionDTO) {
+//
+//        if (collectionRepository.existsWithName(collectionDTO.getId(), collectionDTO.getName())) {
+//            throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDTO.getName());
+//        }
+//
+//        Collection collection = Collection.withNameAndDescription(
+//                CollectionId.of(collectionDTO.getId()),
+//                collectionDTO.getName(),
+//                collectionDTO.getDescription(),
+//                Collector.withCollectorId(collectionDTO.getCollectorId()));
+//
+//        collectionRepository.update(collection);
+//        return new CollectionCreatedResult(collection.id(), collection.name(),
+//                                           collection.description(), collection.collector().id());
+//    }
 
-        if (collectionRepository.existsWithName(collectionDTO.getId(), collectionDTO.getName())) {
-            throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDTO.getName());
-        }
-
-        Collection collection = Collection.withNameAndDescription(
-                CollectionId.of(collectionDTO.getId()),
-                collectionDTO.getName(),
-                collectionDTO.getDescription(),
-                Collector.withCollectorId(collectionDTO.getCollectorId()));
-
-        collectionRepository.update(collection);
-        return new CollectionCreatedResult(collection.id(), collection.name(),
-                                           collection.description(), collection.collector().id());
-    }
-
-    public CollectionCreatedResult updateCollectionData(UpdateCollectionDataCommand collectionDataCommand) {
+    public CollectionUpdatedResult updateCollectionData(UpdateCollectionDataCommand collectionDataCommand) {
         if (collectionRepository.existsWithName(collectionDataCommand.getId(), collectionDataCommand.getName())) {
             throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDataCommand.getName());
         }
@@ -101,8 +118,11 @@ public class CollectionApplicationService {
         collection.name(collectionDataCommand.getName());
         collection.description(collectionDataCommand.getDescription());
         collectionRepository.update(collection);
-        return new CollectionCreatedResult(collection.id(), collection.name(),
-                collection.description(), collection.collector().id());
+        return CollectionUpdatedResult.builder()
+                .collectionId(collection.id())
+                .name(collection.name())
+                .description(collection.description())
+                .build();
     }
 
     public void addItemsToCollection(AddItemsToCollectionCommand addItemsToCollectionCommand) {
