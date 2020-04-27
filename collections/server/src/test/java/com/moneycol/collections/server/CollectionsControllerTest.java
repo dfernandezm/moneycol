@@ -8,6 +8,7 @@ import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
+import io.micronaut.context.annotation.Value;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -45,7 +46,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 //https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
 @MicronautTest(environments = "test")
-//TODO: Get a test token at the beginning of the test and pass it into each test
 public class CollectionsControllerTest {
 
     @Inject
@@ -53,6 +53,9 @@ public class CollectionsControllerTest {
     private RxHttpClient client;
 
     private static String accessToken  =  null;
+
+    @Value("${testUser.id}")
+    private String testCollectorId;
 
     @BeforeEach
     public void setup() {
@@ -88,7 +91,7 @@ public class CollectionsControllerTest {
     void testUpdateCollectionAttributes() {
 
         // Given: an existing collection
-        String collectorId = "aCollectorId";
+        String collectorId = testCollectorId;
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
@@ -120,17 +123,16 @@ public class CollectionsControllerTest {
         assertThat(collectionCreatedResp.getBody().get().getDescription(), is(newDescription));
     }
 
-
     @Test
     void testGetCollectionById() {
 
         // Given: existing collection
-        String collectorId = "aCollectorId";
+        String collectorId = testCollectorId;
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
-        delaySecond(1);
+        delayMilliseconds(600);
 
         // When: getting it by Id
         MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
@@ -186,13 +188,13 @@ public class CollectionsControllerTest {
                 HttpRequest.GET("/collections/" + collectionId);
         getCollectionByIdEndpoint.bearerAuth(accessToken);
 
-        HttpResponse<JsonNode> collectionCreatedResp =
+        HttpResponse<JsonNode> getCollectionByIdResponse =
                 client.toBlocking().exchange(getCollectionByIdEndpoint,
                         Argument.of(JsonNode.class),
                         Argument.of(JsonNode.class));
 
         // Then: status code should be NOT FOUND
-        assertEquals(collectionCreatedResp.getStatus(), HttpStatus.NOT_FOUND);
+        assertEquals(getCollectionByIdResponse.getStatus(), HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -241,8 +243,6 @@ public class CollectionsControllerTest {
         assertEquals(deleteCollectionResp.getStatus(), HttpStatus.NOT_FOUND);
     }
 
-
-//TODO: continue here
     @Test
     void testAddItemsToCollectionGives404() {
 
@@ -269,7 +269,8 @@ public class CollectionsControllerTest {
 
         // Given: a collection exists
         String aCollectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
+        String collectorId = testCollectorId;
+        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", collectorId);
         delayMilliseconds(500);
 
         List<CollectionItemDTO> items = new ArrayList<>();
@@ -295,10 +296,11 @@ public class CollectionsControllerTest {
 
         // Given: an existing collection
         String aCollectionId = CollectionId.randomId();
+        String collectorId = testCollectorId;
         FirebaseUtil.createCollection(aCollectionId,
                 "aCollection",
                 "desc",
-                "colId");
+                collectorId);
 
         delayMilliseconds(500);
 
@@ -306,7 +308,7 @@ public class CollectionsControllerTest {
         String endpoint = "/collections/" + aCollectionId;
         MutableHttpRequest<?> removeItemEndpoint = HttpRequest.DELETE(endpoint);
         removeItemEndpoint.bearerAuth(accessToken);
-        HttpResponse<CollectionCreatedResult> removeItemResponse = client.toBlocking().exchange(removeItemEndpoint);
+        HttpResponse removeItemResponse = client.toBlocking().exchange(removeItemEndpoint);
 
         // Then: status is ok
         assertThat(removeItemResponse.status(), is(HttpStatus.OK));
@@ -322,6 +324,7 @@ public class CollectionsControllerTest {
 
         // Given: an existing collections with 2 items
         String aCollectionId = CollectionId.randomId();
+        String collectorId = testCollectorId;
         CollectionItem item1 = CollectionItem.of("item1");
         CollectionItem item2 = CollectionItem.of("item2");
         List<CollectionItem> items = new ArrayList<>();
@@ -330,7 +333,7 @@ public class CollectionsControllerTest {
         FirebaseUtil.createCollectionWithItems(aCollectionId,
                 "aCollection",
                 "desc",
-                "colId", items);
+                collectorId, items);
 
         // When: deleting one of the items
         String endpoint = "/collections/" + aCollectionId +  "/items/" + item2.getItemId();
@@ -373,10 +376,10 @@ public class CollectionsControllerTest {
     }
 
     @Test
-    void shouldJustUpdateCollectionDataLeavingItemsUntouched() {
+    void testJustUpdateCollectionDataLeavingItemsUntouched() {
 
         // Given: existing collection with items
-        String collectorId = "aCollectorId";
+        String collectorId = testCollectorId;
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
@@ -415,16 +418,16 @@ public class CollectionsControllerTest {
     }
 
     @Test
-    public void shouldNotAllowChangingNameIfThereIsAnotherWithSameTest() {
+    public void testNotAllowChangingNameIfThereIsAnotherWithSame() {
 
         // Given: 2 collections exist with different names
-        String collectorId = "aCollectorId";
+        String collectorId = testCollectorId;
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
 
-        String anotherCollectorId = "aCollectorId";
+        String anotherCollectorId = testCollectorId;
         String anotherName = "anotherCollectionName";
         String anotherDescription = "anotherDescription";
         String anotherCollectionId = CollectionId.randomId();
@@ -432,7 +435,7 @@ public class CollectionsControllerTest {
 
         delayMilliseconds(500);
 
-        // When: updating one passing a name that is already in use by a different collection (different id)
+        // When: updating one passing a name that is already in use by a different collection (different collectionId)
         String newName = anotherName;
 
         UpdateCollectionDataDTO updateCollectionDataDTO = UpdateCollectionDataDTO.builder()
@@ -454,22 +457,23 @@ public class CollectionsControllerTest {
     }
 
     @Test
-    public void shouldAllowChangingNameIfThereIsNotAnotherWithSameTest() {
+    public void testAllowChangingNameIfThereIsNotAnotherWithSame() {
 
         // Given: 2 collections exist with different names
-        String collectorId = "aCollectorId";
+        String collectorId = testCollectorId;
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
 
-        String anotherCollectorId = "aCollectorId";
+        String anotherCollectorId = testCollectorId;
         String anotherName = "anotherCollectionName";
         String anotherDescription = "anotherDescription";
         String anotherCollectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
+        delayMilliseconds(600);
 
-        // When: we update one with a name that is already in use by a different collection (different id)
+        // When: we update one with a name that is already in use by a different collection (different collectionId)
         String newName = "aThirdName";
 
         UpdateCollectionDataDTO updateCollectionDataDTO = UpdateCollectionDataDTO.builder()
@@ -491,6 +495,30 @@ public class CollectionsControllerTest {
         assertThat(collectionUpdateResp.getBody().get().getDescription(), is(aDescription));
     }
 
+    @Test
+    public void testForbiddenErrorIfNotCorrectOwner() {
+        // Given: a collections exist with a collector
+        String collectorId = "aCollectorId";
+        String aName = "aCollectionName";
+        String aDescription = "aDescription";
+        String collectionId = CollectionId.randomId();
+        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+        delayMilliseconds(500);
+
+        // When: another collector tries to access it (access token is for another collectorId)
+        MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
+                HttpRequest.GET("/collections/" + collectionId);
+        getCollectionByIdEndpoint.bearerAuth(accessToken);
+
+        HttpResponse<JsonNode> collectionByIdResponse =
+                client.toBlocking().exchange(getCollectionByIdEndpoint,
+                        Argument.of(JsonNode.class),
+                        Argument.of(JsonNode.class));
+
+        // Then: access denied as 'accessToken' is for a different user
+        assertThat(collectionByIdResponse.getStatus(), is(HttpStatus.FORBIDDEN));
+    }
+
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {
         List<String> itemIds = FirebaseUtil.findItemsForCollection(collectionId);
         assertThat(itemIds, Matchers.contains(expectedItemIds));
@@ -505,7 +533,7 @@ public class CollectionsControllerTest {
 
             //TODO: PUT API KEY
             getTokenRequest.getParameters()
-                    .add("apiKey", "AIzaSyDImTA3-o5ew92DQ4pg0-nVKTHR92ncq-U")
+                    .add("apiKey", "")
                     .add("email", "moneycoltest1@mailinator.com");
 
             HttpResponse<Map> tokenResponse =

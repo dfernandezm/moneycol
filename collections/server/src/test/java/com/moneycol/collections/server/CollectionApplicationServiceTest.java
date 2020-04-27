@@ -4,6 +4,7 @@ import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CreateCollectionCommand;
+import com.moneycol.collections.server.application.RemoveItemFromCollectionCommand;
 import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
 import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.Collection;
@@ -223,13 +224,14 @@ public class CollectionApplicationServiceTest {
     public void testFailUpdatingCollectionWithExistingName() {
         // Given: a collection exists with a name
         String collectionName = "collectionName1";
+        String collectorId = "colId";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, collectionName, "desc", "colId");
+        FirebaseUtil.createCollection(collectionId, collectionName, "desc", collectorId);
 
         // And: another collection exists with a different name
         String collectionName2 = "collectionName2";
         String collectionId2 = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId2, collectionName2, "desc", "colId");
+        FirebaseUtil.createCollection(collectionId2, collectionName2, "desc", collectorId);
         delaySecond(1);
 
         FirebaseProvider f = new EmulatedFirebaseProvider();
@@ -239,10 +241,11 @@ public class CollectionApplicationServiceTest {
         // When: updating the first collection providing name2 instead of name1
         UpdateCollectionDataCommand updateCollectionDataCommand =
                 UpdateCollectionDataCommand.builder()
-                    .id(collectionId)
-                    .name(collectionName2)
-                    .description("aDescription")
-                    .build();
+                        .collectionId(collectionId)
+                        .name(collectionName2)
+                        .collectorId(collectorId)
+                        .description("aDescription")
+                        .build();
 
 
         Executable updateExec = () -> cas.updateCollectionData(updateCollectionDataCommand);
@@ -302,7 +305,8 @@ public class CollectionApplicationServiceTest {
 
         // Given: a collection
         String aCollectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
+        String collectorId = "colId";
+        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", collectorId);
         delaySecond(1);
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
@@ -313,7 +317,11 @@ public class CollectionApplicationServiceTest {
         CollectionItemDTO collectionItemDTO = new CollectionItemDTO(itemId);
         List<CollectionItemDTO> items = new ArrayList<>();
         items.add(collectionItemDTO);
-        AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.of(aCollectionId, items);
+        AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.builder()
+                                                                    .collectionId(aCollectionId)
+                                                                    .items(items)
+                                                                    .collectorId(collectorId)
+                                                                    .build();
         cas.addItemsToCollection(addItemToCollectionCommand);
 
         // Then: collection is updated containing the item
@@ -326,7 +334,7 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void testDeleteCollectionWithoutItems() {
-        // Given: a collection exists with known id
+        // Given: a collection exists with known collectionId
         String aCollectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
         delaySecond(1);
@@ -368,7 +376,10 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void testDeleteItemFromCollection() {
+
+        // Given: a collection with items
         String aCollectionId = CollectionId.randomId();
+        String collectorId = "colId";
         CollectionItem item1 = CollectionItem.of("item1");
         CollectionItem item2 = CollectionItem.of("item2");
         List<CollectionItem> items = new ArrayList<>();
@@ -379,15 +390,19 @@ public class CollectionApplicationServiceTest {
                 "desc",
                 "colId", items);
 
-        // when: deleting an item from the collection
+        // When: Deleting an item from the collection
         FirebaseProvider f = new EmulatedFirebaseProvider();
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        RemoveItemFromCollectionCommand removeItemFromCollectionCommand = RemoveItemFromCollectionCommand.builder()
+                                                                            .collectorId(collectorId)
+                                                                            .collectionId(aCollectionId)
+                                                                            .itemId("item1")
+                                                                            .build();
+        cas.removeItemFromCollection(removeItemFromCollectionCommand);
 
-        cas.removeItemFromCollection(aCollectionId, "item1");
-
+        // Then: the deleted item is not present and the other is
         List<String> itemsInCollection = FirebaseUtil.findItemsForCollection(aCollectionId);
-
         assertThat(itemsInCollection, hasSize(1));
         assertThat(itemsInCollection.contains("item1"), is(false));
         assertThat(itemsInCollection.contains("item2"), is(true));
@@ -396,6 +411,7 @@ public class CollectionApplicationServiceTest {
     @Test
     public void testAddAndRemoveDifferentItemsFromCollection() {
         String aCollectionId = CollectionId.randomId();
+        String collectorId = "colId";
         CollectionItem item1 = CollectionItem.of("item1");
         CollectionItem item2 = CollectionItem.of("item2");
         List<CollectionItem> items = new ArrayList<>();
@@ -404,7 +420,7 @@ public class CollectionApplicationServiceTest {
         FirebaseUtil.createCollectionWithItems(aCollectionId,
                 "aCollection",
                 "desc",
-                "colId", items);
+                collectorId, items);
 
         // when: deleting an item from the collection
         FirebaseProvider f = new EmulatedFirebaseProvider();
@@ -420,12 +436,19 @@ public class CollectionApplicationServiceTest {
         collectionDTOS.add(item2Dto);
 
         AddItemsToCollectionCommand addItemsToCollectionCommand = AddItemsToCollectionCommand.builder()
+                                                                    .collectorId(collectorId)
                                                                     .collectionId(aCollectionId)
                                                                     .items(collectionDTOS)
                                                                     .build();
 
         cas.addItemsToCollection(addItemsToCollectionCommand);
-        cas.removeItemFromCollection(aCollectionId, "item1");
+
+        RemoveItemFromCollectionCommand removeItemFromCollectionCommand = RemoveItemFromCollectionCommand.builder()
+                                                                            .collectionId(aCollectionId)
+                                                                            .collectorId(collectorId)
+                                                                            .itemId("item1")
+                                                                            .build();
+        cas.removeItemFromCollection(removeItemFromCollectionCommand);
 
         List<String> itemsInCollection = FirebaseUtil.findItemsForCollection(aCollectionId);
 

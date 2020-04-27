@@ -12,6 +12,7 @@ import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import sun.plugin.dom.exception.InvalidAccessException;
 import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.inject.Inject;
@@ -76,7 +77,9 @@ public class CollectionApplicationService {
                     .collect(Collectors.toList());
     }
 
-    public CollectionDTO byId(String collectionId) {
+    public CollectionDTO byId(String userId, String collectionId) {
+        checkCollectionOwnership(userId, collectionId);
+
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
         List<CollectionItemDTO> collectionItemDTOS = toCollectionItemDTOs(collection);
 
@@ -88,33 +91,18 @@ public class CollectionApplicationService {
                 .build();
     }
 
-    public void deleteCollection(String collectionId) {
+    public void deleteCollection(String userId, String collectionId) {
+        checkCollectionOwnership(userId, collectionId);
         collectionRepository.delete(CollectionId.of(collectionId));
     }
 
-//    public CollectionCreatedResult updateCollection(UpdateColle collectionDTO) {
-//
-//        if (collectionRepository.existsWithName(collectionDTO.getId(), collectionDTO.getName())) {
-//            throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDTO.getName());
-//        }
-//
-//        Collection collection = Collection.withNameAndDescription(
-//                CollectionId.of(collectionDTO.getId()),
-//                collectionDTO.getName(),
-//                collectionDTO.getDescription(),
-//                Collector.withCollectorId(collectionDTO.getCollectorId()));
-//
-//        collectionRepository.update(collection);
-//        return new CollectionCreatedResult(collection.id(), collection.name(),
-//                                           collection.description(), collection.collector().id());
-//    }
-
     public CollectionUpdatedResult updateCollectionData(UpdateCollectionDataCommand collectionDataCommand) {
-        if (collectionRepository.existsWithName(collectionDataCommand.getId(), collectionDataCommand.getName())) {
+        checkCollectionOwnership(collectionDataCommand.getCollectorId(), collectionDataCommand.getCollectionId());
+        if (collectionRepository.existsWithName(collectionDataCommand.getCollectionId(), collectionDataCommand.getName())) {
             throw new DuplicateCollectionNameException("Collection already exists with name " + collectionDataCommand.getName());
         }
 
-        Collection collection = collectionRepository.byId(CollectionId.of(collectionDataCommand.getId()));
+        Collection collection = collectionRepository.byId(CollectionId.of(collectionDataCommand.getCollectionId()));
         collection.name(collectionDataCommand.getName());
         collection.description(collectionDataCommand.getDescription());
         collectionRepository.update(collection);
@@ -126,6 +114,7 @@ public class CollectionApplicationService {
     }
 
     public void addItemsToCollection(AddItemsToCollectionCommand addItemsToCollectionCommand) {
+        checkCollectionOwnership(addItemsToCollectionCommand.getCollectorId(), addItemsToCollectionCommand.getCollectionId());
         CollectionId collectionId = CollectionId.of(addItemsToCollectionCommand.getCollectionId());
         Collection collection = collectionRepository.byId(collectionId);
         List<CollectionItem> collectionItems = addItemsToCollectionCommand
@@ -137,13 +126,23 @@ public class CollectionApplicationService {
         collectionRepository.update(collection);
     }
 
-    public void removeItemFromCollection(String collectionId, String itemId) {
-        CollectionId collectionIdObj = CollectionId.of(collectionId);
+    public void removeItemFromCollection(RemoveItemFromCollectionCommand removeItemCommand) {
+        checkCollectionOwnership(removeItemCommand.getCollectorId(), removeItemCommand.getCollectionId());
+        CollectionId collectionIdObj = CollectionId.of(removeItemCommand.getCollectionId());
         Collection collection = collectionRepository.byId(collectionIdObj);
-        CollectionItem collectionItem = CollectionItem.of(itemId);
+        CollectionItem collectionItem = CollectionItem.of(removeItemCommand.getItemId());
 
         collection.removeItem(collectionItem);
         collectionRepository.update(collection);
+    }
+
+    private void checkCollectionOwnership(String userId, String collectionId) {
+        Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
+        Collector collector = Collector.withCollectorId(userId);
+
+        if (!collection.isOwnedBy(collector)) {
+            throw new InvalidAccessException("Collection with ID " + collectionId + " is not owned by " + userId);
+        }
     }
 
     private List<CollectionItemDTO> toCollectionItemDTOs(Collection collection) {

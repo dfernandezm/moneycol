@@ -63,7 +63,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         try {
             DocumentReference documentReference = firestore.collection("collections").document(collection.id());
             ApiFuture<WriteResult> result = documentReference.set(data);
-            log.info("Created collection with id {} for collector {} at {}",
+            log.info("Created collection with collectionId {} for collector {} at {}",
                     documentReference.getId(),
                     collection.collector().id(),
                     result.get().getUpdateTime());
@@ -93,7 +93,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
             DocumentReference documentReference =
                     firestore.collection("collections").document(collection.id());
             if (!documentReference.get().get().exists()) {
-                throw new CollectionNotFoundException("Collection does not exist with id: " + collection.id());
+                throw new CollectionNotFoundException("Collection does not exist with collectionId: " + collection.id());
             }
 
             documentReference.update(data).get();
@@ -103,7 +103,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
 
             updateBatchOfCollectionItems(collectionReference, collection.items());
 
-            log.info("Updated collection with id {} to {}", collection.id(), gson.toJson(data));
+            log.info("Updated collection with collectionId {} to {}", collection.id(), gson.toJson(data));
             return collection;
         }  catch (CollectionNotFoundException cnfe) {
             throw cnfe;
@@ -144,7 +144,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         DocumentReference docRef = firestore.collection("collections").document(collectionId.id());
         try {
             if (!docRef.get().get().exists()) {
-                throw new CollectionNotFoundException("Collection does not exist with id: " + collectionId.id());
+                throw new CollectionNotFoundException("Collection does not exist with collectionId: " + collectionId.id());
             }
 
             CollectionReference itemsReference = docRef.collection("items");
@@ -164,7 +164,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
     }
 
     private void deleteSubCollectionInBatches(CollectionReference collection, int batchSize) {
-        log.info("Deleting batch of documents for subcollection with id {} (batch: {})",
+        log.info("Deleting batch of documents for subcollection with collectionId {} (batch: {})",
                 collection.getId(),
                 batchSize);
         try {
@@ -174,7 +174,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
             // future.get() blocks on document retrieval
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for (QueryDocumentSnapshot document : documents) {
-                log.info("Deleting document with id in batch: {}", document.getId());
+                log.info("Deleting document with collectionId in batch: {}", document.getId());
                 document.getReference().delete();
                 ++deleted;
             }
@@ -275,7 +275,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
                 return queryDocumentSnapshots.size() > 0;
             }
 
-            // Any other collection (different id) has the same name
+            // Any other collection (different collectionId) has the same name
             return queryDocumentSnapshots.stream().anyMatch(qde ->
                                                             !qde.getId().equals(existingId) &&
                                                             qde.getString("name").equals(name));
