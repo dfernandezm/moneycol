@@ -5,14 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//TODO: commands should be validated for required fields as
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UpdateCollectionDataCommand {
+public class RemoveItemFromCollectionCommand {
     private String collectionId;
-    private String name;
-    private String description;
+    private String itemId;
     private String collectorId;
 }

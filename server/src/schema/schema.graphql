@@ -54,7 +54,7 @@ input UpdateCollectionInput {
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
-  collections(collectorId: String!): [BankNoteCollection]!
+  collectionData(collectionId: String!): BankNoteCollection
   itemsForCollection(collectionId: String!): BankNoteCollection
 }
 

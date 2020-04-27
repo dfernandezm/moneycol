@@ -66,4 +66,8 @@ public class Collection {
     public void description(String description) {
         this.description = description;
     }
+
+    public boolean isOwnedBy(Collector aCollector) {
+        return collector.equals(aCollector);
+    }
 }

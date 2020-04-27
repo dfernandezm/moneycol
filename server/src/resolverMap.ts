@@ -21,10 +21,10 @@ const resolverMap: IResolvers = {
         async search(_: void, args: { term: string, from: number, to: number }, ctx): Promise<SearchResult> {
             return searchService.search("en", args.term, args.from, args.to);
         },
-        async collections(_: void, args: { collectorId: string }, { dataSources }): Promise<BankNoteCollection[]> {
-            let collections: CollectionApiResult[] = await dataSources.collectionsAPI.getCollectionsForCollector(args.collectorId);
-            // These collections won't require the items for now, so we send it empty for now
-            return collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []));
+        async collectionData(_: void, args: { collectionId: string }, { dataSources }): Promise<BankNoteCollection> {
+            let col: CollectionApiResult = await dataSources.collectionsAPI.getCollectionById(args.collectionId);
+            // These collections are returned without items
+            return new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []);
         },
         async itemsForCollection(_: void, { collectionId }, { dataSources: { collectionsAPI } }): Promise<BankNoteCollection> {
             return decorateBanknoteCollection(collectionId, collectionsAPI)

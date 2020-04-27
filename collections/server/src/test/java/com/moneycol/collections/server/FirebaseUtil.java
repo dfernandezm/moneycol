@@ -75,10 +75,10 @@ public class FirebaseUtil {
         try {
             result.get().forEach(docSnapshot -> {
                 if (!docSnapshot.exists()) {
-                    log.info("Found deleted document with id {}, will see if it has subcollections",
+                    log.info("Found deleted document with collectionId {}, will see if it has subcollections",
                             docSnapshot.getId());
                     docSnapshot.getReference().listCollections().forEach( colRef -> {
-                        log.info("Found subcollection of a deleted document {}, col id: {}",
+                        log.info("Found subcollection of a deleted document {}, col collectionId: {}",
                                 docSnapshot.getId(), colRef.getId());
                         subcollectionIds.add(colRef.getId());
 
@@ -106,7 +106,7 @@ public class FirebaseUtil {
         } catch (CollectionNotFoundException cnfe) {
             throw cnfe;
         } catch (Exception e) {
-            throw new RuntimeException("Error finding by id", e);
+            throw new RuntimeException("Error finding by collectionId", e);
         }
     }
 

@@ -1,12 +1,14 @@
 package com.moneycol.collections.server.infrastructure.api;
 
 
+import com.google.common.collect.ImmutableMap;
 import com.google.firebase.database.annotations.Nullable;
 import com.moneycol.collections.server.application.AddItemsToCollectionCommand;
 import com.moneycol.collections.server.application.CollectionApplicationService;
 import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.application.CollectionUpdatedResult;
 import com.moneycol.collections.server.application.CreateCollectionCommand;
+import com.moneycol.collections.server.application.RemoveItemFromCollectionCommand;
 import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
 import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
@@ -32,6 +34,7 @@ import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.security.annotation.Secured;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
+import sun.plugin.dom.exception.InvalidAccessException;
 
 import java.security.Principal;
 import java.util.LinkedHashMap;
@@ -62,7 +65,7 @@ public class CollectionController {
     }
 
     @Error(exception = CollectionNotFoundException.class)
-    public MutableHttpResponse<Object> onCollectionNotFound(HttpRequest request, CollectionNotFoundException ex) {
+    public HttpResponse<Object> onCollectionNotFound(HttpRequest request, CollectionNotFoundException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection not found: " + ex.getMessage();
         log.warn(errorMessage);
@@ -71,7 +74,7 @@ public class CollectionController {
     }
 
     @Error(exception = InvalidCollectionException.class)
-    public MutableHttpResponse<Object> onInvalidCollection(HttpRequest request, InvalidCollectionException ex) {
+    public HttpResponse<Object> onInvalidCollection(HttpRequest request, InvalidCollectionException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection is invalid: " + ex.getMessage();
         log.warn(errorMessage);
@@ -79,8 +82,17 @@ public class CollectionController {
         return HttpResponse.badRequest().body(map);
     }
 
+    @Error(exception = InvalidAccessException.class)
+    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, InvalidAccessException ex) {
+        Map<String, Object > map = new LinkedHashMap<>();
+        String errorMessage = ex.getMessage();
+        log.warn(errorMessage);
+        map.put("error", "Invalid access");
+        return HttpResponse.status(HttpStatus.FORBIDDEN).body(map);
+    }
+
     @Error(exception = DuplicateCollectionNameException.class)
-    public MutableHttpResponse<Object> onDuplicatedCollectionName(HttpRequest request, DuplicateCollectionNameException ex) {
+    public HttpResponse<Object> onDuplicatedCollectionName(HttpRequest request, DuplicateCollectionNameException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection name duplicated: " + ex.getMessage();
         log.warn(errorMessage);
@@ -96,10 +108,10 @@ public class CollectionController {
      * @return
      */
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)
-    Single<CollectionDTO> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
+    public Single<CollectionDTO> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("User Id is: {}", principal.getName());
         log.info("Finding collection for ID: {}", collectionId);
-        return Single.just(collectionApplicationService.byId(collectionId));
+        return Single.just(collectionApplicationService.byId(principal.getName(), collectionId));
     }
 
     /**
@@ -128,7 +140,7 @@ public class CollectionController {
                                                      @Body UpdateCollectionDataDTO collectionDTO) {
         log.info("Attempt to update collection with ID: {}, {}", collectionId, collectionDTO);
         UpdateCollectionDataCommand cmd = UpdateCollectionDataCommand.builder()
-                .id(collectionId)
+                .collectionId(collectionId)
                 .name(collectionDTO.getName())
                 .description(collectionDTO.getDescription())
                 .collectorId(principal.getName())
@@ -139,27 +151,37 @@ public class CollectionController {
     @Delete(uri="/{collectionId}")
     public HttpResponse deleteCollection(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("Deleting collection with ID: {}", collectionId);
-        //TODO: check this is my collection, create command
-        collectionApplicationService.deleteCollection(collectionId);
+        collectionApplicationService.deleteCollection(principal.getName(), collectionId);
         return HttpResponse.ok();
     }
 
     @Consumes(MediaType.APPLICATION_JSON)
     @Post(uri = "/{collectionId}/items")
-    HttpResponse addItemToCollection(@PathVariable String collectionId, @Body AddItemsDTO addItemsDTO) {
+    HttpResponse addItemToCollection(@Nullable Principal principal, @PathVariable String collectionId, @Body AddItemsDTO addItemsDTO) {
         log.info("Adding item to collection with ID: {}", collectionId);
-        AddItemsToCollectionCommand addItemToCollectionCommand =
-                AddItemsToCollectionCommand.of(collectionId, addItemsDTO.getItems());
+        AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.builder()
+                                                                    .collectionId(collectionId)
+                                                                    .items(addItemsDTO.getItems())
+                                                                    .collectorId(principal.getName())
+                                                                    .build();
         collectionApplicationService.addItemsToCollection(addItemToCollectionCommand);
         return HttpResponse.ok();
     }
 
     @Delete(uri="/{collectionId}/items/{itemId}")
-    HttpResponse deleteCollectionItem(@PathVariable String collectionId,
-                                      @PathVariable String itemId) {
+    MutableHttpResponse<Object> deleteCollectionItem(@Nullable Principal principal,
+                                                  @PathVariable String collectionId,
+                                                  @PathVariable String itemId) {
         log.info("Deleting collection item with ID: {} in collection with ID: {}", collectionId, itemId);
-        collectionApplicationService.removeItemFromCollection(collectionId, itemId);
-        return HttpResponse.ok();
+        RemoveItemFromCollectionCommand removeItemCommand = RemoveItemFromCollectionCommand.builder()
+                                                            .collectionId(collectionId)
+                                                            .itemId(itemId)
+                                                            .collectorId(principal.getName())
+                                                            .build();
+
+        collectionApplicationService.removeItemFromCollection(removeItemCommand);
+        Map<String, String> resp = ImmutableMap.of("message", "ok");
+        return HttpResponse.ok().body(resp);
     }
 
     @Error(status = HttpStatus.NOT_FOUND, global = true)
