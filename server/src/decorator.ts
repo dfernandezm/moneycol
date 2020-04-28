@@ -1,4 +1,4 @@
-import { ElasticSearchService } from './infrastructure/ElasticSearchService';
+import { ElasticSearchService } from './infrastructure/search/ElasticSearchService';
 import { CollectionItemResult } from './infrastructure/collections/types';
 
 const elasticService = new ElasticSearchService();

@@ -41,6 +41,9 @@
     "http": "0.0.0",
     "jsonwebtoken": "^8.5.1",
     "ncp": "^2.0.0",
-    "uuid": "^3.4.0"
+    "uuid": "^3.4.0",
+    "firebase": "^7.6.0",
+    "firebase-tools": "^7.10.0",
+    "@firebase/auth-types": "^0.9.3"
   }
 }

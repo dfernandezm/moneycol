@@ -1,9 +1,9 @@
-import { SearchResult, BankNoteInputCollectionItem, StoredBankNoteCollection } from './infrastructure/SearchResult';
-import { BankNoteCollection } from './infrastructure/SearchResult';
-import { CollectionResult } from './infrastructure/SearchResult';
-import { NewCollectionInput } from './infrastructure/SearchResult';
-import { UpdateCollectionInput } from './infrastructure/SearchResult';
-import { BankNoteCollectionItem } from './infrastructure/SearchResult';
+import { SearchResult, BankNoteInputCollectionItem, StoredBankNoteCollection } from './infrastructure/search/SearchResult';
+import { BankNoteCollection } from './infrastructure/search/SearchResult';
+import { CollectionResult } from './infrastructure/search/SearchResult';
+import { NewCollectionInput } from './infrastructure/search/SearchResult';
+import { UpdateCollectionInput } from './infrastructure/search/SearchResult';
+import { BankNoteCollectionItem } from './infrastructure/search/SearchResult';
 import { BankNote } from "./types/BankNote";
 import uuid from "uuid/v4";
 //This would be a dataSource

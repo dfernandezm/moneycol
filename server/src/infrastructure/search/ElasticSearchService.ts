@@ -1,7 +1,7 @@
 import { SearchService } from './SearchService';
 import { Client } from 'elasticsearch';
 import { SearchResult } from './SearchResult';
-import { BankNote } from '../types/BankNote';
+import { BankNote } from '../../types/BankNote';
 
 // it should include endpoint:port
 const ELASTICSEARCH_ENDPOINT_WITH_PORT = process.env.ELASTICSEARCH_ENDPOINT_WITH_PORT || "elasticsearch";
