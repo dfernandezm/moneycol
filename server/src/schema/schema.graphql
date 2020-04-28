@@ -16,7 +16,6 @@ type SearchResult {
   total: Int
 }
 
-
 type BankNoteCollection {
   collectionId: String!,
   name: String!,
@@ -51,11 +50,28 @@ input UpdateCollectionInput {
   description: String!
 }
 
+# Authentication
+type AuthenticationResult {
+    userId: String!,
+    email: String,
+    token: String!
+}
+
+type User {
+  userId: String!,
+  email: String
+}
+
+type LogoutResult {
+  result: String!
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
   collectionData(collectionId: String!): BankNoteCollection
   itemsForCollection(collectionId: String!): BankNoteCollection
+  currentUser: User!
 }
 
 type Mutation {
@@ -64,6 +80,10 @@ type Mutation {
   removeBankNoteFromCollection(banknoteId: String!, collectionId: String!): BankNoteCollection!
   updateCollection(collectionId: String!, data: UpdateCollectionInput): BankNoteCollection!
   deleteCollection(collectionId: String!): Boolean
+
+  # Authentication
+  loginWithEmail(email: String!, password: String!): AuthenticationResult!
+  logout: LogoutResult!
 }
 
 schema {

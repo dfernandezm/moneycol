@@ -1,7 +1,7 @@
 import { RESTDataSource, RequestOptions } from 'apollo-datasource-rest';
 import { CollectionApiResult } from './types';
-import { NewCollectionInput } from '../SearchResult';
-import { CollectionCreatedResult } from '../SearchResult';
+import { NewCollectionInput } from '../search/SearchResult';
+import { CollectionCreatedResult } from '../search/SearchResult';
 import {
   Request
 } from 'apollo-server-env';
