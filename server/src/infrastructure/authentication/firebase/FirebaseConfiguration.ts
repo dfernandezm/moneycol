@@ -3,10 +3,12 @@ import "firebase/firestore";
 
 import firebase from "firebase/app";
 
+const API_KEY = process.env.FIREBASE_API_KEY;
+
 class FirebaseConfig {
 
     private FIREBASE_CONFIG = {
-        apiKey: "",
+        apiKey: API_KEY,
         authDomain: "moneycol.firebaseapp.com",
         databaseURL: "https://moneycol.firebaseio.com",
         projectId: "moneycol",

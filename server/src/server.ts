@@ -40,13 +40,16 @@ const server = new ApolloServer({
     let token = req.headers.authorization || '';
     let user = {};
 
+    //TODO: ignore token if login request
     if (token) {
+      console.log("Token: ", token);
       token = token.replace("Bearer", "").trim();
       try {
         user = authenticationService.validateToken(token);
       } catch (error) {
         console.log("Error validating token", error);
-        throw new AuthenticationError("Invalid token received");
+        token = "";
+        //throw new AuthenticationError("Invalid token received");
       }
     }
 
