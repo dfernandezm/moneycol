@@ -30,7 +30,9 @@ const ProtectedRoute = ({
             render={(props: ComponentProps) => {
                 const {location, history, match, staticContext, ...remainderProps} = props;
                 return (isVerifying ? (
-                    <div />
+                    <div>
+                        Verifying...
+                    </div>
                 ) : isAuthenticated ? (
                     <Component {...remainderProps} />
                 ) : (

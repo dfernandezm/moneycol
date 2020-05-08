@@ -21,8 +21,7 @@ const httpLink = createHttpLink({
 
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
-  const token = localStorage.getItem('token');
-  console.log("Token in local storage: ", token);
+  const token = localStorage.getItem("token");
   // return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -39,8 +38,10 @@ const apolloClientOptions: ApolloClientOptions<{}> = {
 
 const client = new ApolloClient(apolloClientOptions);
 
-const store = configureStore();
+const store = configureStore(client);
 
+// https://www.howtographql.com/react-urql/5-authentication/
+// https://www.apollographql.com/docs/react/data/mutations/#usemutation-api
 const WrappedApp = (
   <ApolloProvider client={client}>
     <Provider store={store}>

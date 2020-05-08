@@ -8,9 +8,9 @@ import {
 
 import SearchResultsPage from './search/searchResultsPage';
 import Home from './home/home';
+
 // import { NavBar } from './navbar/navBar';
 import { NavBarMui }  from './navbar/navbarMui';
-
 
 import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";

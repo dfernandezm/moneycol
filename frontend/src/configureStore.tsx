@@ -3,12 +3,13 @@ import thunkMiddleware from "redux-thunk";
 import { verifyAuthWithDispatch } from "./login/actions";
 import rootReducer from "./login/reducers";
 
-const configureStore = (persistedState = {}): Store => {
+// Pass in Apollo client: https://github.com/kriasoft/react-starter-kit/issues/1686
+const configureStore = (apolloClient = {}, persistedState = {}): Store => {
 
   const store: Store = createStore(
     rootReducer,
     persistedState,
-    applyMiddleware(thunkMiddleware)
+    applyMiddleware(thunkMiddleware.withExtraArgument(apolloClient))
   );
 
   verifyAuthWithDispatch(store.dispatch)

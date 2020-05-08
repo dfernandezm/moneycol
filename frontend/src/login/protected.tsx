@@ -2,6 +2,7 @@ import React from "react";
 import { connect, useDispatch } from "react-redux";
 import { logoutUser } from "./actions";
 import { RootState } from "./reducers"
+import { useApolloClient } from '@apollo/react-hooks';
 
 import Container from '@material-ui/core/Container';
 import Typography from "@material-ui/core/Typography";
@@ -27,11 +28,12 @@ const useStyles = makeStyles((theme: Theme) =>
 const Protected: React.FC<ProtectedComponentProps> = (props: ProtectedComponentProps) => {
     const classes = useStyles();
     const dispatch = useDispatch();
+    const apolloClient = useApolloClient();
     
     const handleLogout = () => {
         // doing it this way we don't pick 'dispatch' from the props but from the hook
         const logoutDispatcher = logoutUser();
-        logoutDispatcher(dispatch);
+        logoutDispatcher(dispatch, {}, apolloClient);
     };
 
     const { isLoggingOut, logoutError } = props;
