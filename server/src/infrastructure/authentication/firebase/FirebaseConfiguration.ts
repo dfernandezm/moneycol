@@ -2,11 +2,11 @@ import "firebase/auth";
 import "firebase/firestore";
 
 import firebase from "firebase/app";
-
+const API_KEY = "AIzaSyDImTA3-o5ew92DQ4pg0-nVKTHR92ncq-U";
 class FirebaseConfig {
 
     private FIREBASE_CONFIG = {
-        apiKey: "",
+        apiKey: API_KEY,
         authDomain: "moneycol.firebaseapp.com",
         databaseURL: "https://moneycol.firebaseio.com",
         projectId: "moneycol",

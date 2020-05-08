@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { loginUser } from "./actions";
-import { withStyles, createStyles } from "@material-ui/styles";
+import { styled, makeStyles } from '@material-ui/core/styles';
+
+import { useApolloClient } from '@apollo/react-hooks';
 
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -14,24 +16,7 @@ import Container from "@material-ui/core/Container";
 
 import { RootState } from './reducers'
 
-const styles = createStyles({
-  "@global": {
-    body: {
-      backgroundColor: "#fff"
-    }
-  },
-  paper: {
-    marginTop: 100,
-    display: "flex",
-    padding: 20,
-    flexDirection: "column",
-    alignItems: "center"
-  },
-  avatar: {
-    marginLeft: "auto",
-    marginRight: "auto",
-    backgroundColor: "#f50057"
-  },
+const useStyles = makeStyles({
   form: {
     marginTop: 1
   },
@@ -39,20 +24,41 @@ const styles = createStyles({
     color: "#f50057",
     marginBottom: 5,
     textAlign: "center"
+  },
+  "@global": {
+    body: {
+      backgroundColor: "#fff"
+    }
   }
 });
 
+const StyledPaper = styled(Paper)({
+    marginTop: 100,
+    display: "flex",
+    padding: 20,
+    flexDirection: "column",
+    alignItems: "center"
+});
+
+const StyledAvatar = styled(Avatar)({
+  marginLeft: "auto",
+  marginRight: "auto",
+  backgroundColor: "#f50057"
+});
+
+
 interface LoginProps {
-  classes: any //TODO: investigate what's the type of this
   loginError: boolean
-  isAuthenticated: boolean
   isLoggingIn: boolean
 }
 
 const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
   const [state, setState] = useState({ email: "", password: "" });
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const dispatch = useDispatch();
+  const apolloClient = useApolloClient();
+  const classes = useStyles();
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, email: event.target.value });
@@ -62,26 +68,28 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
     setState({ ...state, password: event.target.value });
   };
 
-  const handleSubmit = () => {
+  // See for alternative: https://scotch.io/courses/getting-started-with-react-and-redux/dispatching-on-click
+  const handleSubmit = async () => {
     const { email, password } = state;
     const loginDispatcher = loginUser(email, password);
-    loginDispatcher(dispatch);
+    const result = await loginDispatcher(dispatch, {}, apolloClient);
+    setLoginSuccess(result === "success");
   };
 
-  const { classes, loginError, isAuthenticated } = props;
+  const { loginError, isLoggingIn } = props;
 
-  if (isAuthenticated) {
+  if (loginSuccess) {
     return <Redirect to="/protected" />;
   } else {
     return (
       <Container component="main" maxWidth="xs">
-        <Paper className={classes.paper}>
-          <Avatar className={classes.avatar}>
+        <StyledPaper>
+          <StyledAvatar>
             <LockOutlinedIcon />
-          </Avatar>
+          </StyledAvatar>
           <Typography component="h1" variant="h5">
-            Sign in
-            </Typography>
+          { isLoggingIn ? "Signing In" : "Sign in" }
+          </Typography>
           <TextField
             variant="outlined"
             margin="normal"
@@ -104,29 +112,28 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
           {loginError && (
             <Typography component="p" className={classes.errorText}>
               Incorrect email or password.
-              </Typography>
+            </Typography>
           )}
           <Button
             type="button"
             fullWidth
             variant="contained"
             color="primary"
-            className={classes.submit}
+            disabled={isLoggingIn}
             onClick={handleSubmit}>
-            Sign In
-            </Button>
-        </Paper>
+            { isLoggingIn ? "Signing In" : "Sign in" }
+          </Button>
+        </StyledPaper>
       </Container>
     );
   }
 }
 
-//https://redux.js.org/recipes/usage-with-typescript
+// https://redux.js.org/recipes/usage-with-typescript
 const mapState = (state: RootState) => {
   return {
     isLoggingIn: state.auth.isLoggingIn,
-    loginError: state.auth.loginError,
-    isAuthenticated: state.auth.isAuthenticated
+    loginError: state.auth.loginError
   };
 }
 
@@ -138,10 +145,4 @@ const connector = connect(
   mapDispatch
 )
 
-//TODO: to remove the 'any' in Props
-//   type PropsFromRedux = ConnectedProps<typeof connector>
-//   type Props = PropsFromRedux & {
-//     backgroundColor: string
-//   }
-
-export default withStyles(styles)(connector(Login));
+export default connector(Login);
