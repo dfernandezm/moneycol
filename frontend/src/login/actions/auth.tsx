@@ -1,5 +1,6 @@
 import { LOGIN_GQL } from '../gql/login';
 import { LOGOUT_GQL } from '../gql/logout';
+import { VERIFY_TOKEN_GQL } from '../gql/verifyToken';
 import { Action, ActionCreator, Dispatch } from 'redux';
 import { ApolloClient } from "apollo-boost";
 
@@ -30,7 +31,7 @@ interface RequestLoginAction {
 
 interface ReceiveLoginAction {
   type: typeof LOGIN_SUCCESS
-  user?: firebase.User,
+  user?: any,
   token?: string | undefined
 }
 
@@ -172,20 +173,37 @@ export const logoutUser = () =>
     }
   };
 
-export const verifyAuthWithDispatch = (dispatch: Dispatch) => {
+export const verifyAuthWithDispatch = async (dispatch: Dispatch, _: any, apolloClient: ApolloClient<any>) => {
   dispatch(verifyRequest());
 
-  //TODO: should call verify mutation: existing token/verify with firebaseCurrentUser mutation (#177)
-  // firebase.auth().onAuthStateChanged(async (user: firebase.User) 
+  // this invokes server for verification of the stored token
+  // 1) If the token expired, it will try to reissue another if the user is logged in (long lived session)
+  // 2) If the token has not expired and is valid, it will be refreshed
+  // 3) If no token is stored or errors happen, login form will appear
+
+  // To test the logged in scenarios, use the mutation to login or the login form once, then access from another 
+  // tab or closed browser a protected route (use case for verify)
+  
   try {
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    const user = userStr ? JSON.parse(userStr) : null;
+    let token = localStorage.getItem("token");
+    let userStr = localStorage.getItem("user");
+    // This can fail if userStr is undefined of empty catch block will pick it and prompt for login
+    let user = userStr ? JSON.parse(userStr) : null;
     if (token && user) {
-      dispatch(receiveLogin(user, token));
+      const { data } = await apolloClient.mutate({
+        mutation: VERIFY_TOKEN_GQL,
+        variables: { token }
+      });
+      // console.log("Data from verify:", data);
+      const newToken = data.verifyToken.token;
+      let user = { email: data.verifyToken.email, userId: data.verifyToken.userId, token: newToken }
+      let userJson = JSON.stringify(user);
+      localStorage.setItem("token", newToken);
+      localStorage.setItem("user", userJson);
+      dispatch(receiveLogin(user, newToken));
     } 
   } catch (err) {
-    console.log("Error verifying", err);
+    console.log("Error verifying, will need re-login", err);
   } finally {
     // We call verifySuccess to clear 'verifying' flag,
     // we should have verifyError action, but while we don't have

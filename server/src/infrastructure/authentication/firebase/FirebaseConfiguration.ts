@@ -1,8 +1,10 @@
 import "firebase/auth";
 import "firebase/firestore";
-
+import * as admin from "firebase-admin";
 import firebase from "firebase/app";
-const API_KEY = "AIzaSyDImTA3-o5ew92DQ4pg0-nVKTHR92ncq-U";
+
+const API_KEY = process.env.FIREBASE_API_KEY;
+
 class FirebaseConfig {
 
     private FIREBASE_CONFIG = {
@@ -16,15 +18,23 @@ class FirebaseConfig {
     };
 
     private firebaseApp: any = {};
+    private adminApp: any = {};
 
     get() {
         if (!this.firebaseApp.auth) {
+            //TODO: This should be cached more globally, otherwise we can't use firebase sessions that survive across servers
             this.firebaseApp = firebase.initializeApp(this.FIREBASE_CONFIG);
         }
-
         return this.firebaseApp;
     }
 
+    getAdmin() {
+        if (!this.adminApp.auth) {
+            //TODO: This should be cached more globally, otherwise we can't use firebase sessions that survive across servers
+            this.adminApp = admin.initializeApp(this.FIREBASE_CONFIG);
+        }
+        return this.adminApp;
+    }
 }
 
 export const firebaseInstance = new FirebaseConfig();

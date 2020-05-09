@@ -40,19 +40,11 @@ const server = new ApolloServer({
     let token = req.headers.authorization || '';
     let user = {};
 
-    //TODO: login mutation shouldn't require token
-    
-    // if (token) {
-    //   token = token.replace("Bearer", "").trim();
-    //   try {
-    //     user = authenticationService.validateToken(token);
-    //   } catch (error) {
-    //     console.log("Error validating token", error);
-    //     throw new AuthenticationError("Invalid token received");
-    //   }
-    // }
+    if (token) {
+      token = token.replace("Bearer", "").trim();
+    }
 
-    // add the user and token to the context
+    // add the user and token to the context as-is, it will be checked in the relevant parts
     return { user, token };
   },
 
@@ -63,37 +55,6 @@ const server = new ApolloServer({
   },
   validationRules: [depthLimit(7)],
 });
-
-// This should be done only in the cases that tokens / user-centric functionality is required
-// const validateToken = (token: string): User => {
-
-//     //TODO: should verify the signature or just forward instead of decoding
-//     //see: https://firebase.google.com/docs/auth/admin/verify-id-tokens
-//     const decoded: any = jwt.decode(token);
-
-//     /*
-//     { iss: 'https://securetoken.google.com/moneycol',
-//       aud: 'moneycol',
-//       auth_time: 1586519807,
-//       user_id: '3eiK7CqInPbgcw1LYq1S8sJqGLy2',
-//       sub: '...',
-//       iat: 1586523227,
-//       exp: 1586526827,
-//       email: 'morenza@gmail.com',
-//       email_verified: true,
-//       firebase:
-//       { identities: { email: [Array] }, sign_in_provider: 'password' } }
-//      */
-//     if (decoded && decoded.aud == "moneycol") {
-//       console.log(`Valid token has been received, user ID is: ${decoded.user_id}`);
-//       return {
-//         email: decoded.email,
-//         userId: decoded.uid
-//       }
-//     } else {
-//       throw new AuthenticationError("Invalid token has been provided");
-//     };
-//}
 
 app.use('*', cors());
 app.use(compression());
