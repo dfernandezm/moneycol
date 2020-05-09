@@ -57,10 +57,11 @@ type AuthenticationResult {
     token: String!
 }
 
-type User {
-  userId: String!,
-  email: String
-}
+# type User {
+#   userId: String!,
+#   email: String,
+#   token: String!
+# }
 
 type LogoutResult {
   result: String!
@@ -71,7 +72,7 @@ type Query {
   search(term: String!, from: Int, to: Int): SearchResult!
   collectionData(collectionId: String!): BankNoteCollection
   itemsForCollection(collectionId: String!): BankNoteCollection
-  currentUser: User!
+  # currentUser: User!
 }
 
 type Mutation {
@@ -84,6 +85,7 @@ type Mutation {
   # Authentication
   loginWithEmail(email: String!, password: String!): AuthenticationResult!
   logout: LogoutResult!
+  verifyToken(token: String!, refresh: Boolean): AuthenticationResult!
 }
 
 schema {

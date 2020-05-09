@@ -27,10 +27,6 @@ const resolverMap: IResolvers = {
         },
 
         async collectionData(_: void, args: { collectionId: string }, ctx): Promise<BankNoteCollection> {
-            console.log("Context: ", ctx);
-            if (!ctx.token) {
-                throw new AuthenticationError("Should be authenticated to get collections data");
-            }
             let col: CollectionApiResult = await ctx.dataSources.collectionsAPI.getCollectionById(args.collectionId);
             // These collections are returned without items
             return new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []);
@@ -39,29 +35,6 @@ const resolverMap: IResolvers = {
         async itemsForCollection(_: void, { collectionId }, { dataSources: { collectionsAPI } }): Promise<BankNoteCollection> {
             return decorateBanknoteCollection(collectionId, collectionsAPI)
         },
-
-        async currentUser(_: void, obj, ctx): Promise<User> {
-
-            if (!ctx.token) {
-                throw new AuthenticationError("Should be authenticated to get currentUser");
-            }
-
-            const user = await authenticationService.getCurrentUser();
-
-            if (user === null) {
-                throw new AuthenticationError("Logged out, please login again");
-            }
-
-            const userFromToken = authenticationService.validateToken(ctx.token)
-
-            //TODO: temporary check, need to check how to do properly (token for a user, but currentUser is different...)
-            if (user.userId !== userFromToken.userId) {
-                console.log("User does not match token: token user -> " + userFromToken.userId + ", user from Firebase -> " + user.userId);
-                throw new AuthenticationError("User does not match token");
-            }
-
-            return user;
-        }
     },
 
     Mutation: {
@@ -110,12 +83,30 @@ const resolverMap: IResolvers = {
         // See how to link to React: https://www.howtographql.com/graphql-js/6-authentication/
         // Authentication
         async loginWithEmail(_: void, { email, password }, ctx): Promise<AuthenticationResult> {
-            let authResult: AuthenticationResult = await authenticationService.loginWithEmailPassword(email, password);
-            console.log("Resolver: authResult", authResult);
-            return authResult;
+            try {
+                let authResult: AuthenticationResult = await authenticationService.loginWithEmailPassword(email, password);
+                console.log("Resolver: authResult", authResult);
+                return authResult;
+            } catch (err) {
+                console.log("Authentication error in login", err);
+                throw new AuthenticationError("Authentication error in login");
+            }
+
         },
-        async logout(_: void, {}, ctx) {
+
+        async logout(_: void, {}) {
             return authenticationService.logout();
+        },
+
+        async verifyToken(_: void, { token, refresh }): Promise<AuthenticationResult> {
+            try {
+                const result = await authenticationService.validateToken(token, refresh);
+                console.log("Result", result);
+                return result;
+            } catch (err) {
+                console.log("Error verifying token", err);
+                throw new AuthenticationError("Authentication error in login");
+            }
         }
     }
 };

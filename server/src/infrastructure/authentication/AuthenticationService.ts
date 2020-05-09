@@ -8,14 +8,14 @@ export type AuthenticationResult = {
 
 export type User = {
     userId: string,
-    email: string | null
+    email: string | null,
+    token: string
 }
 
 export interface AuthenticationService {
       loginWithEmailPassword(email: string, password: string): Promise<AuthenticationResult>;
       logout(): Promise<object>;
-      getCurrentUser(): Promise<User | null>;
-      validateToken(token: string): User;
+      validateToken(token: string, refresh: boolean): Promise<User>;
 }
 
 export const authenticationService = new FirebaseAuthenticationService();
