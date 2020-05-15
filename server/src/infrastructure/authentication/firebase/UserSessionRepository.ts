@@ -1,9 +1,10 @@
 import FirestoreUserSessionRepository from './FirestoreUserSessionRepository';
+import { User } from '../AuthenticationService';
 
 export interface UserSessionRepository {
-    //TODO: in the interface we should probably use object or some adapter to avoid using firebase 
-    saveCurrentUser(userId: string, user: firebase.User): Promise<object>;
-    findCurrentUser(userId: string):  Promise<{userId: string, refreshToken:string, userObject: object} | null> ;
+    saveCurrentUser(userId: string, user: User): Promise<object>;
+    findCurrentUser(userId: string):  Promise<User | null> ;
+    removeUserSession(userId: string): Promise<any>;
 }
 
-export const userSessionRepository = new FirestoreUserSessionRepository()
+export const userSessionRepository: UserSessionRepository = new FirestoreUserSessionRepository();

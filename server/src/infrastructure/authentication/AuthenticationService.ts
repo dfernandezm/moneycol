@@ -7,15 +7,17 @@ export type AuthenticationResult = {
 }
 
 export type User = {
-    userId: string,
+    token: string,
+    refreshToken: string,
     email: string | null,
-    token: string
+    userId: string,
+    lastLogin: Date
 }
 
 export interface AuthenticationService {
       loginWithEmailPassword(email: string, password: string): Promise<AuthenticationResult>;
-      logout(): Promise<object>;
-      validateToken(token: string, refresh: boolean): Promise<User>;
+      logout(token: string): Promise<object>;
+      validateToken(token: string, refresh: boolean): Promise<AuthenticationResult>;
 }
 
 export const authenticationService = new FirebaseAuthenticationService();

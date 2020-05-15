@@ -94,8 +94,8 @@ const resolverMap: IResolvers = {
 
         },
 
-        async logout(_: void, {}) {
-            return authenticationService.logout();
+        async logout(_: void, { token }) {
+            return authenticationService.logout(token);
         },
 
         async verifyToken(_: void, { token, refresh }): Promise<AuthenticationResult> {

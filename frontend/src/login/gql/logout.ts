@@ -1,9 +1,9 @@
 import gql from 'graphql-tag';
 
 export const LOGOUT_GQL = gql`
-    mutation logout {
-        logout {
-            result
-        }
+  mutation logout($token: String!) {
+    logout(token: $token) {
+      result
     }
+  }
 `;
