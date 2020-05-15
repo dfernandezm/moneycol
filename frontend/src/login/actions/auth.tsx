@@ -154,8 +154,10 @@ export const logoutUser = () =>
   async (dispatch: Dispatch<RequestLogoutAction>, _: any, apolloClient: ApolloClient<any>) => {
     dispatch(requestLogout());
     try {
+      const currentToken = localStorage.getItem("token");
       const { data } = await apolloClient.mutate({
         mutation: LOGOUT_GQL,
+        variables: { token: currentToken }
       });
 
       if (data.logout.result && data.logout.result === "ok") {
