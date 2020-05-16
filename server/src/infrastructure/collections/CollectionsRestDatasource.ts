@@ -74,14 +74,15 @@ export class CollectionsRestDatasource extends RESTDataSource {
   //TODO: this could be a lighter validation, as the collections API revalidates it as well
   private async validateRequestToken(token: string, request: string) {
     if (!token) {
-        throw new AuthenticationError("No token present for request " + request);
+        throw new AuthenticationError("No token present for request: " + request);
     } else {
         try {
+            // It has to be a fresh token, the client must have generated it recently
             const result = await authenticationService.validateToken(token, false);
             console.log("Validated token for request " + request, result);
         } catch (err) { 
             console.log("Invalid token for request " + request, err);
-            throw new AuthenticationError(`Invalid token for request ${request}`);
+            throw new AuthenticationError(`Invalid token for request: ${request}`);
         }
     }
 }

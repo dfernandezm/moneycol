@@ -155,6 +155,11 @@ export const logoutUser = () =>
     dispatch(requestLogout());
     try {
       const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        console.log("Already logged out as token is not present locally");
+        dispatch(receiveLogout());
+        return;
+      }
       const { data } = await apolloClient.mutate({
         mutation: LOGOUT_GQL,
         variables: { token: currentToken }

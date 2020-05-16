@@ -1,6 +1,5 @@
-import { AuthenticationService, AuthenticationResult, authenticationService } from "../AuthenticationService";
+import { AuthenticationService, AuthenticationResult } from "../AuthenticationService";
 import { firebaseInstance, FIREBASE_API_KEY } from "./FirebaseConfiguration";
-import { tokensCache } from "./TokensCache";
 import { userSessionRepository } from "./UserSessionRepository";
 import jwt from 'jsonwebtoken';
 const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
@@ -20,7 +19,7 @@ type RefreshTokenResponse = {
     newToken: string
 }
 
-type UserData = {
+export type UserData = {
     email: string,
     userId: string,
     tokenExpirationTime: number
@@ -55,7 +54,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                         const email = userCredential.user.email;
                         const token = await this.tokenFromUser(userCredential.user);
                         if (token) {
-                            //TODO: cache the token for this user locally for 1h
+                            //TODO: cache the token for this user locally for 1h: #191
                             const authResult = { email, userId, token };
                             await this.saveCurrentUser(token);
                             return resolve(authResult);
@@ -74,13 +73,36 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         });
     }
 
+    // Need to both wrap in new Promise() + use regular promise.then instead of just async/await 
+    // due to issue with Firebase.auth library:
+    // - see https://github.com/firebase/firebase-js-sdk/issues/1881
+    private async firebaseSignOut() {
+        return new Promise((resolve, reject) => {
+            return firebaseInstance.get().auth().signOut()
+                .then(() => {
+                    resolve({ result: "ok"});
+                }).catch((err: Error) => reject(err));
+        });
+    }
+
+    private async revokeRefreshTokens(userId: string) {
+        return new Promise((resolve, reject) => {
+            return firebaseInstance.getAdmin()
+                                   .auth()
+                                   .revokeRefreshTokens(userId)
+                                   .then(()=> {
+                                       resolve({result: "ok"});
+                                   }).catch((err: Error)=> reject(err));
+        });
+    }
+
     async logout(token: string): Promise<object> {
         try {
-            //TODO: will need wrap in promise.then instead of async/await due to firebase.auth issue
-            await firebaseInstance.get().auth().signOut();
+            //TODO: validate the token first, if invalid, the logout should be rejected
+            await this.firebaseSignOut();
             const userData = this.userDataFromToken(token);
-            await userSessionRepository.removeUserSession(userData.userId);
-            const result = await firebaseInstance.getAdmin().auth().revokeRefreshTokens(userData.userId);
+            await userSessionRepository.removeUserSession(userData, token);
+            const result = this.revokeRefreshTokens(userData.userId);
             console.log("Revoked refresh", result);
             return {
                 result: "ok"
@@ -103,8 +125,13 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
     async validateToken(token: string, refresh: boolean = false): Promise<AuthenticationResult> {
         //TODO: will need wrap in promise.then instead of async/await due to firebase.auth issue
         try {
+            let isRevoked = await userSessionRepository.checkRevoked(token);
+            if (isRevoked) {
+                throw new Error("Token has logged out before, please re-login");
+            }
 
             let decodedToken = await firebaseInstance.getAdmin().auth().verifyIdToken(token);
+            const currentUser = await userSessionRepository.findCurrentUser(decodedToken.uid);
 
             if (refresh) {
                 console.log("Refresh requested");
@@ -125,7 +152,19 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                     throw new Error('Error validating token, cannot refresh current token, should re-authenticate');
                 }
             } else {
-                return { token, email: decodedToken.email, userId: decodedToken.uid };
+                if (currentUser) {
+                    const updatedSession =  {
+                        token,
+                        refreshToken: currentUser.refreshToken,
+                        email: decodedToken.email,
+                        userId: decodedToken.uid,
+                        lastLogin: new Date()
+                    }
+                    userSessionRepository.saveCurrentUser(decodedToken.uid, updatedSession);
+                    return { token, email: decodedToken.email, userId: decodedToken.uid };
+                } else {
+                    throw new Error("Error validating token, no user is present for valid token, should re-login");
+                }
             }
 
         } catch (err) {
@@ -144,7 +183,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         const userData = this.userDataFromToken(token);
         console.log("UserId from token", userData.userId);
         const currentUserData: any = await userSessionRepository.findCurrentUser(userData.userId);
-        //TODO: check expiration date checks (issue #)
+        //TODO: check expiration date checks (created issue #189)
         // - the session creation should be AFTER the expiration time
         // - the token expiration time - session creation time > session_duration (1 month?)
         if (currentUserData) {
@@ -157,12 +196,13 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
 
     private userDataFromToken(token: string): UserData {
         const decodedToken: any = jwt.decode(token);
-        //exp: The ID token's expiration time, in seconds since the Unix epoch. 
+        // exp: The ID token's expiration time, in seconds since the Unix epoch. 
         return { userId: decodedToken.user_id, email: decodedToken.email, tokenExpirationTime: decodedToken.exp };
     }
 
     async saveCurrentUser(token: string): Promise<any> {
         console.log("Saving current user");
+        //TODO: will need wrap in promise.then instead of async/await due to firebase.auth issue
         return await firebaseInstance.get().auth().onAuthStateChanged(async (currentUser: firebase.User) => {
             if (currentUser) {
                 console.log("Saving current user");
@@ -180,14 +220,11 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         });
     }
 
-    // Reauthentication: https://stackoverflow.com/questions/38233687/how-to-use-the-firebase-refreshtoken-to-reauthenticate
-    // It should use: https://stackoverflow.com/questions/56583184/what-is-the-best-way-to-use-async-await-inside-onauthstatechanged-of-firebase/56583572
+   
     private async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
         return await this.exchangeRefreshTokenWithIdToken(refreshToken);
     }
 
-    // https://stackoverflow.com/questions/38233687/how-to-use-the-firebase-refreshtoken-to-reauthenticate
-    // https://firebase.google.com/docs/reference/rest/auth/
     private async exchangeRefreshTokenWithIdToken(refreshToken: string): Promise<RefreshTokenResponse> {
         const options = {
             method: 'POST',
