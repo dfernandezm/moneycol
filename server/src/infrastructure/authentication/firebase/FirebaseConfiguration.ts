@@ -22,6 +22,7 @@ class FirebaseConfig {
         appId: "1:461081581931:web:3ca5344ae0e1df6dfa542e"
     };
 
+    // Preferred, picks GOOGLE_APPLICATION_CREDENTIALS service account json
     private SERVICE_ACCOUNT_AUTH = {
         credential: admin.credential.applicationDefault(),
         databaseURL: "https://moneycol.firebaseio.com"
@@ -31,22 +32,23 @@ class FirebaseConfig {
     private adminApp: any = {};
     private firestore: any = {};
 
+    // firebase auth client
     get() {
         if (!this.firebaseApp.auth) {
-            //TODO: This should be cached more globally, otherwise we can't use firebase sessions that survive across servers
             this.firebaseApp = firebase.initializeApp(this.FIREBASE_CONFIG);
         }
         return this.firebaseApp;
     }
 
+    // firebase auth admin SDK server
     getAdmin() {
         if (!this.adminApp.auth) {
-            //TODO: This should be cached more globally, otherwise we can't use firebase sessions that survive across servers
             this.adminApp = admin.initializeApp(this.SERVICE_ACCOUNT_AUTH);
         }
         return this.adminApp;
     }
 
+    // firestore
     getFirestore() {
         if (!this.firestore.collection) {
             this.firestore = this.getAdmin().firestore();

@@ -1,4 +1,4 @@
-//TODO: this should use Firestore
+//TODO: local caching of non-firebase user
 class TokensCache {
     private tokenCache = new Map<string, string>();
     private currentUserCache = new Map<string, firebase.User>();
