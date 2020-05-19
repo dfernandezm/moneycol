@@ -12,14 +12,12 @@ import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import sun.plugin.dom.exception.InvalidAccessException;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO: when with auth, check the owner of the collection
+
 @Slf4j
 public class CollectionApplicationService {
 
@@ -38,7 +36,7 @@ public class CollectionApplicationService {
         }
 
         if (StringUtils.isEmpty(createCollectionCommand.getCollectorId())) {
-            throw new InvalidStateException("Cannot create a collection without collector");
+            throw new IllegalStateException("Cannot create a collection without collector");
         }
 
         log.info("Creating collection for user {}", createCollectionCommand.getCollectorId());
@@ -141,7 +139,7 @@ public class CollectionApplicationService {
         Collector collector = Collector.withCollectorId(userId);
 
         if (!collection.isOwnedBy(collector)) {
-            throw new InvalidAccessException("Collection with ID " + collectionId + " is not owned by " + userId);
+            throw new IllegalStateException("Collection with ID " + collectionId + " is not owned by " + userId);
         }
     }
 
