@@ -34,7 +34,7 @@ import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.security.annotation.Secured;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
-import sun.plugin.dom.exception.InvalidAccessException;
+
 
 import java.security.Principal;
 import java.util.LinkedHashMap;
@@ -82,8 +82,8 @@ public class CollectionController {
         return HttpResponse.badRequest().body(map);
     }
 
-    @Error(exception = InvalidAccessException.class)
-    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, InvalidAccessException ex) {
+    @Error(exception = IllegalAccessException.class)
+    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, IllegalAccessException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = ex.getMessage();
         log.warn(errorMessage);
