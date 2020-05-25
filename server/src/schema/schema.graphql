@@ -35,8 +35,7 @@ input BankNoteInputCollectionItem {
 
 input NewCollectionInput {
   name: String!,
-  description: String!,
-  collectorId: String!
+  description: String!
 }
 
 input AddBankNoteToCollection {
