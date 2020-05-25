@@ -1,5 +1,5 @@
 // This import loads the firebase namespace.
-import firebase from 'firebase/app';
+import firebase, { firestore } from 'firebase/app';
  
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
@@ -10,7 +10,7 @@ import * as admin from "firebase-admin";
 
 export const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 
-class FirebaseConfig {
+export class FirebaseConfig {
 
     private FIREBASE_CONFIG = {
         apiKey: FIREBASE_API_KEY,

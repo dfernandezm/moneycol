@@ -43,6 +43,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
     // due to issue with Firebase.auth library:
     // - see https://github.com/firebase/firebase-js-sdk/issues/1881
     async loginWithEmailPassword(email: string, password: string): Promise<AuthenticationResult> {
+
         return new Promise((resolve, reject) => {
             return firebaseInstance
                 .get()
@@ -52,6 +53,13 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                     if (userCredential.user) {
                         const userId = userCredential.user.uid;
                         const email = userCredential.user.email;
+                        const emailVerified = userCredential.user.emailVerified;
+
+                        //TODO: check custom status in Firestore?
+                        if (!emailVerified) {
+                           reject(new Error("User cannot login until email is verified")); 
+                        }
+
                         const token = await this.tokenFromUser(userCredential.user);
                         if (token) {
                             //TODO: cache the token for this user locally for 1h: #191

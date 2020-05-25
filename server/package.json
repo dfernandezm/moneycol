@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node 'dist/server.js'",
     "build": "tsc -p . && ncp src/schema dist/schema",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start:dev": "npm run build:dev",
     "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
     "start:elasticsearch": "~/development/repos/elasticsearch-6.5.0/bin/elasticsearch"
@@ -19,13 +19,16 @@
     "@types/express": "^4.17.1",
     "@types/graphql": "^14.5.0",
     "@types/graphql-depth-limit": "^1.1.2",
-    "@types/node": "^12.7.5",
+    "@types/jest": "^25.2.3",
+    "@types/node": "^12.12.42",
     "graphql-depth-limit": "^1.1.0",
     "graphql-import": "^0.7.1",
     "graphql-import-node": "0.0.4",
+    "jest": "^26.0.1",
     "nodemon": "^1.19.2",
+    "ts-jest": "^26.1.0",
     "ts-node": "^8.3.0",
-    "typescript": "^3.6.3"
+    "typescript": "3.9.3"
   },
   "dependencies": {
     "@types/elasticsearch": "^5.0.34",
@@ -47,5 +50,18 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "uuid": "^3.4.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
   }
 }

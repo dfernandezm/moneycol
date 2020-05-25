@@ -60,6 +60,23 @@ type LogoutResult {
   result: String!
 }
 
+input SignUpUserInput {
+  username: String!,
+  email: String!,
+  password: String!,
+  repeatedPassword: String!,
+  firstName: String,
+  lastName: String
+}
+
+type SignupUserResult {
+  userId: String!,
+  username: String!,
+  email: String!,
+  firstName: String,
+  lastName: String
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
@@ -78,6 +95,9 @@ type Mutation {
   loginWithEmail(email: String!, password: String!): AuthenticationResult!
   logout(token: String!): LogoutResult!
   verifyToken(token: String!, refresh: Boolean): AuthenticationResult!
+
+  # Users
+  signUpWithEmail(userInput: SignUpUserInput): SignupUserResult!
 }
 
 schema {
