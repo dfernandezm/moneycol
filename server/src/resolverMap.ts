@@ -16,7 +16,13 @@ import { CollectionsRestDatasource } from './infrastructure/collections/Collecti
 
 // Authentication
 import { authenticationService, AuthenticationResult, User } from './infrastructure/authentication/AuthenticationService';
-import { AuthenticationError } from 'apollo-server-express';
+import { AuthenticationError, ValidationError } from 'apollo-server-express';
+
+// Users
+import { CreateUserCommand, UserCreatedResult } from './infrastructure/users/UserService';
+import { userService } from './infrastructure/users/UserServiceFactory';
+import InvalidValueError from './infrastructure/users/InvalidValueError';
+
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -106,6 +112,21 @@ const resolverMap: IResolvers = {
             } catch (err) {
                 console.log("Error verifying token", err);
                 throw new AuthenticationError("Authentication error in login");
+            }
+        },
+
+        async signUpWithEmail(_: void, args: { userInput: CreateUserCommand}): Promise<UserCreatedResult> {
+            try {
+                const createdUserResult = await userService.signUpWithEmail(args.userInput);
+                console.log("Created User:", createdUserResult);
+                return createdUserResult;
+            } catch (err) {
+                console.log("Error creating user", err);
+                if (err instanceof InvalidValueError) {
+                    throw new ValidationError("Parameters invalid creating user: " + err.message);
+                } else {
+                    throw new Error("Error creating user: " + err.message);
+                }
             }
         }
     }
