@@ -19,9 +19,10 @@ import { authenticationService, AuthenticationResult, User } from './infrastruct
 import { AuthenticationError, ValidationError } from 'apollo-server-express';
 
 // Users
-import { CreateUserCommand, UserCreatedResult } from './infrastructure/users/UserService';
+import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput } from './infrastructure/users/UserService';
 import { userService } from './infrastructure/users/UserServiceFactory';
 import InvalidValueError from './infrastructure/users/InvalidValueError';
+import { verify } from 'crypto';
 
 
 const searchService: SearchService = new ElasticSearchService();
@@ -127,6 +128,25 @@ const resolverMap: IResolvers = {
                 } else {
                     throw new Error("Error creating user: " + err.message);
                 }
+            }
+        },
+
+        async verifyEmail(_: void, args: { verifyEmailInput: VerifyEmailInput}): Promise<EmailVerificationResult> {
+            const verifyEmailInput = args.verifyEmailInput;
+
+            const emailVerificationCmd = {
+                email: verifyEmailInput.email,
+                actionCode: verifyEmailInput.code,
+                continueUrl: verifyEmailInput.comebackUrl,
+                lang: verifyEmailInput.lang
+            }
+
+            const result = await userService.verifyUserEmail(emailVerificationCmd);
+            console.log("Resolver -- email verified", result);
+            return {
+                email: args.verifyEmailInput.email,
+                result: result.result,
+                comebackUrl: result.comebackUrl,
             }
         }
     }

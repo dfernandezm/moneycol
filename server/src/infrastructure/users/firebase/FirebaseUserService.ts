@@ -1,6 +1,15 @@
-import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository } from "../UserService";
+import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, EmailService } from "../UserService";
 import { FirebaseConfig } from  '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
+import FirebaseEmailService from "./FirebaseEmailService";
+
+// This import loads the firebase namespace.
+import firebase, { firestore } from 'firebase/app';
+ 
+// These imports load individual services into the firebase namespace.
+import 'firebase/auth';
+import 'firebase/database';
+import 'firebase/firestore';
 
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
@@ -8,10 +17,12 @@ class FirebaseUserService implements UserService {
     
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
+    private emailService: EmailService;
 
-    constructor(firebaseInstance: FirebaseConfig, userRepository: UserRepository) {
+    constructor(firebaseInstance: FirebaseConfig, userRepository: UserRepository, emailService: EmailService) {
         this.firebaseInstance = firebaseInstance;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     async signUpWithEmail(createUserCommand: CreateUserCommand): Promise<UserCreatedResult> {
@@ -56,7 +67,16 @@ class FirebaseUserService implements UserService {
             await this.userRepository.persistUser(userToPersist);
 
             console.log("Sending email verification -- not awaited");
-            currentUser.sendEmailVerification();
+
+            // this only changes continueURL, so the user can continue in a known place after
+            // verifying the email. We also need to set the whole link back to the app too,
+            // it's the actionLink in the Firebase Authentication console
+            var actionCodeSettings = {
+                url: this.emailService.generateComebackUrl(email),
+                handleCodeInApp: false,
+            };
+
+            currentUser.sendEmailVerification(actionCodeSettings);
 
             return userToPersist;
         } catch (err) {
@@ -66,6 +86,37 @@ class FirebaseUserService implements UserService {
             } else {
                 throw new Error("Error creating user");
             }
+        }
+    }
+
+    async verifyUserEmail(emailVerificationCommand: EmailVerificationCommand): Promise<EmailVerificationResult> {
+        const emailToVerify = emailVerificationCommand.email;
+        const firebaseAuth = this.firebaseInstance.getAdmin().auth();
+
+        try {
+            
+            const userRecord = firebaseAuth.getUserByEmail(emailToVerify);
+
+            if (userRecord && !userRecord.emailVerified) {
+                await this.emailService.verifyEmail(emailVerificationCommand.actionCode, 
+                                            emailVerificationCommand.continueUrl,
+                                            emailVerificationCommand.lang);
+                await this.userRepository.updateUser(emailToVerify);
+                return {
+                    email: emailToVerify,
+                    result: "ok"
+                };
+            }
+
+            console.log(`Email is already verified: ${emailToVerify}`);
+            return {
+                email: emailToVerify,
+                result: "ok"
+            };
+
+        } catch (err) {
+            console.error("Error verifying email", err);
+            throw err;
         }
     }
 

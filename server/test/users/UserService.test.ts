@@ -1,7 +1,8 @@
 import { FirebaseUserService } from '../../src/infrastructure/users/firebase/FirebaseUserService'
-import { UserService, CreateUserCommand, UserRepository, User, UserStatus } from '../../src/infrastructure/users/UserService'
+import { UserService, CreateUserCommand, UserRepository, User, UserStatus, EmailService } from '../../src/infrastructure/users/UserService'
 import { FirebaseConfig } from "../../src/infrastructure/authentication/firebase/FirebaseConfiguration";
 import InvalidValueError from '../../src/infrastructure/users/InvalidValueError';
+import FirebaseEmailService from '../../src/infrastructure/users/firebase/FirebaseEmailService';
 
 
 
@@ -13,7 +14,9 @@ describe('FirebaseUserService', () => {
   let updateProfileMock: jest.Mock;
   let sendEmailVerificationMock: jest.Mock;
   let userRepositoryMock: UserRepository;
+  let emailServiceMock: EmailService;
   let persistUserMock: jest.Mock;
+  let updateUserMock: jest.Mock;
   let userId = "randomUid";
 
   beforeEach(() => {
@@ -24,11 +27,18 @@ describe('FirebaseUserService', () => {
     updateProfileMock = jest.fn();
     sendEmailVerificationMock = jest.fn();
     persistUserMock = jest.fn();
+    updateUserMock = jest.fn();
 
     mockFirebaseConfig = setupFirebaseMock(createUserWithEmailAndPasswordMock, updateProfileMock, sendEmailVerificationMock);
 
     userRepositoryMock = {
-      persistUser: persistUserMock
+      persistUser: persistUserMock,
+      updateUser: updateUserMock,
+    }
+
+    emailServiceMock = {
+      verifyEmail: jest.fn(),
+      generateComebackUrl: jest.fn()
     }
 
   });
@@ -36,7 +46,7 @@ describe('FirebaseUserService', () => {
   test('creates user with email and password without error', async () => {
 
     const createUserCommand: CreateUserCommand = aUserCommand();
-    instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock);
+    instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
 
     const userResult = await instance.signUpWithEmail(createUserCommand);
 
@@ -52,7 +62,7 @@ describe('FirebaseUserService', () => {
     const createUserCommand: CreateUserCommand = aUserCommand();
     createUserCommand.repeatedPassword = "differentPassword";
 
-    instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock);
+    instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
     await expect(instance.signUpWithEmail(createUserCommand)).rejects.toThrow(InvalidValueError);
   });
 
@@ -63,7 +73,7 @@ describe('FirebaseUserService', () => {
       const mutableCreateUserCommand = Object.assign({}, createUserCommand)
       mutableCreateUserCommand[field] = "";
       
-      instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock);
+      instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
       await expect(instance.signUpWithEmail(mutableCreateUserCommand)).rejects.toThrow(InvalidValueError);
     });
 
