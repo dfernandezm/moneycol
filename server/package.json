@@ -31,7 +31,9 @@
     "typescript": "3.9.3"
   },
   "dependencies": {
+    "@firebase/firestore-types": "^1.10.3",
     "@types/elasticsearch": "^5.0.34",
+    "@types/firebase": "^3.2.1",
     "@types/jsonwebtoken": "^8.3.9",
     "@types/request-promise": "^4.1.46",
     "@types/uuid": "^3.4.7",

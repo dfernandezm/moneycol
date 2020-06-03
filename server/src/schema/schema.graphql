@@ -77,6 +77,18 @@ type SignupUserResult {
   lastName: String
 }
 
+input VerifyEmailInput {
+  email: String!,
+  code: String!,
+  comebackUrl: String,
+  lang: String
+}
+
+type VerifyEmailResult {
+  result: String!
+  comebackUrl: String
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
@@ -98,6 +110,7 @@ type Mutation {
 
   # Users
   signUpWithEmail(userInput: SignUpUserInput): SignupUserResult!
+  verifyEmail(verifyEmailInput: VerifyEmailInput!): VerifyEmailResult!
 }
 
 schema {
