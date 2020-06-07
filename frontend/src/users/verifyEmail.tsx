@@ -1,21 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import queryString from 'query-string';
 
-import { styled } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import Paper from "@material-ui/core/Paper";
-import Container from "@material-ui/core/Container";
 import { RouteComponentProps } from "react-router-dom";
-
-const StyledPaper = styled(Paper)({
-    marginTop: 100,
-    display: "flex",
-    padding: 20,
-    flexDirection: "column",
-    alignItems: "center"
-});
+import { useMutation } from '@apollo/react-hooks';
+import { VERIFY_EMAIL_GQL } from './gql/verifyEmail';
+import Loading from "./loading";
+import ErrorMessage from "./errorMessage";
+import EmailVerified from "./emailVerified";
 
 type EmailVerificationParameters = {
     code: string,
@@ -23,27 +14,99 @@ type EmailVerificationParameters = {
     lang: string
 }
 
-const parseVerifyEmailParams = (searchLocation: string) => {
+enum ValidationResult {
+    PENDING = "PENDING",
+    SUCCESS = "SUCCESS",
+    FAILED = "FAILED"
+}
+
+const asString = (value: any): string => {
+    return value + "" || "" as string;
+}
+
+const parseVerifyEmailParams = (searchLocation: string): EmailVerificationParameters => {
+    console.log("Search string: " + searchLocation);
     const queryStringValues = queryString.parse(searchLocation);
-    const code = queryStringValues.oobCode;
-    const continueUrl = queryStringValues.continueUrl
-    const lang = queryStringValues.lang
+    
+    if (!queryStringValues.oobCode) {
+        throw new Error("Invalid code: " + queryStringValues);
+    }
+
+    let code = asString(queryStringValues.oobCode);
+    const continueUrl = asString(queryStringValues.continueUrl);
+    const lang = asString(queryStringValues.lang);
+
+    if (!code) {
+        throw new Error("Invalid code: " + code);
+    }
+
     return {
         code, continueUrl, lang
     }
-  }
+}
+
+const onError = (err: Error) => {
+    console.log("Error verifying email", err);
+    throw err;
+}
 
 const VerifyEmail: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
+    const [validationResult, setValidationResult] = useState(ValidationResult.PENDING);
+    const [verifyEmail, { data, loading, error, called }] = useMutation(VERIFY_EMAIL_GQL);
+
     useEffect(() => {
-      const verifyEmailParams = parseVerifyEmailParams(props.location.search);
-      console.log("Verify email params", verifyEmailParams);
-    });
-  
+
+        // This is a inner async function needed to allow useEffect to run promises/async/await. If it's outside,
+        // the error is not properly thrown and caught, this should be investigated further.
+        // See: https://stackoverflow.com/questions/59465864/handling-errors-with-react-apollo-usemutation-hook
+        const verifyEmailCall = async (verifyEmailParams: EmailVerificationParameters, verifyEmail: Function) => {
+            console.log("verifyParams to call mutation", verifyEmailParams);
+            const verifyEmailInput = {
+                code: verifyEmailParams.code,
+                comebackUrl: verifyEmailParams.continueUrl,
+                lang: verifyEmailParams.lang
+            }
+
+            try {
+                const verifyEmailResult = await verifyEmail({ variables: { verifyEmailInput: verifyEmailInput }, 
+                                                              onError: onError });
+                return verifyEmailResult; 
+            } catch (err) {
+                console.log("Error validating email", err);
+                setValidationResult(ValidationResult.FAILED);
+            }
+        }
+
+        try {
+            const verifyEmailParams = parseVerifyEmailParams(props.location.search);
+            console.log("Verify email params", verifyEmailParams);
+            const verifyEmailResult = verifyEmailCall(verifyEmailParams, verifyEmail);
+            console.log("Verify email result", verifyEmailResult);
+            setValidationResult(ValidationResult.SUCCESS);
+        } catch (err) {
+            console.log("Error validating email", err);
+            setValidationResult(ValidationResult.FAILED);
+        }
+    }, [props.location.search, verifyEmail]);
+
     return (
-      <p>Verify email</p>
+        <>
+            {
+                ((validationResult === ValidationResult.SUCCESS) &&
+                    <EmailVerified
+                        message="Email successfully verified" 
+                        buttonText="Continue" 
+                        />) ||
+                
+                    ((!called || validationResult === ValidationResult.PENDING || loading) && 
+                        <Loading loadingMessage="Loading" /> ) ||
+
+                    ((validationResult === ValidationResult.FAILED || error) && 
+                        <ErrorMessage errorMessage="Email verification not successful: need to verify again"/>)
+            }
+        </>
     );
-  }
-  
-  export default VerifyEmail;
-  
+}
+
+export default VerifyEmail;
