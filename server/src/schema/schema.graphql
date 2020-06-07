@@ -78,7 +78,6 @@ type SignupUserResult {
 }
 
 input VerifyEmailInput {
-  email: String!,
   code: String!,
   comebackUrl: String,
   lang: String

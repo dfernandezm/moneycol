@@ -16,7 +16,8 @@ describe('FirebaseUserService', () => {
   let userRepositoryMock: UserRepository;
   let emailServiceMock: EmailService;
   let persistUserMock: jest.Mock;
-  let updateUserMock: jest.Mock;
+  let byEmailMock: jest.Mock;
+  let updateUserDataMock: jest.Mock;
   let userId = "randomUid";
 
   beforeEach(() => {
@@ -27,13 +28,14 @@ describe('FirebaseUserService', () => {
     updateProfileMock = jest.fn();
     sendEmailVerificationMock = jest.fn();
     persistUserMock = jest.fn();
-    updateUserMock = jest.fn();
+    updateUserDataMock = jest.fn();
 
     mockFirebaseConfig = setupFirebaseMock(createUserWithEmailAndPasswordMock, updateProfileMock, sendEmailVerificationMock);
 
     userRepositoryMock = {
       persistUser: persistUserMock,
-      updateUser: updateUserMock,
+      byEmail: byEmailMock,
+      updateUserData: updateUserDataMock
     }
 
     emailServiceMock = {

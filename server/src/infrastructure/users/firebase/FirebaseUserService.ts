@@ -1,11 +1,7 @@
 import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, EmailService } from "../UserService";
-import { FirebaseConfig } from  '../../authentication/firebase/FirebaseConfiguration';
+import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
-import FirebaseEmailService from "./FirebaseEmailService";
 
-// This import loads the firebase namespace.
-import firebase, { firestore } from 'firebase/app';
- 
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
 import 'firebase/database';
@@ -14,7 +10,7 @@ import 'firebase/firestore';
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
 class FirebaseUserService implements UserService {
-    
+
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
     private emailService: EmailService;
@@ -25,6 +21,18 @@ class FirebaseUserService implements UserService {
         this.emailService = emailService;
     }
 
+    /**
+     * Signs up a user provided email and password using Firebase Auth.
+     * 
+     * The parameters are validated and user is created bot in Firebase Auth and Firestore. 
+     * After the values are persisted a verification email is sent asynchronously, keeping the user in 
+     * PENDING_VERIFICATION state until the verification step happens.
+     * 
+     * The newly created user won't be able to login with email verification (by default) 
+     * 
+     * 
+     * @param createUserCommand the required parameters to create the user (username, email, ...)
+     */
     async signUpWithEmail(createUserCommand: CreateUserCommand): Promise<UserCreatedResult> {
 
         try {
@@ -54,7 +62,7 @@ class FirebaseUserService implements UserService {
             console.log(`User profile with email ${email} name updated. Persisting user.`);
 
             // Persist in Firestore to control custom workflows, 
-            // i.e. won't allow login if user is pending verification
+            // i.e. won't allow login if user is pending verification and future preferences
             const userToPersist = {
                 userId: userId,
                 email: email,
@@ -66,7 +74,7 @@ class FirebaseUserService implements UserService {
 
             await this.userRepository.persistUser(userToPersist);
 
-            console.log("Sending email verification -- not awaited");
+            console.log("Sending email verification");
 
             // this only changes continueURL, so the user can continue in a known place after
             // verifying the email. We also need to set the whole link back to the app too,
@@ -89,29 +97,33 @@ class FirebaseUserService implements UserService {
         }
     }
 
+    /**
+     * Handler to verify a user email using Firebase Auth SDK. This operation is triggered by the user 
+     * clicking on the the action URL embedded in the welcome email the user receives upon account creation.
+     * 
+     * On successful verification, the user is set to active in Firestore and it's then allowed to login
+     * 
+     * @param emailVerificationCommand the actionCode, continueUrl and language parameters passed through actionURL query parameters
+     */
     async verifyUserEmail(emailVerificationCommand: EmailVerificationCommand): Promise<EmailVerificationResult> {
-        const emailToVerify = emailVerificationCommand.email;
-        const firebaseAuth = this.firebaseInstance.getAdmin().auth();
 
         try {
-            
-            const userRecord = firebaseAuth.getUserByEmail(emailToVerify);
 
-            if (userRecord && !userRecord.emailVerified) {
-                await this.emailService.verifyEmail(emailVerificationCommand.actionCode, 
-                                            emailVerificationCommand.continueUrl,
-                                            emailVerificationCommand.lang);
-                await this.userRepository.updateUser(emailToVerify);
-                return {
-                    email: emailToVerify,
-                    result: "ok"
-                };
-            }
+            const result = await this.emailService.verifyEmail(emailVerificationCommand.actionCode,
+                emailVerificationCommand.continueUrl,
+                emailVerificationCommand.lang);
 
-            console.log(`Email is already verified: ${emailToVerify}`);
+            console.log("Email verified result", result);
+            const email = result.email;
+
+            const user = await this.userRepository.byEmail(email);
+            user.status = UserStatus.ACTIVE;
+            await this.userRepository.updateUserData(user);
+
             return {
-                email: emailToVerify,
-                result: "ok"
+                email: email,
+                result: "ok",
+                comebackUrl: emailVerificationCommand.continueUrl
             };
 
         } catch (err) {
@@ -155,7 +167,7 @@ class FirebaseUserService implements UserService {
             throw new InvalidValueError(`Username is invalid ${userToCreate.username}`);
         }
 
-        if (!userToCreate.email) {
+        if (!userToCreate.email || !(userToCreate.email.indexOf("@") > -1)) {
             throw new InvalidValueError(`Email is invalid ${userToCreate.email}`);
         }
 

@@ -31,7 +31,6 @@ type ExtraUserProperties = {
 export type User = UserCreatedResult & ExtraUserProperties;
 
 export type EmailVerificationCommand = {
-    email: string,
     actionCode: string,
     continueUrl: string,
     lang: string
@@ -39,23 +38,21 @@ export type EmailVerificationCommand = {
 
 //TODO: should be the same as the command
 export type VerifyEmailInput = {
-    email: string,
     code: string,
     comebackUrl: string,
     lang: string
 }
 
 export type EmailVerificationResult = {
-    email: string,
     result: string,
+    email: string,
     comebackUrl?: string,
 }
 
 export interface UserRepository {
     persistUser(user: User): Promise<any>;
-    updateUser(email: string): Promise<any>;
-   // byEmail(email: string): Promise<User>;
-   // updateUserTo(userId: string, userData: User): Promise<User>;
+    byEmail(email: string): Promise<User>;
+    updateUserData(userData: User): Promise<object>;
 }
 
 export interface UserService {
@@ -64,7 +61,7 @@ export interface UserService {
 }
 
 export interface EmailService {
-    verifyEmail(actionCode: string, continueUrl: string, lang: string): Promise<object>;
+    verifyEmail(actionCode: string, continueUrl: string, lang: string): Promise<EmailVerificationResult>;
     generateComebackUrl(email: string) : string;
 
 }
