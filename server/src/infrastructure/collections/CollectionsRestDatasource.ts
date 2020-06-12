@@ -2,7 +2,7 @@ import { RESTDataSource, RequestOptions } from 'apollo-datasource-rest';
 import { CollectionApiResult } from './types';
 import { NewCollectionInput } from '../search/SearchResult';
 import { CollectionCreatedResult } from '../search/SearchResult';
-import { authenticationService } from '../../infrastructure/authentication/AuthenticationService';
+import { resolverHelper } from '../ResolverHelper';
 
 import {
   Request
@@ -10,9 +10,6 @@ import {
 import {
   ApolloError
 } from 'apollo-server-errors';
-
-import { AuthenticationError } from 'apollo-server-express';
-import { validate } from 'graphql';
 
 export class CollectionsRestDatasource extends RESTDataSource {
   
@@ -57,7 +54,8 @@ export class CollectionsRestDatasource extends RESTDataSource {
   }
 
   protected async willSendRequest?(request: RequestOptions) {
-    await this.validateRequestToken(this.context.token, "collectionsOperation");
+     //TODO: this could be a lighter validation, as the collections API revalidates it as well
+    await resolverHelper.validateRequestToken(this.context.token, "collectionsOperation");
     console.log("Setting token in request to collections API", this.context.token);
     request.headers.set('Authorization', "Bearer " + this.context.token);
   }
@@ -70,21 +68,5 @@ export class CollectionsRestDatasource extends RESTDataSource {
     error.extensions.response.status = 400;
     throw error;
   }
-
-  //TODO: this could be a lighter validation, as the collections API revalidates it as well
-  private async validateRequestToken(token: string, request: string) {
-    if (!token) {
-        throw new AuthenticationError("No token present for request: " + request);
-    } else {
-        try {
-            // It has to be a fresh token, the client must have generated it recently
-            const result = await authenticationService.validateToken(token, false);
-            console.log("Validated token for request " + request, result);
-        } catch (err) { 
-            console.log("Invalid token for request " + request, err);
-            throw new AuthenticationError(`Invalid token for request: ${request}`);
-        }
-    }
-}
 
 };

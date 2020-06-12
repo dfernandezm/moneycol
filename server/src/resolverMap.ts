@@ -15,14 +15,16 @@ import { CollectionApiResult } from "./infrastructure/collections/types";
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 
 // Authentication
-import { authenticationService, AuthenticationResult, User } from './infrastructure/authentication/AuthenticationService';
+import { authenticationService, AuthenticationResult } from './infrastructure/authentication/AuthenticationService';
 import { AuthenticationError, ValidationError } from 'apollo-server-express';
 
 // Users
-import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput } from './infrastructure/users/UserService';
+import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput, UpdateUserProfileCommand, UpdateUserProfileResult } from './infrastructure/users/UserService';
 import { userService } from './infrastructure/users/UserServiceFactory';
 import InvalidValueError from './infrastructure/users/InvalidValueError';
 
+// Support
+import { resolverHelper } from './infrastructure/ResolverHelper';
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -149,7 +151,25 @@ const resolverMap: IResolvers = {
             } catch (err) {
                 throw new Error("Error verifying email: " + err.message);
             }
-            
+        },
+
+        async updateUserProfile(_: void, args: { updateUserProfileInput: UpdateUserProfileCommand}, ctx): Promise<UpdateUserProfileResult> {
+            try {
+                await resolverHelper.validateRequestToken(ctx.token, "updateUserProfile");    
+                const updatedUserProfileResult = await userService.updateUserProfile(args.updateUserProfileInput);
+                console.log("Resolver: user updated", updatedUserProfileResult);
+                return updatedUserProfileResult;
+            } catch (err) {
+                console.log("Error updating user", err);
+                if (err instanceof InvalidValueError) {
+                    throw new ValidationError("Parameters invalid updating user: " + err.message);
+                } else if (err instanceof AuthenticationError) {
+                    console.log("Authentication required to update user profile");
+                    throw err;    
+                } else {
+                    throw new Error("General error updating user: " + err.message);
+                }
+            }
         }
     }
 };

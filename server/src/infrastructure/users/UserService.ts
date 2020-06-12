@@ -18,6 +18,21 @@ export type UserCreatedResult = {
     lastName: string
 }
 
+export type UpdateUserProfileCommand = {
+    userId: string,
+    username: string,
+    firstName: string,
+    lastName: string
+}
+
+export type UpdateUserProfileResult = {
+    userId: string,
+    username: string,
+    email: string,
+    firstName: string,
+    lastName: string
+}
+
 export enum UserStatus {
     PENDING_VERIFICATION = "PENDING_VERIFICATION",
     ACTIVE = "ACTIVE",
@@ -51,6 +66,7 @@ export type EmailVerificationResult = {
 
 export interface UserRepository {
     persistUser(user: User): Promise<any>;
+    byId(userId: string): Promise<User>;
     byEmail(email: string): Promise<User>;
     updateUserData(userData: User): Promise<object>;
 }
@@ -58,6 +74,7 @@ export interface UserRepository {
 export interface UserService {
     signUpWithEmail(createUserCommand: CreateUserCommand): Promise<UserCreatedResult>;
     verifyUserEmail(emailVerificationCommand: EmailVerificationCommand): Promise<EmailVerificationResult>;
+    updateUserProfile(updateProfileCommand: UpdateUserProfileCommand): Promise<UpdateUserProfileResult>;
 }
 
 export interface EmailService {

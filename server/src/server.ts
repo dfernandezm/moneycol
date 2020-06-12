@@ -11,16 +11,6 @@ import jwt from 'jsonwebtoken';
 
 const app = express();
 
-//TODO: remove once everything is handled server side
-const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "moneycol.firebaseapp.com",
-  databaseURL: "https://moneycol.firebaseio.com",
-  projectId: "moneycol",
-  storageBucket: "moneycol.appspot.com",
-  messagingSenderId: "461081581931",
-  appId: "1:461081581931:web:3ca5344ae0e1df6dfa542e"
-};
 
 const server = new ApolloServer({
   schema,
@@ -58,10 +48,6 @@ const server = new ApolloServer({
 
 app.use('*', cors());
 app.use(compression());
-
-app.get('/api/firebaseConfig', (req, res) => {
-  res.json(FIREBASE_CONFIG);
-});
 
 server.applyMiddleware({ app, path: '/graphql' });
 
