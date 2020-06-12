@@ -5,7 +5,7 @@ import InvalidValueError from "../InvalidValueError";
 
 
 export default class FirestoreUserRepository implements UserRepository {
-
+ 
     async byEmail(email: string): Promise<User> {
         let db: FirebaseFirestore.Firestore = firebaseInstance.getFirestore();
         let usersRef = db.collection("users");
@@ -26,7 +26,7 @@ export default class FirestoreUserRepository implements UserRepository {
         let userId = userData.userId;
 
         if (!userId) {
-            throw new InvalidValueError("userId must be present to update user", userData)
+            throw new InvalidValueError("userId must be present to update user data", userData)
         }
 
         let result = await usersRef.doc(userId).set(userData);
@@ -40,6 +40,17 @@ export default class FirestoreUserRepository implements UserRepository {
         user.email = user.email.toLowerCase();
         let docRef = db.collection('users').doc(user.userId);
         return docRef.set(user);
+    }
+
+    async byId(userId: string): Promise<User> {
+        let db: FirebaseFirestore.Firestore = firebaseInstance.getFirestore();
+        let usersRef = db.collection("users");
+        let usersSnapshot = await usersRef.doc(userId).get();
+        if (usersSnapshot.exists) {
+            return usersSnapshot.data() as User;
+        } else {
+            throw new UserNotFoundError("User with ID " + userId + " not found");
+        }
     }
 }
 

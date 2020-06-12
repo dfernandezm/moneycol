@@ -1,4 +1,4 @@
-import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, EmailService } from "../UserService";
+import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, EmailService, UpdateUserProfileCommand, UpdateUserProfileResult } from "../UserService";
 import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
 
@@ -6,6 +6,7 @@ import InvalidValueError from "../InvalidValueError";
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/firestore';
+import UserInInvalidStateError from "../UserInInvalidStateError";
 
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
@@ -130,6 +131,32 @@ class FirebaseUserService implements UserService {
             console.error("Error verifying email", err);
             throw err;
         }
+    }
+
+    /**
+     * Update the user profile with the passed in data. The user must be logged in and this data
+     * cannot be email or password (specific flows)
+     * 
+     * @param updateProfileCommand 
+     */
+    async updateUserProfile(updateProfileCmd: UpdateUserProfileCommand): Promise<UpdateUserProfileResult> {
+        
+        if (!updateProfileCmd.userId) {
+            throw new InvalidValueError("userId must be present to update user profile");
+        }
+
+        const { userId, firstName, lastName, username } = updateProfileCmd;
+        const savedUser = await this.userRepository.byId(userId);
+
+        if (savedUser.status != UserStatus.ACTIVE) {
+            throw new UserInInvalidStateError("Cannot update user profile in non-active user");
+        }
+
+        const userToUpdate = {...savedUser, firstName, lastName, username };
+        const updatedUserResult = await this.userRepository.updateUserData(userToUpdate);
+        console.log("Updated user", updatedUserResult);
+        
+        return updateProfileCmd as UpdateUserProfileResult;
     }
 
     private setDisplayName(userCmd: CreateUserCommand) {
