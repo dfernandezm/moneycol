@@ -15,7 +15,7 @@ import { CollectionApiResult } from "./infrastructure/collections/types";
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 
 // Authentication
-import { authenticationService, AuthenticationResult } from './infrastructure/authentication/AuthenticationService';
+import { authenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand } from './infrastructure/authentication/AuthenticationService';
 import { AuthenticationError, ValidationError } from 'apollo-server-express';
 
 // Users
@@ -25,6 +25,7 @@ import InvalidValueError from './infrastructure/users/InvalidValueError';
 
 // Support
 import { resolverHelper } from './infrastructure/ResolverHelper';
+import { EINVAL } from 'constants';
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -160,17 +161,41 @@ const resolverMap: IResolvers = {
                 console.log("Resolver: user updated", updatedUserProfileResult);
                 return updatedUserProfileResult;
             } catch (err) {
-                console.log("Error updating user", err);
-                if (err instanceof InvalidValueError) {
-                    throw new ValidationError("Parameters invalid updating user: " + err.message);
-                } else if (err instanceof AuthenticationError) {
-                    console.log("Authentication required to update user profile");
-                    throw err;    
-                } else {
-                    throw new Error("General error updating user: " + err.message);
-                }
+                throw handleErrors(err, "updateUserProfile");
             }
-        }
+        },
+
+        async changePassword(_: void, args: { changePasswordInput: ChangePasswordCommand}, ctx): Promise<ChangePasswordResult> {
+            try {
+                await resolverHelper.validateRequestToken(ctx.token, "changeUserPassword");    
+                const changeUserPasswordResult = await authenticationService.changePassword(args.changePasswordInput);
+                console.log("Resolver: password change", changeUserPasswordResult);
+                return changeUserPasswordResult;
+            } catch (err) {
+                throw handleErrors(err, "changeUserPassword");
+            }
+        },
+
+        async requestPasswordReset(_: void, args: { email: string}, ctx): Promise<ChangePasswordResult> {
+            try {    
+                const resetPasswordResult = await authenticationService.resetPasswordRequest(args.email);
+                console.log("Resolver: reset password", resetPasswordResult);
+                return { result: "ok"};
+            } catch (err) {
+                throw handleErrors(err, "resetPassword");
+            }
+        },
+
+        async completePasswordReset(_: void, args: { email: string, code: string, newPassword: string}, ctx): Promise<ChangePasswordResult> {
+            try {
+                const cmd: CompleteResetPasswordCommand = { email: args.email, resetCode: args.code, newPassword: args.newPassword};
+                const resetPasswordResult = await authenticationService.completeResetPassword(cmd);
+                console.log("Resolver: complete reset password", resetPasswordResult);
+                return { result: "ok"};
+            } catch (err) {
+                throw handleErrors(err, "completeResetPassword");
+            }
+        },
     }
 };
 
@@ -185,5 +210,17 @@ const decorateBanknoteCollection =
         }
         return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);
     }
+
+const handleErrors = (err: Error, request: string): Error => {
+    console.log(`Error for ${request} request`, err);
+    if (err instanceof InvalidValueError) {
+        return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
+    } else if (err instanceof AuthenticationError) {
+        console.log(`Authentication required for ${request}`);
+        return err;    
+    } else {
+        return new Error(`General error in ${request}: ${err.message}`);
+    }
+}
 
 export default resolverMap;
