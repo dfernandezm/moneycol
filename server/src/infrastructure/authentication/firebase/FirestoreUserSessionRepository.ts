@@ -13,6 +13,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
     // token is valid, but user is logged out
     // https://firebase.google.com/docs/firestore/manage-data/add-data#update_elements_in_an_array
     async saveCurrentUser(userId: string, user: User): Promise<object> {
+        //TODO: currently should override records with userId/email
         console.log("Saving current session");
         let db = firebaseInstance.getFirestore();
         let docRef = db.collection('sessions').doc(userId);
@@ -55,7 +56,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
         let usedTokensRef = db.collection('logged_out_tokens').doc(token);
         let usedTokenSetResult = await usedTokensRef.set({ token: token, userData: userData});
 
-        console.log("Deleted sessions", deleteResult, usedTokensRef);
+        console.log("Deleted sessions", deleteResult, usedTokenSetResult);
         return deleteResult;   
     }
 

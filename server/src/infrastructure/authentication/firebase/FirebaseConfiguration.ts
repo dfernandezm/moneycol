@@ -8,7 +8,7 @@ import 'firebase/firestore';
 
 import * as admin from "firebase-admin";
 
-export const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 
 export class FirebaseConfig {
 
@@ -54,6 +54,10 @@ export class FirebaseConfig {
             this.firestore = this.getAdmin().firestore();
         }
         return this.firestore;
+    }
+
+    apiKey() {
+        return FIREBASE_API_KEY;
     }
 }
 

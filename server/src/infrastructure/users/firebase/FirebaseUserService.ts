@@ -1,4 +1,6 @@
-import { UserService, CreateUserCommand, UserCreatedResult, UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, EmailService, UpdateUserProfileCommand, UpdateUserProfileResult } from "../UserService";
+import { UserService, CreateUserCommand, UserCreatedResult, 
+        UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, 
+        EmailService, UpdateUserProfileCommand, UpdateUserProfileResult } from "../UserService";
 import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
 
@@ -6,31 +8,34 @@ import InvalidValueError from "../InvalidValueError";
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/firestore';
+
 import UserInInvalidStateError from "../UserInInvalidStateError";
 
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
 class FirebaseUserService implements UserService {
-
+  
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
     private emailService: EmailService;
 
-    constructor(firebaseInstance: FirebaseConfig, userRepository: UserRepository, emailService: EmailService) {
+
+    constructor(firebaseInstance: FirebaseConfig, 
+                userRepository: UserRepository, 
+                emailService: EmailService) {
         this.firebaseInstance = firebaseInstance;
         this.userRepository = userRepository;
         this.emailService = emailService;
     }
 
     /**
-     * Signs up a user provided email and password using Firebase Auth.
+     * Signs up a user in the system provided email and password using Firebase Auth.
      * 
-     * The parameters are validated and user is created bot in Firebase Auth and Firestore. 
+     * The parameters are validated and the user is created both in Firebase Auth and Firestore. 
      * After the values are persisted a verification email is sent asynchronously, keeping the user in 
-     * PENDING_VERIFICATION state until the verification step happens.
+     * PENDING_VERIFICATION state until the verification step completes (@see verifyUserEmail).
      * 
-     * The newly created user won't be able to login with email verification (by default) 
-     * 
+     * The newly created user won't be able to login until email verification happens.
      * 
      * @param createUserCommand the required parameters to create the user (username, email, ...)
      */
@@ -54,6 +59,7 @@ class FirebaseUserService implements UserService {
             console.log("Firebase user created: ", userId);
 
             // Need currentUser to send verification email and update the name
+            //TODO: how does this work concurrently (multiple users created at once)
             const currentUser = firebaseAuth.currentUser;
 
             // Update the displayName for Firebase Auth -- it could be off request too (not await)
@@ -80,7 +86,7 @@ class FirebaseUserService implements UserService {
             // this only changes continueURL, so the user can continue in a known place after
             // verifying the email. We also need to set the whole link back to the app too,
             // it's the actionLink in the Firebase Authentication console
-            var actionCodeSettings = {
+            const actionCodeSettings = {
                 url: this.emailService.generateComebackUrl(email),
                 handleCodeInApp: false,
             };
@@ -152,6 +158,7 @@ class FirebaseUserService implements UserService {
             throw new UserInInvalidStateError("Cannot update user profile in non-active user");
         }
 
+        //TODO: should update in Firebase as well using Admin SDK updateUser
         const userToUpdate = {...savedUser, firstName, lastName, username };
         const updatedUserResult = await this.userRepository.updateUserData(userToUpdate);
         console.log("Updated user", updatedUserResult);
@@ -198,11 +205,15 @@ class FirebaseUserService implements UserService {
             throw new InvalidValueError(`Email is invalid ${userToCreate.email}`);
         }
 
-        if (!userToCreate.password || !userToCreate.repeatedPassword) {
+        this.validatePasswords(userToCreate.password, userToCreate.repeatedPassword);
+    }
+
+    private validatePasswords(password: string, repeatedPassword: string) {
+        if (!password || !repeatedPassword) {
             throw new InvalidValueError(`Password is invalid`);
         }
 
-        if (userToCreate.password !== userToCreate.repeatedPassword) {
+        if (password !== repeatedPassword) {
             throw new InvalidValueError(`Passwords don't match`);
         }
     }

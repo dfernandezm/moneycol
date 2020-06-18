@@ -102,6 +102,26 @@ type UpdateUserProfileResult {
   lastName: String
 }
 
+input ChangePasswordInput {
+  email: String!,
+  oldPassword: String!,
+  newPassword: String!,
+  newPasswordRepeated: String!
+}
+
+type ChangePasswordResult {
+  result: String!
+}
+
+type ResetPasswordResult {
+  message: String!
+  result: String!
+}
+
+type CompleteResetPasswordResult {
+  result: String!
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
@@ -125,6 +145,9 @@ type Mutation {
   signUpWithEmail(userInput: SignUpUserInput): SignupUserResult!
   verifyEmail(verifyEmailInput: VerifyEmailInput!): VerifyEmailResult!
   updateUserProfile(updateUserProfileInput: UpdateUserProfileInput!): UpdateUserProfileResult!
+  changePassword(changePasswordInput: ChangePasswordInput!): ChangePasswordResult! # Authenticated users 
+  requestPasswordReset(email: String!): ResetPasswordResult! # Public, user forgot password, send reset link
+  completePasswordReset(email: String!, code: String!, newPassword: String!): CompleteResetPasswordResult! 
 }
 
 schema {
