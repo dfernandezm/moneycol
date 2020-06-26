@@ -7,13 +7,21 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 
+/**
+ * Helper to setup Firebase Auth access using Google Application Credentials
+ *
+ */
 public class FirebaseHelper {
+
     private static final String FIREBASE_PROJECT_ID = "moneycol";
+    private static final String FIREBASE_DB_URL_TEMPLATE = "https://%s.firebaseio.com/";
 
     public static FirebaseAuth initializeFirebaseAuth() throws IOException {
+
         FirebaseOptions firebaseOptions = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
                 .setProjectId(FIREBASE_PROJECT_ID)
+                .setDatabaseUrl(String.format(FIREBASE_DB_URL_TEMPLATE, FIREBASE_PROJECT_ID))
                 .build();
 
         boolean hasBeenInitialized = FirebaseApp.getApps()
