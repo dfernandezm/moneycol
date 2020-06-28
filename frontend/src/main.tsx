@@ -18,7 +18,8 @@ import Protected  from "./login/protected";
 import Login from "./login/login";
 import { RootState } from './login/reducers';
 import { CollectionsScreen } from './collections/collectionsScreen';
-import VerifyEmail from './users/verifyEmail';
+import VerifyEmail from './users/verifyEmail/verifyEmail';
+import Signup from './users/signup/signup';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -51,6 +52,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
             <Route path="/login" component={Login} />
             <Route path="/collections" component={CollectionsScreen} />
             <Route path="/users/verifyEmail" component={VerifyEmail} />
+            <Route path="/users/signup" component={Signup} />
           </Switch>
         </div>
       </div>
