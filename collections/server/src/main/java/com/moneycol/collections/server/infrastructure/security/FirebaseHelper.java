@@ -16,6 +16,16 @@ public class FirebaseHelper {
     private static final String FIREBASE_PROJECT_ID = "moneycol";
     private static final String FIREBASE_DB_URL_TEMPLATE = "https://%s.firebaseio.com/";
 
+    /**
+     * Initialize Firebase Auth with default Google Credentials, which are normally picked
+     * from GOOGLE_APPLICATION_CREDENTIALS env var.
+     *
+     * Ensure the Service Account has signBlob and signJwt permission apart from Firebase Auth
+     * Admin rights. This way custom tokens can be generated.
+     *
+     * @return
+     * @throws IOException
+     */
     public static FirebaseAuth initializeFirebaseAuth() throws IOException {
 
         FirebaseOptions firebaseOptions = FirebaseOptions.builder()

@@ -99,7 +99,14 @@ class FirebaseUserService implements UserService {
             if (err instanceof InvalidValueError) {
                 throw err;
             } else {
-                throw new Error("Error creating user");
+                //TODO: there are certain errors on firebase that need to bubble up or wrap
+                // as they have specific codes and are informational. Need handler to wrap these errors
+                // properly
+                if (err.code) {
+                    throw err;
+                } else {
+                    throw new Error("Error creating user");    
+                }
             }
         }
     }
