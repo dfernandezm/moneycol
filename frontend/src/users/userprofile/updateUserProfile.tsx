@@ -4,19 +4,19 @@ import { StyledPaper } from '../styles/sharedStyles';
 import { Typography } from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 
-import SignupForm  from "./signupForm";
+import UpdateUserProfileForm  from "./updateUserProfileForm";
 
-const Signup: React.FC<{}> = () => {
+const UpdateUserProfile: React.FC<{}> = () => {
   return (
     <Container component="main" maxWidth="xs">
       <StyledPaper>
         <Typography component="h4" variant="h4">
-          Sign up
+          Update profile
         </Typography>
-        <SignupForm />
+        <UpdateUserProfileForm />
       </StyledPaper>
     </Container>
   )
 }
 
-export default Signup;
+export default UpdateUserProfile;

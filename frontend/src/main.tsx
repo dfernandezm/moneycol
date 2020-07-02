@@ -20,6 +20,7 @@ import { RootState } from './login/reducers';
 import { CollectionsScreen } from './collections/collectionsScreen';
 import VerifyEmail from './users/verifyEmail/verifyEmail';
 import Signup from './users/signup/signup';
+import UpdateUserProfile from './users/userprofile/updateUserProfile';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -30,11 +31,12 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
 
   const { isAuthenticated, isVerifying } = props;
 
-  //TODO: put containers here to avoid style={{paddingTop: 64}}
-
   return ( 
     <BrowserRouter>
       <NavBarMui />
+      {
+        //TODO: put containers here to avoid style={{paddingTop: 64}}
+      }
       <div className="mainpage" style={{paddingTop: 64}}>
         <div className="section no-pad-bot mainContent">
           <Switch>
@@ -45,6 +47,14 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               exact
               path="/protected"
               component={Protected}
+              isAuthenticated={isAuthenticated}
+              isVerifying={isVerifying}
+              />
+            
+            <ProtectedRoute
+              exact
+              path="/users/updateProfile"
+              component={UpdateUserProfile}
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
               />

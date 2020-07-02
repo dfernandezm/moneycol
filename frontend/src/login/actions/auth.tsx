@@ -3,6 +3,7 @@ import { LOGOUT_GQL } from '../gql/logout';
 import { VERIFY_TOKEN_GQL } from '../gql/verifyToken';
 import { Action, ActionCreator, Dispatch } from 'redux';
 import { ApolloClient } from "apollo-boost";
+import { localStateService } from "../localState/localStateService";
 
 export const LOGIN_REQUEST = "LOGIN_REQUEST";
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
@@ -133,9 +134,9 @@ export const loginUser = (email: string, password: string) =>
 
       if (token) {
         //FIXME: for security, token shouldn't be stored in localStorage
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        console.log("Setting token in local storage:", token);
+        localStateService.setToken(token);
+        localStateService.setUserFromObject(user);
+        console.log("Setting token", token);
         dispatch(receiveLogin(user, token));
         return "success";
       } else {
@@ -154,7 +155,7 @@ export const logoutUser = () =>
   async (dispatch: Dispatch<RequestLogoutAction>, _: any, apolloClient: ApolloClient<any>) => {
     dispatch(requestLogout());
     try {
-      const currentToken = localStorage.getItem("token");
+      const currentToken = localStateService.getToken();
       if (!currentToken) {
         console.log("Already logged out as token is not present locally");
         dispatch(receiveLogout());
@@ -166,8 +167,8 @@ export const logoutUser = () =>
       });
 
       if (data.logout.result && data.logout.result === "ok") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStateService.clearToken();
+        localStateService.clearUser();
         console.log("Removing token from local storage");
         dispatch(receiveLogout());
       } else {
@@ -192,21 +193,23 @@ export const verifyAuthWithDispatch = async (dispatch: Dispatch, _: any, apolloC
   // tab or closed browser a protected route (use case for verify)
   
   try {
-    let token = localStorage.getItem("token");
-    let userStr = localStorage.getItem("user");
+    let token = localStateService.getToken();
+    let user = localStateService.getUser();
+
     // This can fail if userStr is undefined of empty catch block will pick it and prompt for login
-    let user = userStr ? JSON.parse(userStr) : null;
+
     if (token && user) {
       const { data } = await apolloClient.mutate({
         mutation: VERIFY_TOKEN_GQL,
         variables: { token }
       });
-      // console.log("Data from verify:", data);
+      
       const newToken = data.verifyToken.token;
       let user = { email: data.verifyToken.email, userId: data.verifyToken.userId, token: newToken }
-      let userJson = JSON.stringify(user);
-      localStorage.setItem("token", newToken);
-      localStorage.setItem("user", userJson);
+      
+      localStateService.setToken(newToken);
+      localStateService.setUserFromObject(user);
+
       dispatch(receiveLogin(user, newToken));
     } 
   } catch (err) {
