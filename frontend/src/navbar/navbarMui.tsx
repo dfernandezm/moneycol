@@ -114,7 +114,9 @@ const NavBarMui: React.FC = () => {
             <MenuItem component={NavLink} to="/users/updateProfile">
                 Profile
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+            <MenuItem component={NavLink} to="/users/changePassword">
+                Change password
+            </MenuItem>
         </Menu>
     );
 

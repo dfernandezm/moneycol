@@ -15,6 +15,9 @@ import Paper from "@material-ui/core/Paper";
 import Container from "@material-ui/core/Container";
 
 import { RootState } from './reducers'
+import { Link } from "@material-ui/core";
+import { Link as RouterLink } from 'react-router-dom';
+
 
 const useStyles = makeStyles({
   form: {
@@ -123,6 +126,11 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             onClick={handleSubmit}>
             { isLoggingIn ? "Signing In" : "Sign in" }
           </Button>
+          <Typography component="p">
+          <Link component={RouterLink} to="/users/resetPassword">
+            Forgotten password?
+          </Link>
+          </Typography>
         </StyledPaper>
       </Container>
     );

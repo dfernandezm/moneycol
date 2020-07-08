@@ -21,6 +21,10 @@ import { CollectionsScreen } from './collections/collectionsScreen';
 import VerifyEmail from './users/verifyEmail/verifyEmail';
 import Signup from './users/signup/signup';
 import UpdateUserProfile from './users/userprofile/updateUserProfile';
+import ChangePassword from './users/changePassword/changePassword';
+import InfoScreen from './users/changePassword/infoScreen';
+import ResetPassword from './users/changePassword/resetPassword';
+import CreateNewPassword from './users/changePassword/createNewPassword';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -35,7 +39,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
     <BrowserRouter>
       <NavBarMui />
       {
-        //TODO: put containers here to avoid style={{paddingTop: 64}}
+        //TODO: put MUI containers here to avoid style={{paddingTop: 64}}
       }
       <div className="mainpage" style={{paddingTop: 64}}>
         <div className="section no-pad-bot mainContent">
@@ -58,11 +62,23 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
               />
+
+            <ProtectedRoute
+              exact
+              path="/users/changePassword"
+              component={ChangePassword}
+              isAuthenticated={isAuthenticated}
+              isVerifying={isVerifying}
+              />  
             
             <Route path="/login" component={Login} />
             <Route path="/collections" component={CollectionsScreen} />
             <Route path="/users/verifyEmail" component={VerifyEmail} />
             <Route path="/users/signup" component={Signup} />
+            <Route path="/users/resetPassword" component={ResetPassword} />
+            <Route path="/users/completePasswordReset" component={CreateNewPassword} />
+            <Route path="/users/info" component={InfoScreen} />
+            
           </Switch>
         </div>
       </div>
