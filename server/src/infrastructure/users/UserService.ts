@@ -25,7 +25,7 @@ export type UpdateUserProfileCommand = {
     lastName: string
 }
 
-export type UpdateUserProfileResult = {
+export type UserProfileResult = {
     userId: string,
     username: string,
     email: string,
@@ -74,7 +74,8 @@ export interface UserRepository {
 export interface UserService {
     signUpWithEmail(createUserCommand: CreateUserCommand): Promise<UserCreatedResult>;
     verifyUserEmail(emailVerificationCommand: EmailVerificationCommand): Promise<EmailVerificationResult>;
-    updateUserProfile(updateProfileCommand: UpdateUserProfileCommand): Promise<UpdateUserProfileResult>;
+    updateUserProfile(updateProfileCommand: UpdateUserProfileCommand): Promise<UserProfileResult>;
+    findUserProfile(userId: string): Promise<UserProfileResult>;
 }
 
 export interface EmailService {
