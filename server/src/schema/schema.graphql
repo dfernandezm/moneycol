@@ -95,9 +95,10 @@ input UpdateUserProfileInput {
   lastName: String
 }
 
-type UpdateUserProfileResult {
+type UserProfileResult {
   userId: String!,
   username: String!,
+  email: String!,
   firstName: String,
   lastName: String
 }
@@ -127,6 +128,9 @@ type Query {
   search(term: String!, from: Int, to: Int): SearchResult!
   collectionData(collectionId: String!): BankNoteCollection
   itemsForCollection(collectionId: String!): BankNoteCollection
+
+  # Users
+  findUserProfile(userId: String!): UserProfileResult!
 }
 
 type Mutation {
@@ -144,7 +148,7 @@ type Mutation {
   # Users
   signUpWithEmail(userInput: SignUpUserInput): SignupUserResult!
   verifyEmail(verifyEmailInput: VerifyEmailInput!): VerifyEmailResult!
-  updateUserProfile(updateUserProfileInput: UpdateUserProfileInput!): UpdateUserProfileResult!
+  updateUserProfile(updateUserProfileInput: UpdateUserProfileInput!): UserProfileResult!
   changePassword(changePasswordInput: ChangePasswordInput!): ChangePasswordResult! # Authenticated users 
   requestPasswordReset(email: String!): ResetPasswordResult! # Public, user forgot password, send reset link
   completePasswordReset(email: String!, code: String!, newPassword: String!): CompleteResetPasswordResult! 
