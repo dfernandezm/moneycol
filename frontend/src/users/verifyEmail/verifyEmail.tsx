@@ -5,7 +5,7 @@ import { RouteComponentProps } from "react-router-dom";
 import { useMutation } from '@apollo/react-hooks';
 import { VERIFY_EMAIL_GQL } from './gql/verifyEmail';
 import Loading from "./loading";
-import ErrorMessage from "./errorMessage";
+import ErrorMessage from "../errors/errorMessage";
 import EmailVerified from "./emailVerified";
 
 type EmailVerificationParameters = {

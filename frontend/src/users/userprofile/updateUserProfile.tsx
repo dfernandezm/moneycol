@@ -24,8 +24,6 @@ const UpdateUserProfile: React.FC<{}> = () => {
         <Typography component="h4" variant="h4">
           Update profile
         </Typography>
-        {//TODO: set these props in a single object or find a way to do this inside 
-        }
         <UpdateUserProfileForm initialData={data.findUserProfile} />
       </StyledPaper>
     </Container>
