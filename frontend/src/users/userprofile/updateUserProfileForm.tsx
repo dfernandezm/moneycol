@@ -5,19 +5,24 @@ import Button from "@material-ui/core/Button";
 
 import { Formik, Form, FormikHelpers, FormikProps } from 'formik';
 
-import { useMutation, useQuery } from "@apollo/react-hooks";
+import { useMutation } from "@apollo/react-hooks";
 import { UPDATE_USER_PROFILE_MUTATION } from "./gql/updateUserProfile";
-import { FIND_USER_PROFILE_QUERY } from "./gql/findUserProfile";
 
 import { RouteComponentProps, withRouter } from "react-router-dom";
+import { UpdateQueryOptions } from "apollo-boost";
 
-import { localStateService } from '../../login/localState/localStateService'
+interface UserProfileData {
+  userId: string, // TODO: should be passed here or separate prop or fetch inside
+  username: string,
+  firstName?: string,
+  lastName?: string
+}
 
-// Formik form values
-interface Values {
-  username: string | '' | undefined;
-  firstName: string | '' | undefined;
-  lastName: string | '' | undefined
+// Formik Values
+type Values = Omit<UserProfileData, 'userId'>;
+
+interface UserProfileProps {
+  initialData: UserProfileData
 }
 
 /**
@@ -25,24 +30,23 @@ interface Values {
  * users will be prompted to login if accessed directly
  * 
  */
-const UpdateUserProfileForm: React.FC<RouteComponentProps & Values> = (props: RouteComponentProps & Values) => {
+const UpdateUserProfileForm: React.FC<RouteComponentProps & UserProfileProps> = (props: RouteComponentProps & UserProfileProps) => {
 
-  //TODO: We need to pre-fill the form with user profile data,
-  // we may just store in localState the minimum (userId, email)
-  // and do a query to GQL to get the full profile to update
-  const user = localStateService.getUser();
   const [updateUserProfile] = useMutation(UPDATE_USER_PROFILE_MUTATION);
 
-  // const { data, loading, error } = useQuery(FIND_USER_PROFILE_QUERY, {
-  //   variables: { userId: user?.userId },
-  // });
-
   const initialValues: Values = {
-    username: props.username,
-    firstName: props.firstName,
-    lastName: props.lastName
+    username: props.initialData.username,
+    firstName: props.initialData.firstName,
+    lastName: props.initialData.lastName
   };
 
+  /**
+   * Formik validation handler
+   * 
+   * It should use Yup for more powerful validation
+   * 
+   * @param values The form values
+   */
   const performValidation = (values: Values) => {
     const errors: Partial<Values> = {};
     if (!values.username) {
@@ -61,8 +65,7 @@ const UpdateUserProfileForm: React.FC<RouteComponentProps & Values> = (props: Ro
   const handleSubmit = async (values: Values, { setStatus, setSubmitting }: FormikHelpers<Values>) => {
     try {
 
-      //TODO: pass the userId from the stored user properly (not optional)
-      const userInput = { ...values, userId: user?.userId };
+      const userInput = { ...values, userId: props.initialData.userId };
       const { data } = await updateUserProfile({ variables: { userInput: userInput } });
 
       console.log("Updated user", data.updateUserProfile);
@@ -71,10 +74,12 @@ const UpdateUserProfileForm: React.FC<RouteComponentProps & Values> = (props: Ro
       props.history.replace("/protected");
 
     } catch (err) {
-      // Repeat setSubmitting call instead of finally block otherwise React complains
+      // setSubmitting call is repeated here instead of in a finally block otherwise React complains
       // about changing state in an unmounted component
       setSubmitting(false)
       console.log(err);
+
+      // TODO: this error gives too much information, create a function to give meaningful error messages
       setStatus("Error updating user profile: " + err.message);
     }
   }
@@ -146,7 +151,7 @@ const InnerUserProfileForm = ({
       >
         {isSubmitting ? "Updating" : "Update"}
       </Button>
-      {!!status && <div> {status} </div>}
+      { !!status && <div> {status} </div> }
     </Form>
   )
 
