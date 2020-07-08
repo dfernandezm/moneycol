@@ -111,7 +111,9 @@ const NavBarMui: React.FC = () => {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             open={isMenuOpen}
             onClose={handleMenuClose}>
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+            <MenuItem component={NavLink} to="/users/updateProfile">
+                Profile
+            </MenuItem>
             <MenuItem onClick={handleMenuClose}>My account</MenuItem>
         </Menu>
     );
