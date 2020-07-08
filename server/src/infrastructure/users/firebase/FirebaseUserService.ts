@@ -1,6 +1,6 @@
 import { UserService, CreateUserCommand, UserCreatedResult, 
         UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, 
-        EmailService, UpdateUserProfileCommand, UpdateUserProfileResult } from "../UserService";
+        EmailService, UpdateUserProfileCommand, UserProfileResult, User } from "../UserService";
 import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
 
@@ -152,7 +152,7 @@ class FirebaseUserService implements UserService {
      * 
      * @param updateProfileCommand 
      */
-    async updateUserProfile(updateProfileCmd: UpdateUserProfileCommand): Promise<UpdateUserProfileResult> {
+    async updateUserProfile(updateProfileCmd: UpdateUserProfileCommand): Promise<UserProfileResult> {
         
         if (!updateProfileCmd.userId) {
             throw new InvalidValueError("userId must be present to update user profile");
@@ -170,7 +170,23 @@ class FirebaseUserService implements UserService {
         const updatedUserResult = await this.userRepository.updateUserData(userToUpdate);
         console.log("Updated user", updatedUserResult);
         
-        return updateProfileCmd as UpdateUserProfileResult;
+        return updateProfileCmd as UserProfileResult;
+    }
+
+    /**
+     * Find the user profile data for the given userId
+     *  
+     * @param userId The id of the user to get profile information for
+     */
+    async findUserProfile(userId: string): Promise<UserProfileResult> {
+        
+        const { email, username, firstName, lastName, status } = await this.userRepository.byId(userId);
+
+        if (status != UserStatus.ACTIVE) {
+            throw new UserInInvalidStateError("Cannot get user profile for non-active user");
+        }
+
+        return { userId, email, username, firstName, lastName };
     }
 
     private setDisplayName(userCmd: CreateUserCommand) {

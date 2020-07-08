@@ -19,13 +19,12 @@ import { authenticationService, AuthenticationResult, ChangePasswordCommand, Cha
 import { AuthenticationError, ValidationError } from 'apollo-server-express';
 
 // Users
-import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput, UpdateUserProfileCommand, UpdateUserProfileResult } from './infrastructure/users/UserService';
+import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput, UpdateUserProfileCommand, UserProfileResult } from './infrastructure/users/UserService';
 import { userService } from './infrastructure/users/UserServiceFactory';
 import InvalidValueError from './infrastructure/users/InvalidValueError';
 
 // Support
 import { resolverHelper } from './infrastructure/ResolverHelper';
-import { EINVAL } from 'constants';
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -43,6 +42,16 @@ const resolverMap: IResolvers = {
 
         async itemsForCollection(_: void, { collectionId }, { dataSources: { collectionsAPI } }): Promise<BankNoteCollection> {
             return decorateBanknoteCollection(collectionId, collectionsAPI)
+        },
+
+        async findUserProfile(_: void, args: { userId: string }, ctx): Promise<UserProfileResult> {
+            try {
+                const userProfile = await userService.findUserProfile(args.userId);
+                console.log("Resolver: userProfile\n", userProfile);
+                return userProfile;
+            } catch (err) {
+                throw handleErrors(err, "findUserProfile");
+            }
         },
     },
 
@@ -154,7 +163,7 @@ const resolverMap: IResolvers = {
             }
         },
 
-        async updateUserProfile(_: void, args: { updateUserProfileInput: UpdateUserProfileCommand}, ctx): Promise<UpdateUserProfileResult> {
+        async updateUserProfile(_: void, args: { updateUserProfileInput: UpdateUserProfileCommand}, ctx): Promise<UserProfileResult> {
             try {
                 await resolverHelper.validateRequestToken(ctx.token, "updateUserProfile");    
                 const updatedUserProfileResult = await userService.updateUserProfile(args.updateUserProfileInput);
