@@ -115,7 +115,6 @@ type ChangePasswordResult {
 }
 
 type ResetPasswordResult {
-  message: String!
   result: String!
 }
 
