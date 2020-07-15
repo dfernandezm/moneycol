@@ -77,6 +77,7 @@ const ChangePasswordForm: React.FC<RouteComponentProps> = (props: RouteComponent
             setSubmitting(false);
 
             //TODO: should invalidate current session (maybe /logout route)
+            //TODO: the session invalidation is required, update profile won't work (perform a logout or relogin)
 
             props.history.replace("/login");
 

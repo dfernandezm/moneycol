@@ -25,6 +25,7 @@ import ChangePassword from './users/changePassword/changePassword';
 import InfoScreen from './users/changePassword/infoScreen';
 import ResetPassword from './users/changePassword/resetPassword';
 import CreateNewPassword from './users/changePassword/createNewPassword';
+import Verify from './users/verifyEmail/verify';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -73,6 +74,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
             
             <Route path="/login" component={Login} />
             <Route path="/collections" component={CollectionsScreen} />
+            <Route path="/users/verify" component={Verify} />
             <Route path="/users/verifyEmail" component={VerifyEmail} />
             <Route path="/users/signup" component={Signup} />
             <Route path="/users/resetPassword" component={ResetPassword} />
