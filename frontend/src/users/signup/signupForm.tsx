@@ -67,7 +67,18 @@ const SignupForm: React.FC<RouteComponentProps> = (props: RouteComponentProps) =
       console.log("Created user with ID: ", data.signUpWithEmail.userId);
 
       setSubmitting(false);
-      props.history.replace("/login");
+
+      //TODO: redirect to info page
+      props.history.replace({
+        pathname: '/users/info',
+        state: {
+          isError: true,
+          buttonText:"Go to Login",
+          buttonDestination:"/login",
+          message:"Your account has been created. An email has been sent for verification purposes." 
+        }
+      });
+      //props.history.replace("/login");
 
     } catch (err) {
       // Repeat setSubmitting call instead of finally block otherwise React complains

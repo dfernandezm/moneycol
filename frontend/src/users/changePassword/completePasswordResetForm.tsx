@@ -7,10 +7,11 @@ import { Formik, Form, FormikHelpers, FormikProps } from 'formik';
 
 import { useMutation } from "@apollo/react-hooks";
 import { COMPLETE_PASSWORD_RESET } from "./gql/changePassword";
-import { RouteComponentProps, withRouter } from "react-router-dom";
+import { RouteComponentProps, withRouter, Redirect } from "react-router-dom";
 
 import queryString from 'query-string';
 import ErrorMessage from "../errors/errorMessage";
+import InfoScreen from "./infoScreen";
 
 interface ResetPasswordParams {
     code: string,
@@ -108,6 +109,8 @@ const CompletePasswordResetForm: React.FC<RouteComponentProps> = (props: RouteCo
             errors.newPasswordRepeated = "Passwords don't match";
         }
 
+        //TODO: these errors don't show up in the form
+
         return errors;
     }
 
@@ -130,7 +133,18 @@ const CompletePasswordResetForm: React.FC<RouteComponentProps> = (props: RouteCo
             console.log("Password reset completed", data.completePasswordReset);
 
             setSubmitting(false);
-            props.history.replace("/login");
+
+            props.history.replace({
+                pathname: '/users/info',
+                state: {
+                  isError: true,
+                  buttonText:"Go to Login",
+                  buttonDestination:"/login",
+                  message:"Your password has been changed. You can now login" 
+                }
+              });
+            //TODO: errors not showing on submit
+            //TODO: should check the code before showing the form (code reused or invalid check)
 
         } catch (err) {
             // setSubmitting call is repeated here instead of in a finally block otherwise React complains
@@ -147,8 +161,18 @@ const CompletePasswordResetForm: React.FC<RouteComponentProps> = (props: RouteCo
         <>
             { 
                 codeError ?
-                //TODO: should have a button to resend the email
-                <ErrorMessage errorMessage="Invalid verification code: need to verify again"/>
+                <>
+                    <Redirect to={{
+                        pathname: '/users/info', 
+                        state: {
+                            isError: true,
+                            buttonText:"Reset password",
+                            buttonDestination:"/users/resetPassword",
+                            message:"Invalid or expired verification code, please request password reset again"
+                        }
+                    }} />
+                
+                </>
                 :
                 <Formik
                     initialValues={initialValues}
@@ -195,6 +219,7 @@ const InnerForm = ({
                 name="newPassword"
                 label="New password"
                 id="newPassword"
+                type="password"
                 onChange={handleChange}
                 value={values.newPassword}
             />
@@ -206,6 +231,7 @@ const InnerForm = ({
                 name="newPasswordRepeated"
                 label="Repeat new password"
                 id="newPasswordRepeated"
+                type="password"
                 onChange={handleChange}
                 value={values.newPasswordRepeated}
             />

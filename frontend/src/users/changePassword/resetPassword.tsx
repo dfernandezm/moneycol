@@ -4,7 +4,7 @@ import { StyledPaper } from '../styles/sharedStyles';
 import { Typography } from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 
-import ResetPasswordForm  from "./requestResetPasswordForm";
+import ResetPasswordForm  from "./requestPasswordResetForm";
 
 const ResetPassword: React.FC<{}> = () => {
   return (

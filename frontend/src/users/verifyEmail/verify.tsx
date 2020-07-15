@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 import queryString from 'query-string';
 import ErrorMessage from "../errors/errorMessage";
 import { RouteComponentProps, Redirect } from "react-router-dom";
-// import CreateNewPassword from '../changePassword/createNewPassword';
-// import VerifyEmail from './verifyEmail';
 
 interface VerifyParams {
     mode: string,
@@ -18,6 +16,7 @@ const asString = (value: any): string => {
 }
 
 const parseVerifyParams = (searchLocation: string): VerifyParams => {
+    
     console.log("Search string: " + searchLocation);
     const queryStringValues = queryString.parse(searchLocation);
     
@@ -47,6 +46,7 @@ const Verify: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
     const [verifyParams, setVerifyParams] = useState<VerifyParams>();
     const [errorMessage, setErrorMessage] = useState('');
+    
     useEffect(() => {
 
         try {
@@ -54,8 +54,8 @@ const Verify: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
             console.log("Verify params", verifyParams);
             setVerifyParams(verifyParams);
         } catch (err) {
-            console.log("Error validating email", err);
-            setErrorMessage("Error validating: " + err.message);
+            console.log("Error verifying", err);
+            setErrorMessage("Error verifying: " + err.message);
         }
 
     }, []);

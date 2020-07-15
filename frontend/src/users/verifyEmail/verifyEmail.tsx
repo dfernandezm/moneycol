@@ -50,6 +50,16 @@ const onError = (err: Error) => {
     throw err;
 }
 
+/**
+ * This component is redirected to from a 'verify' handler,  received as action link in the email
+ * sent to an user after signup in order to verify their email address.
+ * 
+ * The properties for verification are received in the querystring:
+ * - oobCode: the generated code in the email link and used for verification
+ * - continueUrl: url to redirect to after verification is complete
+ * - lang: the language of the email template
+ * 
+ */
 const VerifyEmail: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
 
     const [validationResult, setValidationResult] = useState(ValidationResult.PENDING);
@@ -79,16 +89,20 @@ const VerifyEmail: React.FC<RouteComponentProps> = (props: RouteComponentProps) 
         }
 
         try {
-            const verifyEmailParams = parseVerifyEmailParams(props.location.search);
-            console.log("Verify email params", verifyEmailParams);
-            const verifyEmailResult = verifyEmailCall(verifyEmailParams, verifyEmail);
-            console.log("Verify email result", verifyEmailResult);
-            setValidationResult(ValidationResult.SUCCESS);
+            if (!props.location || !props.location.search) {
+                setValidationResult(ValidationResult.SUCCESS);
+            } else {
+                const verifyEmailParams = parseVerifyEmailParams(props.location.search);
+                console.log("Verify email params", verifyEmailParams);
+                const verifyEmailResult = verifyEmailCall(verifyEmailParams, verifyEmail);
+                console.log("Verify email result", verifyEmailResult);
+                setValidationResult(ValidationResult.SUCCESS);
+            }
         } catch (err) {
             console.log("Error validating email", err);
             setValidationResult(ValidationResult.FAILED);
         }
-    }, [props.location.search, verifyEmail]);
+    }, [props.location, props.location.search, verifyEmail]);
 
     return (
         <>
@@ -99,9 +113,11 @@ const VerifyEmail: React.FC<RouteComponentProps> = (props: RouteComponentProps) 
                         buttonText="Continue" 
                         />) ||
                 
-                    ((!called || validationResult === ValidationResult.PENDING || loading) && 
+                    (((!called || loading) && validationResult === ValidationResult.PENDING) && 
                         <Loading loadingMessage="Loading" /> ) ||
 
+                    //TODO: in this case, need to add a button to send a new verification email
+                    // This requires backend operation to send a verification email to a given address    
                     ((validationResult === ValidationResult.FAILED || error) && 
                         <ErrorMessage errorMessage="Email verification not successful: need to verify again"/>)
             }

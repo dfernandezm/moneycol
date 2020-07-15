@@ -49,6 +49,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
         let db = firebaseInstance.getFirestore();
 
         // Delete this session
+        //TODO: there might be more than 1, should delete all of them??
         let docRef = db.collection('sessions').doc(userData.userId);
         let deleteResult = await docRef.delete();
 
