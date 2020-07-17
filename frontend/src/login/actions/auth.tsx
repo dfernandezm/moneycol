@@ -1,4 +1,4 @@
-import { LOGIN_GQL } from '../gql/login';
+import { LOGIN_GQL, GOOGLE_LOGIN_GQL } from '../gql/login';
 import { LOGOUT_GQL } from '../gql/logout';
 import { VERIFY_TOKEN_GQL } from '../gql/verifyToken';
 import { Action, ActionCreator, Dispatch } from 'redux';
@@ -150,6 +150,41 @@ export const loginUser = (email: string, password: string) =>
       return "error";
     }
   }
+
+  export const loginUserWithGoogle = (idToken: string) =>
+  async (dispatch: Dispatch<Action>, _: any, apolloClient: ApolloClient<any>) => {
+    const requestLoginAction: RequestLoginAction = requestLogin()
+    dispatch(requestLoginAction);
+
+    try {
+      const googleAuthMaterial = { idToken };
+      const { data } = await apolloClient.mutate({
+        mutation: GOOGLE_LOGIN_GQL,
+        variables: { googleAuthMaterial },
+      });
+
+      const { userId, token, email } = data.loginWithGoogle;
+      const user = { userId, email, token };
+
+      if (token) {
+        //FIXME: for security, token shouldn't be stored in localStorage
+        localStateService.setToken(token);
+        localStateService.setUserFromObject(user);
+        console.log("Setting token", token);
+        dispatch(receiveLogin(user, token));
+        return "success";
+      } else {
+        console.log("Login error due to invalid or missing token");
+        dispatch(loginError());
+        return "error";
+      }
+    } catch (error) {
+      console.log("Error logging in", error);
+      dispatch(loginError());
+      return "error";
+    }
+  }
+
 
 export const logoutUser = () =>
   async (dispatch: Dispatch<RequestLogoutAction>, _: any, apolloClient: ApolloClient<any>) => {

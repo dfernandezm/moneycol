@@ -1,6 +1,6 @@
 import { UserService, CreateUserCommand, UserCreatedResult, 
         UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, 
-        EmailService, UpdateUserProfileCommand, UserProfileResult, User } from "../UserService";
+        EmailService, UpdateUserProfileCommand, UserProfileResult } from "../UserService";
 import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
 
@@ -10,6 +10,7 @@ import 'firebase/database';
 import 'firebase/firestore';
 
 import UserInInvalidStateError from "../UserInInvalidStateError";
+import { Provider } from "../../authentication/firebase/FirebaseAuthenticationService";
 
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
@@ -76,7 +77,8 @@ class FirebaseUserService implements UserService {
                 username: createUserCommand.username,
                 firstName: createUserCommand.firstName,
                 lastName: createUserCommand.lastName,
-                status: UserStatus.PENDING_VERIFICATION
+                status: UserStatus.PENDING_VERIFICATION,
+                provider: Provider.PASSWORD
             }
 
             await this.userRepository.persistUser(userToPersist);
@@ -99,7 +101,8 @@ class FirebaseUserService implements UserService {
             if (err instanceof InvalidValueError) {
                 throw err;
             } else {
-                //TODO: there are certain errors on firebase that need to bubble up or wrap
+                //TODO: error handling
+                // there are certain errors on firebase that need to bubble up or wrap
                 // as they have specific codes and are informational. Need handler to wrap these errors
                 // properly
                 if (err.code) {
@@ -165,7 +168,6 @@ class FirebaseUserService implements UserService {
             throw new UserInInvalidStateError("Cannot update user profile in non-active user");
         }
 
-        //TODO: should update in Firebase as well using Admin SDK updateUser
         const userToUpdate = {...savedUser, firstName, lastName, username };
         const updatedUserResult = await this.userRepository.updateUserData(userToUpdate);
         console.log("Updated user", updatedUserResult);

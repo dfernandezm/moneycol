@@ -13,6 +13,7 @@ export type User = {
     token: string,
     refreshToken: string,
     email: string | null,
+    provider: string,
     userId: string,
     lastLogin: Date
 }
@@ -34,6 +35,16 @@ export type CompleteResetPasswordCommand = {
     newPassword: string
 }
 
+export type GoogleAuthMaterial = {
+    idToken: string,
+    // tokenExpiresAt: number,
+    // tokenExpiresIn: number,
+    // googleId: string,
+    // email: string,
+    // name: string,
+    // imageUrl: string
+}
+
 export interface AuthenticationService {
       loginWithEmailPassword(email: string, password: string): Promise<AuthenticationResult>;
       logout(token: string): Promise<object>;
@@ -41,7 +52,7 @@ export interface AuthenticationService {
       changePassword(changePasswordCommand: ChangePasswordCommand): Promise<ChangePasswordResult>;
       resetPasswordRequest(email: string): Promise<object>;
       completeResetPassword(completeResetPasswordCmd: CompleteResetPasswordCommand): Promise<object>;
-
+      loginWithGoogle(googleAuthMaterial: GoogleAuthMaterial): Promise<AuthenticationResult>;
 }
 
 export const authenticationService = new FirebaseAuthenticationService(firebaseInstance, userRepository, userSessionRepository);

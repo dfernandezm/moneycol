@@ -1,5 +1,5 @@
 import { firebaseInstance } from "../../authentication/firebase/FirebaseConfiguration";
-import { UserRepository, User } from "../UserService";
+import { UserRepository, User, UserStatus } from "../UserService";
 import UserNotFoundError from "../UserNotFoundError";
 import InvalidValueError from "../InvalidValueError";
 
@@ -51,6 +51,19 @@ export default class FirestoreUserRepository implements UserRepository {
         } else {
             throw new UserNotFoundError("User with ID " + userId + " not found");
         }
+    }
+
+    async exists(userId: string): Promise<boolean> {
+        try  {
+            await this.byId(userId);
+            return true;
+        } catch (err) {
+            if (err instanceof UserNotFoundError) {
+                return false;
+            } else {
+                throw err;
+            }
+        } 
     }
 }
 

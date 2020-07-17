@@ -109,7 +109,17 @@ const resolverMap: IResolvers = {
                 console.log("Authentication error in login", err);
                 throw new AuthenticationError("Authentication error in login");
             }
+        },
 
+        async loginWithGoogle(_: void, { googleAuthMaterial }, ctx): Promise<AuthenticationResult> {
+            try {
+                let authResult: AuthenticationResult = await authenticationService.loginWithGoogle(googleAuthMaterial);
+                console.log("Resolver: authResult", authResult);
+                return authResult;
+            } catch (err) {
+                console.log("Authentication error in login", err);
+                throw new AuthenticationError("Authentication error in login");
+            }
         },
 
         async logout(_: void, { token }) {

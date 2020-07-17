@@ -1,7 +1,7 @@
 import { firebaseInstance } from "./FirebaseConfiguration";
 import { UserSessionRepository } from "./UserSessionRepository";
 import { User } from "../AuthenticationService";
-import { UserData } from "./FirebaseAuthenticationService";
+import { UserData, Provider } from "./FirebaseAuthenticationService";
 
 // May need to set up a service account: https://cloud.google.com/firestore/docs/security/iam
 export default class FirestoreUserSessionRepository implements UserSessionRepository {
@@ -35,6 +35,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
             console.log(`Found session for user ${userId}`)
             return {
                 userId: docData.userId,
+                provider: docData.provider || Provider.PASSWORD,
                 refreshToken: docData.refreshToken,
                 email: docData.email,
                 token: docData.token,

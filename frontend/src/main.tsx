@@ -26,6 +26,7 @@ import InfoScreen from './users/changePassword/infoScreen';
 import ResetPassword from './users/changePassword/resetPassword';
 import CreateNewPassword from './users/changePassword/createNewPassword';
 import Verify from './users/verifyEmail/verify';
+import GoogleLoginScreen from './login/google/googleLogin';
 
 export interface MainProps {
   isAuthenticated: boolean,

@@ -122,6 +122,10 @@ type CompleteResetPasswordResult {
   result: String!
 }
 
+input GoogleAuthMaterial {
+    idToken: String!
+}
+
 type Query {
   # Search for banknotes
   search(term: String!, from: Int, to: Int): SearchResult!
@@ -143,6 +147,7 @@ type Mutation {
   loginWithEmail(email: String!, password: String!): AuthenticationResult!
   logout(token: String!): LogoutResult!
   verifyToken(token: String!, refresh: Boolean): AuthenticationResult!
+  loginWithGoogle(googleAuthMaterial: GoogleAuthMaterial!): AuthenticationResult!
 
   # Users
   signUpWithEmail(userInput: SignUpUserInput): SignupUserResult!

@@ -6,11 +6,10 @@ import compression from 'compression';
 import cors from 'cors';
 import schema from './schema';
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
-import { authenticationService } from './infrastructure/authentication/AuthenticationService';
 import jwt from 'jsonwebtoken';
 
 const app = express();
-
+const collectionsApiDatasource = new CollectionsRestDatasource();
 
 const server = new ApolloServer({
   schema,
@@ -40,7 +39,7 @@ const server = new ApolloServer({
 
   dataSources: () => {
     return {
-      collectionsAPI: new CollectionsRestDatasource()
+      collectionsAPI: collectionsApiDatasource
     };
   },
   validationRules: [depthLimit(7)],
