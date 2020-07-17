@@ -9,3 +9,13 @@ export const LOGIN_GQL = gql`
         }
     }
 `;
+
+export const GOOGLE_LOGIN_GQL = gql`
+   mutation loginWithGoogle($googleAuthMaterial: GoogleAuthMaterial!) {
+        loginWithGoogle(googleAuthMaterial: $googleAuthMaterial) {
+            email
+            userId
+            token
+        }
+    }
+`;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { loginUser } from "./actions";
+import { loginUser, loginUserWithGoogle } from "./actions";
 import { styled, makeStyles } from '@material-ui/core/styles';
 
 import { useApolloClient } from '@apollo/react-hooks';
@@ -17,7 +17,8 @@ import Container from "@material-ui/core/Container";
 import { RootState } from './reducers'
 import { Link } from "@material-ui/core";
 import { Link as RouterLink } from 'react-router-dom';
-
+import GoogleLoginScreen from "./google/googleLogin";
+import Loading from "../users/verifyEmail/loading";
 
 const useStyles = makeStyles({
   form: {
@@ -49,7 +50,6 @@ const StyledAvatar = styled(Avatar)({
   backgroundColor: "#f50057"
 });
 
-
 interface LoginProps {
   loginError: boolean
   isLoggingIn: boolean
@@ -59,6 +59,8 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
   const [state, setState] = useState({ email: "", password: "" });
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [provider, setProvider] = useState("PASSWORD");
+  const [isLoggingWithGoogle, setIsLoggingWithGoogle] = useState(false);
   const dispatch = useDispatch();
   const apolloClient = useApolloClient();
   const classes = useStyles();
@@ -73,16 +75,34 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
   // See for alternative: https://scotch.io/courses/getting-started-with-react-and-redux/dispatching-on-click
   const handleSubmit = async () => {
+    setProvider("PASSWORD");
     const { email, password } = state;
     const loginDispatcher = loginUser(email, password);
     const result = await loginDispatcher(dispatch, {}, apolloClient);
     setLoginSuccess(result === "success");
   };
 
+  const handleSuccessfulGooglePreLogin = async (idToken: string): Promise<void> => {
+    setProvider("GOOGLE");
+    setIsLoggingWithGoogle(true);
+    const loginDispatcher = loginUserWithGoogle(idToken);
+    const result = await loginDispatcher(dispatch, {}, apolloClient);
+    setLoginSuccess(result === "success");
+  }
+
+  //TODO: check in other sites if setting this error is required
+  // Failure to open Google or login with it
+  const handleErrorOnGooglePreLogin = async (errorResponse: object) => {
+    setProvider("GOOGLE");
+    console.log("Google login error: ", errorResponse);
+  }
+
   const { loginError, isLoggingIn } = props;
 
   if (loginSuccess) {
     return <Redirect to="/protected" />;
+  } else if (isLoggingWithGoogle) {
+    return <Loading />;
   } else {
     return (
       <Container component="main" maxWidth="xs">
@@ -112,11 +132,13 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             id="password"
             onChange={handlePasswordChange}
           />
-          {loginError && (
+          {
+          
+          (loginError && provider === "PASSWORD" && (
             <Typography component="p" className={classes.errorText}>
               Incorrect email or password.
-            </Typography>
-          )}
+            </Typography>))
+          }
           <Button
             type="button"
             fullWidth
@@ -126,10 +148,20 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             onClick={handleSubmit}>
             { isLoggingIn ? "Signing In" : "Sign in" }
           </Button>
+          <GoogleLoginScreen
+            onSuccess={handleSuccessfulGooglePreLogin}
+            onFailure={handleErrorOnGooglePreLogin}
+            />
+          {
+              (loginError && provider === "GOOGLE" && (
+              <Typography component="p" className={classes.errorText}>
+                Error occurred during login with Google
+              </Typography>))
+          }
           <Typography component="p">
-          <Link component={RouterLink} to="/users/resetPassword">
-            Forgotten password?
-          </Link>
+            <Link component={RouterLink} to="/users/resetPassword">
+              Forgotten password?
+            </Link>
           </Typography>
         </StyledPaper>
       </Container>

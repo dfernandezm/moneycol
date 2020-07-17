@@ -15,13 +15,14 @@ export type UserCreatedResult = {
     username: string,
     email: string,
     firstName: string,
-    lastName: string
+    lastName: string | null | ""
+    provider?: string
 }
 
 export type UpdateUserProfileCommand = {
     userId: string,
     username: string,
-    firstName: string,
+    firstName: string ,
     lastName: string
 }
 
@@ -29,8 +30,8 @@ export type UserProfileResult = {
     userId: string,
     username: string,
     email: string,
-    firstName: string,
-    lastName: string
+    firstName: string | null,
+    lastName: string | null
 }
 
 export enum UserStatus {
@@ -69,6 +70,7 @@ export interface UserRepository {
     byId(userId: string): Promise<User>;
     byEmail(email: string): Promise<User>;
     updateUserData(userData: User): Promise<object>;
+    exists(userId: string): Promise<boolean>;
 }
 
 export interface UserService {
