@@ -1,14 +1,14 @@
 Arguments: 
-  /Users/david/.nvm/versions/node/v10.21.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js build:dev
+  /Users/david/.nvm/versions/node/v10.15.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js build:dev
 
 PATH: 
-  /Users/david/development/google-cloud-sdk/bin:/Users/david/.sdkman/candidates/micronaut/current/bin:/Users/david/.nvm/versions/node/v10.21.0/bin:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/bin:/Users/david/go/bin:/Users/david/.local/bin
+  /Users/david/development/google-cloud-sdk/bin:/Users/david/.sdkman/candidates/micronaut/current/bin:/Users/david/.nvm/versions/node/v10.15.0/bin:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/bin:/Users/david/go/bin:/Users/david/.local/bin
 
 Yarn version: 
   1.5.1
 
 Node version: 
-  10.21.0
+  10.15.0
 
 Platform: 
   darwin x64

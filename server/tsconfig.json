@@ -6,7 +6,7 @@
     "paths": {
       "@moneycol-server/*": ["packages/*/src"]
     },
-    "esModuleInterop": true,
+    //"esModuleInterop": true,
     "skipLibCheck": true
   }
 }
