@@ -1,0 +1,8 @@
+- Detect pager
+- Read all urls in pager but the control one and the first page (avoid repeating)
+- Read banknote data directly (unit)
+- Read country using regex (unit)
+- Read one page of banknotes details given its html for a given country (integration)
+- Read multiple pages of banknotes details for a given country (integration)
+- A CSV is written with banknote details for a given country (end-to-end)
+- A CSV is written with multiple banknotes details for multiple countries (integration/end-to-end)

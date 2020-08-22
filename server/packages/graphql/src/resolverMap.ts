@@ -15,13 +15,12 @@ import { CollectionApiResult } from "./infrastructure/collections/types";
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 
 // Authentication
-import { authenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand } from './infrastructure/authentication/AuthenticationService';
 import { AuthenticationError, ValidationError } from 'apollo-server-express';
+import { authenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand } from '@moneycol-server/auth';
 
 // Users
-import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput, UpdateUserProfileCommand, UserProfileResult } from './infrastructure/users/UserService';
-import { userService } from './infrastructure/users/UserServiceFactory';
-import InvalidValueError from './infrastructure/users/InvalidValueError';
+import { CreateUserCommand, UserCreatedResult, EmailVerificationResult, VerifyEmailInput, UpdateUserProfileCommand, UserProfileResult } from '@moneycol-server/users';
+import { userService, InvalidValueError } from '@moneycol-server/users';
 
 // Support
 import { resolverHelper } from './infrastructure/ResolverHelper';

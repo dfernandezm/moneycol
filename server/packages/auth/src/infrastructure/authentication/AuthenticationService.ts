@@ -1,6 +1,6 @@
 import FirebaseAuthenticationService from "./firebase/FirebaseAuthenticationService";
-import { firebaseInstance } from './firebase/FirebaseConfiguration';
-import { userRepository } from '../users/UserService';
+import { firebaseInstance } from "@moneycol-server/users";
+import { userRepository } from '@moneycol-server/users';
 import { userSessionRepository } from './firebase/UserSessionRepository';
 
 export type AuthenticationResult = {

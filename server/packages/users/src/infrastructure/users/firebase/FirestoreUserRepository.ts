@@ -1,16 +1,16 @@
-import { firebaseInstance } from "../../authentication/firebase/FirebaseConfiguration";
-import { UserRepository, User, UserStatus } from "../UserService";
+import { firebaseInstance } from "./FirebaseConfiguration";
+import { UserRepository, User } from "../UserService";
 import UserNotFoundError from "../UserNotFoundError";
 import InvalidValueError from "../InvalidValueError";
 
 
 export default class FirestoreUserRepository implements UserRepository {
- 
+
     async byEmail(email: string): Promise<User> {
         let db: FirebaseFirestore.Firestore = firebaseInstance.getFirestore();
         let usersRef = db.collection("users");
         let usersSnapshot = await usersRef.where("email", "==", email.toLowerCase()).get();
-        
+
         if (usersSnapshot.empty) {
             console.log('No user found with email ' + email);
             throw new UserNotFoundError('No user found with email ' + email);
@@ -54,7 +54,7 @@ export default class FirestoreUserRepository implements UserRepository {
     }
 
     async exists(userId: string): Promise<boolean> {
-        try  {
+        try {
             await this.byId(userId);
             return true;
         } catch (err) {
@@ -63,7 +63,7 @@ export default class FirestoreUserRepository implements UserRepository {
             } else {
                 throw err;
             }
-        } 
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import { firebaseInstance } from "./FirebaseConfiguration";
+import { firebaseInstance } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
 import { User } from "../AuthenticationService";
 import { UserData, Provider } from "./FirebaseAuthenticationService";

@@ -1,7 +1,9 @@
-import { UserService, CreateUserCommand, UserCreatedResult, 
-        UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult, 
-        EmailService, UpdateUserProfileCommand, UserProfileResult } from "../UserService";
-import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
+import {
+    UserService, CreateUserCommand, UserCreatedResult,
+    UserStatus, UserRepository, EmailVerificationCommand, EmailVerificationResult,
+    EmailService, UpdateUserProfileCommand, UserProfileResult
+} from "../UserService";
+import { FirebaseConfig } from './FirebaseConfiguration';
 import InvalidValueError from "../InvalidValueError";
 
 // These imports load individual services into the firebase namespace.
@@ -10,20 +12,19 @@ import 'firebase/database';
 import 'firebase/firestore';
 
 import UserInInvalidStateError from "../UserInInvalidStateError";
-import { Provider } from "../../authentication/firebase/FirebaseAuthenticationService";
 
 const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
 
 class FirebaseUserService implements UserService {
-  
+
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
     private emailService: EmailService;
 
 
-    constructor(firebaseInstance: FirebaseConfig, 
-                userRepository: UserRepository, 
-                emailService: EmailService) {
+    constructor(firebaseInstance: FirebaseConfig,
+        userRepository: UserRepository,
+        emailService: EmailService) {
         this.firebaseInstance = firebaseInstance;
         this.userRepository = userRepository;
         this.emailService = emailService;
@@ -78,7 +79,7 @@ class FirebaseUserService implements UserService {
                 firstName: createUserCommand.firstName,
                 lastName: createUserCommand.lastName,
                 status: UserStatus.PENDING_VERIFICATION,
-                provider: Provider.PASSWORD
+                provider: "PASSWORD"
             }
 
             await this.userRepository.persistUser(userToPersist);
@@ -108,7 +109,7 @@ class FirebaseUserService implements UserService {
                 if (err.code) {
                     throw err;
                 } else {
-                    throw new Error("Error creating user");    
+                    throw new Error("Error creating user");
                 }
             }
         }
@@ -156,7 +157,7 @@ class FirebaseUserService implements UserService {
      * @param updateProfileCommand 
      */
     async updateUserProfile(updateProfileCmd: UpdateUserProfileCommand): Promise<UserProfileResult> {
-        
+
         if (!updateProfileCmd.userId) {
             throw new InvalidValueError("userId must be present to update user profile");
         }
@@ -168,10 +169,10 @@ class FirebaseUserService implements UserService {
             throw new UserInInvalidStateError("Cannot update user profile in non-active user");
         }
 
-        const userToUpdate = {...savedUser, firstName, lastName, username };
+        const userToUpdate = { ...savedUser, firstName, lastName, username };
         const updatedUserResult = await this.userRepository.updateUserData(userToUpdate);
         console.log("Updated user", updatedUserResult);
-        
+
         return updateProfileCmd as UserProfileResult;
     }
 
@@ -181,7 +182,7 @@ class FirebaseUserService implements UserService {
      * @param userId The id of the user to get profile information for
      */
     async findUserProfile(userId: string): Promise<UserProfileResult> {
-        
+
         const { email, username, firstName, lastName, status } = await this.userRepository.byId(userId);
 
         if (status != UserStatus.ACTIVE) {
