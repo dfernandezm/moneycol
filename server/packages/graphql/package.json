@@ -8,8 +8,6 @@
   ],
   "scripts": {
     "start": "node 'dist/server.js'",
-    "build-old": "tsc -p . && ncp src/schema dist/schema",
-    "test-old": "jest",
     "start:dev": "yarn build:dev",
     "build:dev-old": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
     "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
