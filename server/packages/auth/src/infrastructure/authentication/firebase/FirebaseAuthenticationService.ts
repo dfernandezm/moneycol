@@ -1,5 +1,5 @@
 import { AuthenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand, GoogleAuthMaterial } from "../AuthenticationService";
-import { FirebaseConfig } from "./FirebaseConfiguration";
+import { FirebaseConfig } from "@moneycol-server/users";
 import jwt from 'jsonwebtoken';
 const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
 
@@ -7,10 +7,10 @@ const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
 import firebase from 'firebase/app';
 
 import requestPromise from 'request-promise';
-import InvalidValueError from "../../users/InvalidValueError";
-import { UserRepository, UserStatus, User } from "../../users/UserService";
+import { InvalidValueError } from "@moneycol-server/users";
+import { UserRepository, UserStatus, User } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
-import UserNotFoundError from "../../users/UserNotFoundError";
+import { UserNotFoundError }from "@moneycol-server/users";
 
 type RefreshTokenResponse = {
     refreshToken: string,

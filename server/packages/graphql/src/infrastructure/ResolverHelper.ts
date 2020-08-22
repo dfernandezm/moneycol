@@ -1,4 +1,4 @@
-import { authenticationService, AuthenticationService } from './authentication/AuthenticationService';
+import { authenticationService, AuthenticationService } from '@moneycol-server/auth';
 import { AuthenticationError } from 'apollo-server-express';
 
 class ResolverHelper {

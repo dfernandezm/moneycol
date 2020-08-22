@@ -4,7 +4,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@moneycol-server/*": ["packages/*/src"]
+      "@moneycol-server/graphql": ["./packages/graphql/src"],
+      "@moneycol-server/auth": ["./packages/auth/src"],
+      "@moneycol-server/users": ["./packages/users/src"],
+      "@moneycol-server/*": ["./packages/*/src"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true

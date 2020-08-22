@@ -1,4 +1,4 @@
-import { FirebaseConfig } from '../../authentication/firebase/FirebaseConfiguration';
+import { FirebaseConfig } from './FirebaseConfiguration';
 import EmailVerificationError from '../EmailVerificationError';
 import { EmailService, EmailVerificationResult } from '../UserService';
 
