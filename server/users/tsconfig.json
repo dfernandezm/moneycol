@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "../lib/users/dist",
+    "rootDir": "./src",
+    "composite":true,
+    "declarationMap": true
+  },
+  "composite":true,
+}

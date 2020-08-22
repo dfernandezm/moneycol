@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "../lib/graphql/dist",
+    "rootDir": "./src",
+    "declarationMap": true
+  },
+  "exclude": [ "jest.config.js"],
+  "references": [{
+    "path": "../users"
+  }]
+}
