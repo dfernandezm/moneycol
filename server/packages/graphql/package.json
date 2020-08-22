@@ -10,7 +10,7 @@
     "start": "node 'dist/server.js'",
     "build-old": "tsc -p . && ncp src/schema dist/schema",
     "test-old": "jest",
-    "start:dev": "npm run build:dev",
+    "start:dev": "yarn build:dev",
     "build:dev-old": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
     "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
     "start:elasticsearch": "~/development/repos/elasticsearch-6.5.0/bin/elasticsearch",
@@ -18,7 +18,7 @@
     "clean": "rimraf -rf ./dist",
     "compile": "tsc -p tsconfig.build.json",
     "prepublishOnly": "yarn run build",
-    "test": "yarn run build"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
