@@ -1,7 +1,7 @@
 import FirebaseAuthenticationService from "./firebase/FirebaseAuthenticationService";
-import { firebaseInstance } from '../authentication/firebase/FirebaseConfiguration';
+import { firebaseInstance } from './firebase/FirebaseConfiguration';
 import { userRepository } from '../users/UserService';
-import { userSessionRepository } from '../authentication/firebase/UserSessionRepository';
+import { userSessionRepository } from './firebase/UserSessionRepository';
 
 export type AuthenticationResult = {
     userId: string;
