@@ -12,7 +12,7 @@
     "test-old": "jest",
     "start:dev": "npm run build:dev",
     "build:dev-old": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
-    "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' src/server.ts -e ts,graphql",
+    "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
     "start:elasticsearch": "~/development/repos/elasticsearch-6.5.0/bin/elasticsearch",
     "build": "yarn run clean && yarn run compile && ncp src/schema dist/schema",
     "clean": "rimraf -rf ./dist",

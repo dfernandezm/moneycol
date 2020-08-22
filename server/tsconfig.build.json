@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
+    "target": "es2016", // ensure it's es2016, otherwise a compilation error arises during nodemon run, see: https://github.com/apollographql/apollo-server/issues/1388#issuecomment-406756378       
     "sourceMap": true
   },
-
   "exclude": [
     "node_modules",
     "dist"
