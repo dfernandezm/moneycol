@@ -350,4 +350,9 @@ Caused by: io.grpc.StatusRuntimeException: PERMISSION_DENIED: Request had insuff
 
 This is due to the default service account of GKE being used. By default, when no credentials are passed, anything running in GCP will default its credentials to the ones of the Service Account of the underlying service.
 
-In order to fine tune scopes and access rights, it's best practice to create a service account for the deployed service and integrate it as part of it, see: 
+In order to fine tune scopes and access rights, it's best practice to create a service account for the deployed service and integrate it as part of it.
+
+## Lerna monorepo
+
+Need to run `yarn build` in the `graphql` module to ensure `dist/schema` is created.
+It should run with `yarn start` (compiled) and `yarn start:dev` (nodemon)
