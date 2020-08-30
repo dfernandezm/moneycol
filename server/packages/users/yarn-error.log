@@ -1,14 +1,14 @@
 Arguments: 
-  /Users/david/.nvm/versions/node/v10.15.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js run compile
+  /Users/david/.nvm/versions/node/v10.21.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js test
 
 PATH: 
-  /Users/david/development/repos/moneycol/server/packages/users/node_modules/.bin:/Users/david/development/repos/moneycol/server/packages/node_modules/.bin:/Users/david/development/repos/moneycol/server/node_modules/.bin:/Users/david/development/repos/moneycol/node_modules/.bin:/Users/david/development/repos/node_modules/.bin:/Users/david/development/node_modules/.bin:/Users/david/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/david/.nvm/versions/node/v10.15.0/bin:/Users/david/development/google-cloud-sdk/bin:/Users/david/.sdkman/candidates/micronaut/current/bin:/Users/david/.nvm/versions/node/v10.15.0/bin:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/bin:/Users/david/go/bin:/Users/david/.local/bin
+  /Users/david/development/google-cloud-sdk/bin:/Users/david/.sdkman/candidates/micronaut/current/bin:/Users/david/.nvm/versions/node/v10.21.0/bin:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/bin:/Users/david/go/bin:/Users/david/.local/bin
 
 Yarn version: 
   1.5.1
 
 Node version: 
-  10.15.0
+  10.21.0
 
 Platform: 
   darwin x64
@@ -9023,15 +9023,15 @@ Lockfile:
 
 Trace: 
   Error: Command failed.
-  Exit code: 2
+  Exit code: 1
   Command: sh
-  Arguments: -c tsc -p tsconfig.build.json
+  Arguments: -c jest
   Directory: /Users/david/development/repos/moneycol/server/packages/users
   Output:
   
       at ProcessTermError.MessageError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:186:110)
       at new ProcessTermError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:226:113)
       at ChildProcess.<anonymous> (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:30281:17)
-      at ChildProcess.emit (events.js:182:13)
-      at maybeClose (internal/child_process.js:962:16)
-      at Process.ChildProcess._handle.onexit (internal/child_process.js:251:5)
+      at ChildProcess.emit (events.js:198:13)
+      at maybeClose (internal/child_process.js:982:16)
+      at Process.ChildProcess._handle.onexit (internal/child_process.js:259:5)
