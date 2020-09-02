@@ -8,7 +8,9 @@
   "scripts": {
     "clean": "lerna run clean",
     "build": "lerna run build",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "start": "cd packages/graphql && node 'dist/server.js'",
+    "start:dev": "cd packages/graphql && yarn build:dev"
   },
   "devDependencies": {
     "lerna": "~3.22.0",
