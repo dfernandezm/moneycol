@@ -534,7 +534,7 @@ public class CollectionsControllerTest {
 
             //TODO: PUT API KEY
             getTokenRequest.getParameters()
-                    .add("apiKey", "AIzaSyDImTA3-o5ew92DQ4pg0-nVKTHR92ncq-U")
+                    .add("apiKey", "API-KEY-HERE")
                     .add("email", "moneycoltest1@mailinator.com");
 
             HttpResponse<Map> tokenResponse =

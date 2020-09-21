@@ -194,12 +194,12 @@ public class CollectionController {
                 .body(error);
     }
 
-//    @Error(status = HttpStatus.INTERNAL_SERVER_ERROR, global = true)
-//    public HttpResponse internalServer(HttpRequest request) {
-//        JsonError error = new JsonError("Internal Server Error");
-//
-//        return HttpResponse.<JsonError>notFound()
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(error);
-//    }
+    @Error(status = HttpStatus.INTERNAL_SERVER_ERROR, global = true)
+    public HttpResponse internalServer(HttpRequest request) {
+        JsonError error = new JsonError("Internal Server Error");
+
+        return HttpResponse.<JsonError>notFound()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
+    }
 }
