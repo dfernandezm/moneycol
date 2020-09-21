@@ -495,6 +495,7 @@ public class CollectionsControllerTest {
         assertThat(collectionUpdateResp.getBody().get().getDescription(), is(aDescription));
     }
 
+    //TODO: this is not passing when running from IDEA but passes from Gradle
     @Test
     public void testForbiddenErrorIfNotCorrectOwner() {
         // Given: a collections exist with a collector
