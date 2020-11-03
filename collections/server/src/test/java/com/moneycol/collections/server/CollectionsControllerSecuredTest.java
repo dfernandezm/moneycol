@@ -37,7 +37,7 @@ public class CollectionsControllerSecuredTest {
     private static final String FAKE_UID = "fakeUid";
 
     @Test
-    public void securityIsEnabledTest() {
+    public void securityIsEnabled() {
         ApplicationContext applicationContext = ApplicationContext.run( "test");
         Map<String, Object> map  = applicationContext.getProperties("micronaut.security");
         assertNotNull(map);

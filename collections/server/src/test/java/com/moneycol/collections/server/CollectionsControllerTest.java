@@ -57,6 +57,9 @@ public class CollectionsControllerTest {
     @Value("${testUser.id}")
     private String testCollectorId;
 
+    @Value("${testUser.email}")
+    private String testUserEmail;
+
     @BeforeEach
     public void setup() {
         FirebaseUtil.init();
@@ -527,15 +530,16 @@ public class CollectionsControllerTest {
 
     @BeforeEach
     public synchronized void obtainTokenForTestUser() {
+        //TODO: PUT API KEY
+        String apiKey = "API-KEY-HERE";
 
         if (accessToken == null) {
             MutableHttpRequest<?> getTokenRequest =
                     HttpRequest.GET("/accessToken");
 
-            //TODO: PUT API KEY
             getTokenRequest.getParameters()
-                    .add("apiKey", "API-KEY-HERE")
-                    .add("email", "moneycoltest1@mailinator.com");
+                    .add("apiKey", apiKey)
+                    .add("email", testUserEmail);
 
             HttpResponse<Map> tokenResponse =
                     client.toBlocking().exchange(getTokenRequest, Map.class);
