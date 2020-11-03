@@ -35,7 +35,7 @@ public class TokenController {
     RxHttpClient client;
 
     @Get
-    public Single<Map> getAccessToken(@Nullable @QueryValue("userId") final String userId,
+    public Single<Map<String, String>> getAccessToken(@Nullable @QueryValue("userId") final String userId,
                                @QueryValue("apiKey") final String apiKey,
                                @Nullable @QueryValue("email") final String email) {
         log.info("Getting token for Test User ID: {}, {}, {}", userId, email, apiKey.hashCode());
@@ -72,6 +72,6 @@ public class TokenController {
                 .firstOrError()
                 .doAfterSuccess(r -> log.info("Success exchanging custom token: {}", r.body()))
                 .doOnError(error -> log.error("Error exchanging custom token", error))
-                .map(resp -> resp.body().get("idToken").toString());
+                .map(resp -> resp.body() == null  ? "" : resp.body().get("idToken").toString());
     }
 }

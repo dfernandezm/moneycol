@@ -1,10 +1,19 @@
 plugins {
-    id "io.spring.dependency-management" version "1.0.6.RELEASE"
-    id "java"
-    id "net.ltgt.apt-idea" version "0.21"
-    id "com.github.johnrengelman.shadow" version "4.0.2"
+    id "com.diffplug.eclipse.apt" version "3.22.0"
+    id "com.github.johnrengelman.shadow" version "6.0.0"
     id "application"
-    id 'com.google.cloud.tools.jib' version '2.1.0'
+    id 'com.google.cloud.tools.jib' version '2.4.0'
+}
+
+ext {
+    logbackVersion = "1.2.3"
+    lombokVersion = "1.18.8"
+    junitVersion = "5.6.0"
+    mockitoJunitJupiterVersion = "2.22.0"
+    firebaseSdkVersion = "6.12.2"
+    micronautJunit5Version = "1.1.5"
+    hamcrestVersion = "1.3"
+    micronautVersion = "2.0.3"
 }
 
 jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
@@ -14,53 +23,45 @@ group "server"
 
 repositories {
     mavenCentral()
-    maven { url "https://jcenter.bintray.com" }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom 'io.micronaut:micronaut-bom:1.3.2'
-    }
+    jcenter()
 }
 
 configurations {
     // for dependencies that are needed for development only
-    developmentOnly 
-}
-
-ext {
-    logbackVersion = "1.2.3"
-    lombokVersion = "1.18.8"
-    junitVersion = "5.6.0"
-    mockitoJunitJupiterVersion = "2.22.0"
-    firebaseSdkVersion = "6.12.2"
+    developmentOnly
 }
 
 dependencies {
-    annotationProcessor "io.micronaut:micronaut-inject-java"
-    annotationProcessor "io.micronaut:micronaut-validation"
-    annotationProcessor "io.micronaut:micronaut-security"
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    compile "io.micronaut:micronaut-inject"
-    compile "io.micronaut:micronaut-validation"
-    compile "io.micronaut:micronaut-runtime"
-    compile "io.micronaut:micronaut-http-client"
-    compile "io.micronaut:micronaut-http-server-netty"
-    implementation "io.micronaut:micronaut-security-jwt"
-    compile "org.projectlombok:lombok:$lombokVersion"
-    compile "ch.qos.logback:logback-classic:$logbackVersion"
+    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    annotationProcessor("io.micronaut:micronaut-inject-java")
+    annotationProcessor("io.micronaut:micronaut-validation")
+    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    implementation("io.micronaut:micronaut-inject")
+    implementation("io.micronaut:micronaut-validation")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut:micronaut-http-server-netty")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
+    implementation "org.projectlombok:lombok:$lombokVersion"
+    //compile "ch.qos.logback:logback-classic:$logbackVersion"
     implementation "com.google.firebase:firebase-admin:$firebaseSdkVersion"
-
-    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    runtimeOnly("ch.qos.logback:logback-classic")
+    testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
+    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("io.micronaut.test:micronaut-test-junit5")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     
-    testCompile "io.micronaut.test:micronaut-test-junit5:1.1.5"
-    testCompile group: 'io.micronaut.test', name: 'micronaut-test-core', version: '1.1.5'
-    testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
-    testCompile "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-    testCompile "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
-    testCompile(
-            "org.junit.jupiter:junit-jupiter-params:$junitVersion"
-    )
+    testImplementation "io.micronaut.test:micronaut-test-junit5:$micronautJunit5Version"
+    testImplementation "io.micronaut.test:micronaut-test-core:$micronautJunit5Version"
+    testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+   // testImplementation "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
     
 
 }

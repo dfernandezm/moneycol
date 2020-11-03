@@ -10,6 +10,7 @@ import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -139,7 +140,7 @@ public class CollectionApplicationService {
         Collector collector = Collector.withCollectorId(userId);
 
         if (!collection.isOwnedBy(collector)) {
-            throw new IllegalStateException("Collection with ID " + collectionId + " is not owned by " + userId);
+            throw new InvalidCollectionAccessException("Collection with ID " + collectionId + " is not owned by " + userId);
         }
     }
 

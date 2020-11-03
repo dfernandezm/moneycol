@@ -16,6 +16,7 @@ import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
+import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -82,8 +83,8 @@ public class CollectionController {
         return HttpResponse.badRequest().body(map);
     }
 
-    @Error(exception = IllegalAccessException.class)
-    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, IllegalAccessException ex) {
+    @Error(exception = InvalidCollectionAccessException.class)
+    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, InvalidCollectionAccessException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = ex.getMessage();
         log.warn(errorMessage);

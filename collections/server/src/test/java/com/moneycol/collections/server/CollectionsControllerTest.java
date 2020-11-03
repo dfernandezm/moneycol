@@ -57,6 +57,9 @@ public class CollectionsControllerTest {
     @Value("${testUser.id}")
     private String testCollectorId;
 
+    @Value("${testUser.email}")
+    private String testUserEmail;
+
     @BeforeEach
     public void setup() {
         FirebaseUtil.init();
@@ -495,6 +498,7 @@ public class CollectionsControllerTest {
         assertThat(collectionUpdateResp.getBody().get().getDescription(), is(aDescription));
     }
 
+    //TODO: this is not passing when running from IDEA but passes from Gradle
     @Test
     public void testForbiddenErrorIfNotCorrectOwner() {
         // Given: a collections exist with a collector
@@ -526,15 +530,16 @@ public class CollectionsControllerTest {
 
     @BeforeEach
     public synchronized void obtainTokenForTestUser() {
+        //TODO: PUT API KEY
+        String apiKey = "API-KEY-HERE";
 
         if (accessToken == null) {
             MutableHttpRequest<?> getTokenRequest =
                     HttpRequest.GET("/accessToken");
 
-            //TODO: PUT API KEY
             getTokenRequest.getParameters()
-                    .add("apiKey", "")
-                    .add("email", "moneycoltest1@mailinator.com");
+                    .add("apiKey", apiKey)
+                    .add("email", testUserEmail);
 
             HttpResponse<Map> tokenResponse =
                     client.toBlocking().exchange(getTokenRequest, Map.class);
