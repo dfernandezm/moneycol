@@ -1,0 +1,12 @@
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    annotationProcessor("org.projectlombok:lombok:1.18.0")
+    implementation 'com.google.cloud:google-cloud-pubsub:1.108.4'
+    implementation "org.projectlombok:lombok:1.18.0"
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.0.0'
+
+}
