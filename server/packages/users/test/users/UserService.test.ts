@@ -2,8 +2,6 @@ import { FirebaseUserService } from '../../src/infrastructure/users/firebase/Fir
 import { UserService, CreateUserCommand, UserRepository, User, UserStatus, EmailService, UpdateUserProfileCommand, UserProfileResult } from '../../src/infrastructure/users/UserService'
 import { FirebaseConfig } from "../../src/infrastructure/users/firebase/FirebaseConfiguration";
 import InvalidValueError from '../../src/infrastructure/users/InvalidValueError';
-import FirebaseEmailService from '../../src/infrastructure/users/firebase/FirebaseEmailService';
-import { updateDecorator } from 'typescript';
 import UserInInvalidStateError from '../../src/infrastructure/users/UserInInvalidStateError';
 
 
