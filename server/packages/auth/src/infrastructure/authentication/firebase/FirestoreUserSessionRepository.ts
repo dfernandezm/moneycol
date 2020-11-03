@@ -1,6 +1,6 @@
 import { firebaseInstance } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
-import { User } from "../AuthenticationService";
+import { AuthUser } from "../AuthenticationService";
 import { UserData, Provider } from "./FirebaseAuthenticationService";
 
 // May need to set up a service account: https://cloud.google.com/firestore/docs/security/iam
@@ -12,7 +12,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
     // - deactivate session
     // token is valid, but user is logged out
     // https://firebase.google.com/docs/firestore/manage-data/add-data#update_elements_in_an_array
-    async saveCurrentUser(userId: string, user: User): Promise<object> {
+    async saveCurrentUser(userId: string, user: AuthUser): Promise<object> {
         //TODO: currently should override records with userId/email
         console.log("Saving current session");
         let db = firebaseInstance.getFirestore();
@@ -26,7 +26,7 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
         });
     }
 
-    async findCurrentUser(userId: string): Promise<User | null> {
+    async findCurrentUser(userId: string): Promise<AuthUser | null> {
         let db = firebaseInstance.getFirestore();
         let docRef = db.collection('sessions').doc(userId);
         let docSnapshot = await docRef.get();

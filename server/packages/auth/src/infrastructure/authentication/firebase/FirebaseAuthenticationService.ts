@@ -97,12 +97,12 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
             };
         } catch (error) {
             console.log("Logout error: ", error);
-            throw new Error("Logout error: " + error);
+            throw error;
         }
     }
 
     /**
-     * Logs this user into Firebase using a auth material from a previously authenticated Google session
+     * Logs this user into Firebase using auth material from a previously authenticated Google session
      * through OAuth2 flow in the browser.
      * 
      * This operation does the following:
@@ -121,7 +121,8 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
 
         try {
 
-            const userCredential: firebase.auth.UserCredential = await this.firebaseInstance.get().auth().signInWithCredential(credential);
+            const userCredential: firebase.auth.UserCredential = 
+                await this.firebaseInstance.get().auth().signInWithCredential(credential);
             console.log("Successful Login into Firebase using Google credential");
 
             //TODO: this code is copied from loginWithEmail
@@ -218,7 +219,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                 }
             } else {
                 if (currentUser) {
-                    const updatedSession =  {
+                    const updatedSession = {
                         token,
                         provider: currentUser.provider,
                         refreshToken: currentUser.refreshToken,
@@ -241,7 +242,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                 return await this.refreshFromExpiredToken(token);
             } else {
                 console.log('Error validating token', err.message);
-                throw new Error('Error validating token');
+                throw err;
             }
         }
     }
@@ -276,7 +277,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
 
         } catch (err) {
             console.log("Error changing password", err);
-            throw new Error("Error changing password");
+            throw err;
         }
     }
 
@@ -307,7 +308,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
     }
 
     /**
-     * Complete an initiated reset password action for a user. This action requires the reset action code
+     * Complete an initiated reset password action for an user. This action requires the reset action code
      * sent to the user's email address to be valid. If so, the user's password gets updated 
      * to the new provided one.
      * 
@@ -468,8 +469,8 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
 
         try {
             const response = await requestPromise(options);
-            const resp = JSON.parse(response);
-            return { refreshToken: resp.refresh_token, newToken: resp.id_token };
+            const parsedResponse = JSON.parse(response);
+            return { refreshToken: parsedResponse.refresh_token, newToken: parsedResponse.id_token };
         } catch (err) {
             console.log("Error exchanging token", err.message);
             throw err;

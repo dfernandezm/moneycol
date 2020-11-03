@@ -9,7 +9,7 @@ export type AuthenticationResult = {
     token: string;
 }
 
-export type User = {
+export type AuthUser = {
     token: string,
     refreshToken: string,
     email: string | null,
