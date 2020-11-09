@@ -24,6 +24,13 @@ import java.util.concurrent.ExecutionException;
 public class FirebaseUtil {
     private static Firestore firestore;
 
+    public static EmulatedFirebaseProvider init(String emulatorEndpoint) {
+        EmulatedFirebaseProvider firestoreProvider = new EmulatedFirebaseProvider();
+        firestoreProvider.setEndpoint(emulatorEndpoint);
+        firestore = firestoreProvider.getFirestoreInstance();
+        return firestoreProvider;
+    }
+
     public static void init() {
         firestore = new EmulatedFirebaseProvider().getFirestoreInstance();
     }
@@ -47,6 +54,7 @@ public class FirebaseUtil {
         try {
             DocumentReference documentReference = firestore.collection("collections").document(id);
             documentReference.set(data);
+            System.out.println("Created collection " + id);
             createItems(collectionItems, documentReference);
         } catch (Exception e) {
             throw new RuntimeException("Error creating collection", e);

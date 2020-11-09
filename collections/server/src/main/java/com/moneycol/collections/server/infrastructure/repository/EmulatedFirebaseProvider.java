@@ -1,6 +1,6 @@
 package com.moneycol.collections.server.infrastructure.repository;
 
-import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
 import com.google.auth.Credentials;
 import com.google.cloud.firestore.Firestore;
@@ -20,23 +20,39 @@ import java.util.Map;
 public class EmulatedFirebaseProvider implements FirebaseProvider {
     private static final String LOCAL_FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
     private static final String TEST_PROJECT_ID = "testproject";
+    private static Firestore instance;
 
+    private String endpoint;
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    // setHost() is broken, this only works by using setEmulatorHost,
+    // see issue https://github.com/googleapis/java-firestore/issues/190
     @Override
     public Firestore getFirestoreInstance() {
-        FirestoreOptions foptions = FirestoreOptions.getDefaultInstance().toBuilder()
-                .setHost(LOCAL_FIRESTORE_EMULATOR_HOST)
-                .setChannelProvider(
-                        InstantiatingGrpcChannelProvider.newBuilder().setEndpoint("localhost:8080")
-                                .setChannelConfigurator(input -> {
-                                                        input.usePlaintext();
-                                                        return input;
-                                                        }).build()
-                )
-                .setCredentialsProvider(FixedCredentialsProvider.create(new FakeCreds()))
-                .setProjectId(TEST_PROJECT_ID)
-                .build();
+        if (instance == null) {
+            String hostAndPort = this.endpoint;
+            System.out.println("Setting emulator host as " + hostAndPort);
+            FirestoreOptions foptions = FirestoreOptions.getDefaultInstance().toBuilder()
+                    .setEmulatorHost(hostAndPort) //
+                    .setChannelProvider(
+                            InstantiatingGrpcChannelProvider.newBuilder().setEndpoint(hostAndPort)
+                                    .setChannelConfigurator(input -> {
+                                        input.usePlaintext();
+                                        return input;
+                                    }).build()
+                    )
+                    //.setCredentialsProvider(FixedCredentialsProvider.create(new FakeCreds()))
+                    .setCredentialsProvider(NoCredentialsProvider.create())
+                    .setProjectId(TEST_PROJECT_ID)
+                    .build();
 
-        return foptions.getService();
+            instance = foptions.getService();
+        }
+
+        return instance;
     }
 
     private static class FakeCreds extends Credentials {

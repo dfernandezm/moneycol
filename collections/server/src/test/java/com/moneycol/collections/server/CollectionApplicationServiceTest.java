@@ -17,18 +17,20 @@ import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
-import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseProvider;
 import jdk.nashorn.internal.ir.annotations.Ignore;
+import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
+import org.testcontainers.containers.FirestoreEmulatorContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +47,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
  * Use emulator support for Firebase:
@@ -54,12 +54,22 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  * firebase emulators:start
  *
  */
-
+@Slf4j
 public class CollectionApplicationServiceTest {
 
-    @BeforeEach
-    public void setup() {
-        FirebaseUtil.init();
+    public static final DockerImageName FIREBASE_EMULATOR_IMG =
+            DockerImageName.parse("gcr.io/google.com/cloudsdktool/cloud-sdk:316.0.0-emulators");
+
+
+    private static FirebaseProvider firebaseProvider;
+
+    @BeforeAll
+    public static void setup() {
+        FirestoreEmulatorContainer firestoreEmulatorContainer = new FirestoreEmulatorContainer(FIREBASE_EMULATOR_IMG);
+        firestoreEmulatorContainer.start();
+        String endpoint = firestoreEmulatorContainer.getEmulatorEndpoint();
+        log.info("Endpoint: " + endpoint);
+        firebaseProvider = FirebaseUtil.init(endpoint);
     }
 
     @AfterEach
@@ -69,43 +79,28 @@ public class CollectionApplicationServiceTest {
 
     @ParameterizedTest
     @CsvSource({"Banknotes, \"A collection for storing my banknotes in London\"",
-                "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
+            "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
     public void shouldCreateBasicCollection(String name, String description) {
 
-       CollectionRepository collectionRepo = mockRepository();
-
         // Given
-        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
-                                            .name(name)
-                                            .description(description)
-                                            .items(new ArrayList<>())
-                                            .collectorId("aCollectorId")
-                                            .build();
-
+        CollectionRepository collectionRepo = new FirebaseCollectionRepository(firebaseProvider);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
 
         // When
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                .name(name)
+                .description(description)
+                .items(new ArrayList<>())
+                .collectorId("aCollectorId")
+                .build();
         CollectionCreatedResult collectionCreatedResult = cas.createCollection(createCollectionCommand);
 
         // Then
-        verify(collectionRepo, times(1)).create(any());
         assertEquals(collectionCreatedResult.getName(), name);
         assertEquals(collectionCreatedResult.getDescription(), description);
         assertNotNull(collectionCreatedResult.getCollectionId());
     }
 
-
-    @Test
-    public void firebaseCollectionShouldntExist() {
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
-        collectionRepository.firebaseCollectionExistsSingle("collections").subscribe(e -> {
-            System.out.print("Result: " + e);
-
-        }, error -> {
-            System.out.print("Error: " + error);
-        });
-    }
 
     //TODO: this test actually creates collections in firestore, so needs to mock the Firestore
     @ParameterizedTest
@@ -113,19 +108,20 @@ public class CollectionApplicationServiceTest {
             "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\""})
     public void testCreateFirebaseCollection(String name, String description) {
 
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        // Given
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         String collectorId = UUID.randomUUID().toString();
 
         Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
                 description, Collector.of(CollectorId.of(collectorId)));
 
-        collectionRepository.create(col);
         String id = col.id();
 
-        Collection res = collectionRepository.byId(CollectionId.of(id));
+        // When
+        collectionRepository.create(col);
 
+        // Then
+        Collection res = collectionRepository.byId(CollectionId.of(id));
         assertEquals(id, res.id());
     }
 
@@ -134,9 +130,7 @@ public class CollectionApplicationServiceTest {
             "\"Bankotes of the world\", \"A collection for storing my banknotes in the world\",\"Banknotes only\""})
     public void updateCollectionTest(String name, String description, String newName) {
 
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         String collectorId = UUID.randomUUID().toString();
 
         Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
@@ -154,8 +148,8 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void findByCollectorWithMultipleTest() {
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
 
         String name = "Banknotes";
         String description = "A collection for storing my banknotes in London";
@@ -181,21 +175,21 @@ public class CollectionApplicationServiceTest {
 
     @Test
     public void findByCollectorWithEmptySetTest() {
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
 
-        String inexistentCollectorId = "collectorId1";
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
+
+        String nonExistentCollectorId = "collectorId1";
 
         List<Collection> collectionsForCollector =
-                collectionRepository.byCollector(CollectorId.of(inexistentCollectorId));
+                collectionRepository.byCollector(CollectorId.of(nonExistentCollectorId));
 
         assertTrue(collectionsForCollector.isEmpty());
     }
 
     @Test
     public void findByIdNotFound() {
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
 
         String nonExistingCollectionId = "nonExistingId";
 
@@ -211,12 +205,13 @@ public class CollectionApplicationServiceTest {
         // Given: a collection
         String aCollectionId = CollectionId.randomId();
         FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
-        delaySecond(1);
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
+
+        // When updating it by adding another item
         Collection collection = collectionWithItemsToUpdate(aCollectionId);
         Collection updated = collectionRepository.update(collection);
 
+        // Then the collection size is increased to 2
         assertThat(updated.items(), hasSize(2));
     }
 
@@ -232,10 +227,8 @@ public class CollectionApplicationServiceTest {
         String collectionName2 = "collectionName2";
         String collectionId2 = CollectionId.randomId();
         FirebaseUtil.createCollection(collectionId2, collectionName2, "desc", collectorId);
-        delaySecond(1);
 
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
 
         // When: updating the first collection providing name2 instead of name1
@@ -264,8 +257,7 @@ public class CollectionApplicationServiceTest {
         String collectorId = UUID.randomUUID().toString();
 
         FirebaseUtil.createCollection(collectionId, collectionName, "desc", collectorId);
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
 
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
@@ -300,16 +292,26 @@ public class CollectionApplicationServiceTest {
         return collection;
     }
 
+    /**
+     * Given an existing empty collection
+     * When adding an item to it
+     * Then the collection gets updated correctly
+     * And contains the single item added
+     */
     @Test
     public void testAddItemToExistingCollection() {
 
-        // Given: a collection
+        // Given
         String aCollectionId = CollectionId.randomId();
         String collectorId = "colId";
-        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", collectorId);
-        delaySecond(1);
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        String collectionName = "aCollection";
+        String collectionDescription = "desc";
+
+        FirebaseUtil.createCollection(aCollectionId, collectionName, collectionDescription, collectorId);
+
+        // This is a big delay, but without it the collection added is not found when finding it
+        delaySecond(2);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
 
         // When: adding an item to it
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
@@ -339,8 +341,7 @@ public class CollectionApplicationServiceTest {
         FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", "colId");
         delaySecond(1);
 
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
 
         // When: deleting it
         collectionRepository.delete(CollectionId.of(aCollectionId));
@@ -366,8 +367,7 @@ public class CollectionApplicationServiceTest {
                 "colId", items);
 
         // when: deleting it
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         collectionRepository.delete(CollectionId.of(aCollectionId));
 
         // Then: no documents should exist in the subcollection
@@ -391,8 +391,7 @@ public class CollectionApplicationServiceTest {
                 "colId", items);
 
         // When: Deleting an item from the collection
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
         RemoveItemFromCollectionCommand removeItemFromCollectionCommand = RemoveItemFromCollectionCommand.builder()
                                                                             .collectorId(collectorId)
@@ -423,10 +422,8 @@ public class CollectionApplicationServiceTest {
                 collectorId, items);
 
         // when: deleting an item from the collection
-        FirebaseProvider f = new EmulatedFirebaseProvider();
-        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(f);
+        FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firebaseProvider);
         CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
-
 
         CollectionItemDTO item1Dto = new CollectionItemDTO("item3");
         CollectionItemDTO item2Dto = new CollectionItemDTO("item4");

@@ -45,7 +45,12 @@ dependencies {
     developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
     implementation "org.projectlombok:lombok:$lombokVersion"
 
-    implementation "com.google.firebase:firebase-admin:$firebaseSdkVersion"
+    implementation ("com.google.firebase:firebase-admin:$firebaseSdkVersion") {
+        exclude group: "com.google.cloud", module: "google-cloud-firestore"
+    }
+
+    implementation group: 'com.google.cloud', name: 'google-cloud-firestore', version: '2.1.0'
+
     runtimeOnly("ch.qos.logback:logback-classic")
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testAnnotationProcessor("io.micronaut:micronaut-inject-java")
@@ -62,6 +67,10 @@ dependencies {
 
     testImplementation "org.testcontainers:testcontainers:1.15.0"
     testImplementation "org.testcontainers:junit-jupiter:1.15.0"
+    testImplementation "org.testcontainers:gcloud:1.15.0"
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+
+    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 
 jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
