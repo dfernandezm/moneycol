@@ -1,22 +1,9 @@
 plugins {
-    id "com.diffplug.eclipse.apt" version "3.22.0"
-    id "com.github.johnrengelman.shadow" version "6.0.0"
+    id "java"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
     id "application"
-    id 'com.google.cloud.tools.jib' version '2.4.0'
+    id 'com.google.cloud.tools.jib' version '2.6.0'
 }
-
-ext {
-    logbackVersion = "1.2.3"
-    lombokVersion = "1.18.8"
-    junitVersion = "5.6.0"
-    mockitoJunitJupiterVersion = "2.22.0"
-    firebaseSdkVersion = "6.12.2"
-    micronautJunit5Version = "1.1.5"
-    hamcrestVersion = "1.3"
-    micronautVersion = "2.0.3"
-}
-
-jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
 
 version "0.1.0"
 group "server"
@@ -29,6 +16,17 @@ repositories {
 configurations {
     // for dependencies that are needed for development only
     developmentOnly
+}
+
+ext {
+    logbackVersion = "1.2.3"
+    lombokVersion = "1.18.8"
+    junitVersion = "5.6.0"
+    mockitoJunitJupiterVersion = "2.22.0"
+    firebaseSdkVersion = "6.12.2"
+    micronautJunit5Version = "1.1.5"
+    hamcrestVersion = "1.3"
+    micronautVersion = "2.0.3"
 }
 
 dependencies {
@@ -46,7 +44,7 @@ dependencies {
     implementation("io.micronaut.security:micronaut-security-jwt")
     developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
     implementation "org.projectlombok:lombok:$lombokVersion"
-    //compile "ch.qos.logback:logback-classic:$logbackVersion"
+
     implementation "com.google.firebase:firebase-admin:$firebaseSdkVersion"
     runtimeOnly("ch.qos.logback:logback-classic")
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
@@ -59,12 +57,15 @@ dependencies {
     testImplementation "io.micronaut.test:micronaut-test-junit5:$micronautJunit5Version"
     testImplementation "io.micronaut.test:micronaut-test-core:$micronautJunit5Version"
     testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-   // testImplementation "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
-    
 
+    testImplementation "org.testcontainers:testcontainers:1.15.0"
+    testImplementation "org.testcontainers:junit-jupiter:1.15.0"
 }
+
+jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
+jib.from.image = 'gcr.io/distroless/java:11-debug'
 
 test.classpath += configurations.developmentOnly
 
