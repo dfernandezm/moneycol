@@ -7,6 +7,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import com.google.common.collect.ImmutableList;
 import io.micronaut.context.annotation.Requires;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -15,9 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Singleton
 @Requires(env="test")
-public class EmulatedFirebaseProvider implements FirebaseProvider {
+public class EmulatedFirestoreProvider implements FirestoreProvider {
     private static final String LOCAL_FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
     private static final String TEST_PROJECT_ID = "testproject";
     private static Firestore instance;
@@ -28,15 +30,17 @@ public class EmulatedFirebaseProvider implements FirebaseProvider {
         this.endpoint = endpoint;
     }
 
-    // setHost() is broken, this only works by using setEmulatorHost,
+    // Important: setHost() is broken, setting a non-environment variable value only works
+    // by using the new (quite undocumented) setEmulatorHost() method,
     // see issue https://github.com/googleapis/java-firestore/issues/190
     @Override
     public Firestore getFirestoreInstance() {
         if (instance == null) {
             String hostAndPort = this.endpoint;
-            System.out.println("Setting emulator host as " + hostAndPort);
-            FirestoreOptions foptions = FirestoreOptions.getDefaultInstance().toBuilder()
-                    .setEmulatorHost(hostAndPort) //
+            log.info("Setting emulator host as " + hostAndPort);
+            FirestoreOptions firestoreOptions = FirestoreOptions.getDefaultInstance()
+                    .toBuilder()
+                    .setEmulatorHost(hostAndPort)
                     .setChannelProvider(
                             InstantiatingGrpcChannelProvider.newBuilder().setEndpoint(hostAndPort)
                                     .setChannelConfigurator(input -> {
@@ -44,17 +48,17 @@ public class EmulatedFirebaseProvider implements FirebaseProvider {
                                         return input;
                                     }).build()
                     )
-                    //.setCredentialsProvider(FixedCredentialsProvider.create(new FakeCreds()))
                     .setCredentialsProvider(NoCredentialsProvider.create())
                     .setProjectId(TEST_PROJECT_ID)
                     .build();
 
-            instance = foptions.getService();
+            instance = firestoreOptions.getService();
         }
 
         return instance;
     }
 
+    // Used only when using .setCredentialsProvider(FixedCredentialsProvider.create(new FakeCreds()))
     private static class FakeCreds extends Credentials {
         @Override
         public String getAuthenticationType() {

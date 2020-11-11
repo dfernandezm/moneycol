@@ -10,9 +10,11 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
-import com.moneycol.collections.server.infrastructure.repository.EmulatedFirebaseProvider;
+import com.moneycol.collections.server.infrastructure.repository.EmulatedFirestoreProvider;
 import io.micronaut.core.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.containers.FirestoreEmulatorContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,18 +23,31 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-public class FirebaseUtil {
+public class FirestoreHelper {
+
+    public static final DockerImageName FIREBASE_EMULATOR_IMG =
+            DockerImageName.parse("gcr.io/google.com/cloudsdktool/cloud-sdk:316.0.0-emulators");
     private static Firestore firestore;
 
-    public static EmulatedFirebaseProvider init(String emulatorEndpoint) {
-        EmulatedFirebaseProvider firestoreProvider = new EmulatedFirebaseProvider();
+    public static EmulatedFirestoreProvider init(String emulatorEndpoint) {
+        EmulatedFirestoreProvider firestoreProvider = new EmulatedFirestoreProvider();
         firestoreProvider.setEndpoint(emulatorEndpoint);
         firestore = firestoreProvider.getFirestoreInstance();
         return firestoreProvider;
     }
 
+    public static EmulatedFirestoreProvider initContainer() {
+        FirestoreEmulatorContainer firestoreEmulatorContainer = new FirestoreEmulatorContainer(FIREBASE_EMULATOR_IMG);
+        firestoreEmulatorContainer.start();
+        String endpoint = firestoreEmulatorContainer.getEmulatorEndpoint();
+        log.info("Endpoint: " + endpoint);
+        EmulatedFirestoreProvider emulatedFirestoreProvider = init(endpoint);
+        firestore = emulatedFirestoreProvider.getFirestoreInstance();
+        return emulatedFirestoreProvider;
+    }
+
     public static void init() {
-        firestore = new EmulatedFirebaseProvider().getFirestoreInstance();
+        firestore = new EmulatedFirestoreProvider().getFirestoreInstance();
     }
 
     public static void createCollection(String id, String name, String description, String collectorId) {

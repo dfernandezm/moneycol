@@ -8,6 +8,7 @@ import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
+import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
@@ -18,8 +19,10 @@ import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.test.annotation.MicronautTest;
+import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -45,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 //https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+@Slf4j
 @MicronautTest(environments = "test")
 public class CollectionsControllerTest {
 
@@ -52,7 +56,7 @@ public class CollectionsControllerTest {
     @Client("/")
     private RxHttpClient client;
 
-    private static String accessToken  =  null;
+    private static String accessToken;
 
     @Value("${testUser.id}")
     private String testCollectorId;
@@ -60,14 +64,49 @@ public class CollectionsControllerTest {
     @Value("${testUser.email}")
     private String testUserEmail;
 
+    private static FirestoreProvider firestoreProvider;
+
+    @BeforeAll
+    public static void setup() {
+        firestoreProvider = FirestoreHelper.initContainer();
+    }
+
     @BeforeEach
-    public void setup() {
-        FirebaseUtil.init();
+    public void obtainTokenForTestUser() {
+        // Create environment variable or paste API key
+        String apiKey = System.getenv("FIREBASE_API_KEY");
+
+        if (accessToken == null) {
+            log.info("Obtaining new token....");
+            MutableHttpRequest<?> getTokenRequest =
+                    HttpRequest.GET("/accessToken");
+
+            getTokenRequest.getParameters()
+                    .add("apiKey", apiKey)
+                    .add("email", testUserEmail);
+
+            HttpResponse<Map> tokenResponse =
+                    client.toBlocking().exchange(getTokenRequest, Map.class);
+
+            Optional<Map> tokenBody = tokenResponse.getBody();
+
+            accessToken = tokenBody
+                    .map(token -> {
+                        log.info("token map {}", token);
+                        if (token.get("token") == null) {
+                            log.warn("Token is null" + token.keySet());
+                        }
+                        String tokenValue = token.get("token").toString();
+                        log.info("Token is " + token.get("token"));
+                        return tokenValue;
+                    })
+                    .orElseGet(() -> fail("Cannot get token for tests"));
+        }
     }
 
     @AfterEach
     public void deleteAllCollections() {
-        FirebaseUtil.deleteAllCollections();
+        FirestoreHelper.deleteAllCollections();
     }
 
     @ParameterizedTest
@@ -98,9 +137,10 @@ public class CollectionsControllerTest {
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+        FirestoreHelper.createCollection(collectionId, aName, aDescription, collectorId);
 
-        delayMilliseconds(500);
+        // Needs 2 seconds otherwise the subsequent call gives 404
+        delayMilliseconds(2000);
 
         // When: updating its name/description
         String newName = "newName";
@@ -134,7 +174,7 @@ public class CollectionsControllerTest {
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+        FirestoreHelper.createCollection(collectionId, aName, aDescription, collectorId);
         delayMilliseconds(600);
 
         // When: getting it by Id
@@ -273,7 +313,7 @@ public class CollectionsControllerTest {
         // Given: a collection exists
         String aCollectionId = CollectionId.randomId();
         String collectorId = testCollectorId;
-        FirebaseUtil.createCollection(aCollectionId, "aCollection", "desc", collectorId);
+        FirestoreHelper.createCollection(aCollectionId, "aCollection", "desc", collectorId);
         delayMilliseconds(500);
 
         List<CollectionItemDTO> items = new ArrayList<>();
@@ -300,7 +340,7 @@ public class CollectionsControllerTest {
         // Given: an existing collection
         String aCollectionId = CollectionId.randomId();
         String collectorId = testCollectorId;
-        FirebaseUtil.createCollection(aCollectionId,
+        FirestoreHelper.createCollection(aCollectionId,
                 "aCollection",
                 "desc",
                 collectorId);
@@ -317,7 +357,7 @@ public class CollectionsControllerTest {
         assertThat(removeItemResponse.status(), is(HttpStatus.OK));
 
         // And: trying to find a collection with that Id
-        Executable s = () -> FirebaseUtil.findCollectionById(aCollectionId);
+        Executable s = () -> FirestoreHelper.findCollectionById(aCollectionId);
         Exception e = assertThrows(RuntimeException.class, s);
         assertThat(e.getMessage(), containsString("not found"));
     }
@@ -333,7 +373,7 @@ public class CollectionsControllerTest {
         List<CollectionItem> items = new ArrayList<>();
         items.add(item1);
         items.add(item2);
-        FirebaseUtil.createCollectionWithItems(aCollectionId,
+        FirestoreHelper.createCollectionWithItems(aCollectionId,
                 "aCollection",
                 "desc",
                 collectorId, items);
@@ -346,7 +386,7 @@ public class CollectionsControllerTest {
                 client.toBlocking().exchange(removeItemEndpoint);
 
         // Then: the deleted item isn't present and the other is
-        List<String> itemIds = FirebaseUtil.findItemsForCollection(aCollectionId);
+        List<String> itemIds = FirestoreHelper.findItemsForCollection(aCollectionId);
         assertThat(removeItemResponse.getStatus(), is(HttpStatus.OK));
         assertThat(itemIds, hasSize(1));
         assertThat(itemIds.contains("item1"), is(true));
@@ -391,7 +431,7 @@ public class CollectionsControllerTest {
         List<CollectionItem> items = new ArrayList<>();
         items.add(item1);
         items.add(item2);
-        FirebaseUtil.createCollectionWithItems(collectionId, aName, aDescription, collectorId, items);
+        FirestoreHelper.createCollectionWithItems(collectionId, aName, aDescription, collectorId, items);
 
         delayMilliseconds(500);
 
@@ -428,13 +468,13 @@ public class CollectionsControllerTest {
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+        FirestoreHelper.createCollection(collectionId, aName, aDescription, collectorId);
 
         String anotherCollectorId = testCollectorId;
         String anotherName = "anotherCollectionName";
         String anotherDescription = "anotherDescription";
         String anotherCollectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
+        FirestoreHelper.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
 
         delayMilliseconds(500);
 
@@ -467,13 +507,13 @@ public class CollectionsControllerTest {
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
+        FirestoreHelper.createCollection(collectionId, aName, aDescription, collectorId);
 
         String anotherCollectorId = testCollectorId;
         String anotherName = "anotherCollectionName";
         String anotherDescription = "anotherDescription";
         String anotherCollectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
+        FirestoreHelper.createCollection(anotherCollectionId, anotherName, anotherDescription, anotherCollectorId);
         delayMilliseconds(600);
 
         // When: we update one with a name that is already in use by a different collection (different collectionId)
@@ -506,8 +546,8 @@ public class CollectionsControllerTest {
         String aName = "aCollectionName";
         String aDescription = "aDescription";
         String collectionId = CollectionId.randomId();
-        FirebaseUtil.createCollection(collectionId, aName, aDescription, collectorId);
-        delayMilliseconds(500);
+        FirestoreHelper.createCollection(collectionId, aName, aDescription, collectorId);
+        delayMilliseconds(1500);
 
         // When: another collector tries to access it (access token is for another collectorId)
         MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
@@ -524,32 +564,7 @@ public class CollectionsControllerTest {
     }
 
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {
-        List<String> itemIds = FirebaseUtil.findItemsForCollection(collectionId);
+        List<String> itemIds = FirestoreHelper.findItemsForCollection(collectionId);
         assertThat(itemIds, Matchers.contains(expectedItemIds));
-    }
-
-    @BeforeEach
-    public synchronized void obtainTokenForTestUser() {
-        //TODO: PUT API KEY
-        String apiKey = "API-KEY-HERE";
-
-        if (accessToken == null) {
-            MutableHttpRequest<?> getTokenRequest =
-                    HttpRequest.GET("/accessToken");
-
-            getTokenRequest.getParameters()
-                    .add("apiKey", apiKey)
-                    .add("email", testUserEmail);
-
-            HttpResponse<Map> tokenResponse =
-                    client.toBlocking().exchange(getTokenRequest, Map.class);
-
-            Optional<Map> tokenBody = tokenResponse.getBody();
-
-            tokenBody
-                    .map(token -> accessToken = token.get("token").toString())
-                    .orElseGet(() -> fail("Cannot get token for tests"));
-        }
-
     }
 }

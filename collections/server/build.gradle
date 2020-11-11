@@ -81,12 +81,21 @@ test.classpath += configurations.developmentOnly
 mainClassName = "com.moneycol.collections.server.Application"
 
 // use JUnit 5 platform
+// environment variables required to run tests in command line:
+// - GOOGLE_APPLICATION_CREDENTIALS: path to service account json key giving Firestore/Firebase Admin permission
+// - FIREBASE_API_KEY: valid key
 test {
     useJUnitPlatform()
 
     testLogging {
         events "passed", "skipped", "failed"
     }
+
+    // Uncomment these lines to get full logging output when running
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+
+
 }
 
 tasks.withType(JavaCompile){

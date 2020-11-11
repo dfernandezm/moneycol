@@ -48,8 +48,8 @@ public class FirebaseCollectionRepository implements CollectionRepository {
     private Gson gson = new Gson();
 
     @Inject
-    public FirebaseCollectionRepository(FirebaseProvider firebaseProvider)  {
-        this.firestore = firebaseProvider.getFirestoreInstance();
+    public FirebaseCollectionRepository(FirestoreProvider firestoreProvider)  {
+        this.firestore = firestoreProvider.getFirestoreInstance();
     }
 
     @Override
