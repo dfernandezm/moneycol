@@ -98,6 +98,7 @@ steps:
     volumes:
       - name: user.home
         path: /root
+
   - waitFor:
       - jib-build
     name: gcr.io/cloud-builders/gsutil
@@ -109,6 +110,20 @@ steps:
       - |
         tar -czf /tmp/jib-cache.tar.gz .cache &&
         gsutil cp /tmp/jib-cache.tar.gz gs://${_GCS_CACHE_BUCKET}/jib-cache.tar.gz
+    volumes:
+      - name: user.home
+        path: /root
+
+  - id: save-test-report
+    waitFor:
+    - jib-build
+    name: gcr.io/cloud-builders/gsutil
+    dir: /root
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gsutil cp -r /workspace/collections/server/build/reports gs://moneycol-ci/collections-test-reports
     volumes:
       - name: user.home
         path: /root
