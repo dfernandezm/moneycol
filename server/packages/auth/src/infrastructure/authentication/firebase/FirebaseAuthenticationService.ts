@@ -1,4 +1,4 @@
-import { AuthenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand, GoogleAuthMaterial } from "../AuthenticationService";
+import { AuthenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand, GoogleAuthMaterial, AuthUser } from "../AuthenticationService";
 import { FirebaseConfig } from "@moneycol-server/users";
 import jwt from 'jsonwebtoken';
 const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
@@ -58,7 +58,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                         const email = userCredential.user.email;
                         const emailVerified = userCredential.user.emailVerified;
 
-                        //TODO: check custom status in Firestore?
+                        //TODO: check custom status in Firestore as email verification may be disabled
                         if (!emailVerified) {
                            reject(new Error("User cannot login until email is verified")); 
                         }
@@ -86,12 +86,17 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
 
     async logout(token: string): Promise<object> {
         try {
-            //TODO: validate the token first, if invalid, the logout should be rejected
+            console.log("About to logout...");
             await this.firebaseSignOut();
+            console.log("Logged out from Firebase");
+            
             const userData = this.userDataFromToken(token);
             await this.userSessionRepository.removeUserSession(userData, token);
-            const result = this.revokeRefreshTokens(userData.userId);
-            console.log("Revoked refresh", result);
+            console.log("Removed user session/s");
+            
+            const result = await this.revokeRefreshTokens(userData.userId);
+            console.log("Revoked all refresh tokens", result);
+            
             return {
                 result: "ok"
             };
@@ -107,6 +112,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
      * 
      * This operation does the following:
      * 
+     * - Checks if the user logging in is already logged in with that email address and logs it out if it's the case
      * - Uses the passed in Google token to authenticate into Firebase and create a session in Firestore
      * - Returns a new id token, that can be validated through the regular login operations
      * - Transfer basic information of the user's profile in Google into this user's profile in Firebase/Firestore
@@ -114,49 +120,28 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
      * @param GoogleAuthMaterial some of the auth data returned after a successful Google login in the browser
      */
     async loginWithGoogle(googleAuthMaterial: GoogleAuthMaterial): Promise<AuthenticationResult> {
-        //TODO: should check if this user is already logged in in our system and/or 
-        // with which provider (use email to check?)
 
-        const credential = firebase.auth.GoogleAuthProvider.credential(googleAuthMaterial.idToken);
+        try {
+            await this.logoutIfAlreadyLoggedInWithDifferentProvider(googleAuthMaterial);
+        } catch (error) {
+            console.log("Error clearing previous sessions -- continue Google login", error);
+        }
 
         try {
 
+            const credential = firebase.auth.GoogleAuthProvider.credential(googleAuthMaterial.idToken);
             const userCredential: firebase.auth.UserCredential = 
                 await this.firebaseInstance.get().auth().signInWithCredential(credential);
+            
             console.log("Successful Login into Firebase using Google credential");
 
-            //TODO: this code is copied from loginWithEmail
             if (userCredential.user) {
-
-                const userId = userCredential.user.uid;
-                const email = userCredential.user.email;
-
+                const { uid, email } = userCredential.user;
                 const token = await this.tokenFromUser(userCredential.user);
                 if (token) {
-                    //TODO: cache the token for this user locally for 1h: #191
-                    const authResult = { email, userId, token };
-
-                    //TODO: should check if this user is logged in already with other provider?
-
-                    if (!this.userRepository.exists(userId)) {
-                        console.log("Google login: persisting user as it does not currently exist in Firestore");
-                        const userToPersist = {
-                            userId: userId,
-                            email: email,
-                            username: email,
-                            firstName: userCredential.user.displayName,
-                            lastName: "",
-                            status: UserStatus.ACTIVE,
-                            provider: Provider.GOOGLE
-                        } as User
-                        let persistedUser = await this.userRepository.persistUser(userToPersist);
-                        console.log("Google Login: persisted user", persistedUser);
-                    } else {
-                        console.log("Google login: user already exists in Firestore");
-                    }
-
+                    await this.createUserIfNotPresent(uid, email || "", userCredential);
                     await this.saveCurrentUser(token, Provider.GOOGLE);
-                    return authResult;
+                    return { email, userId: uid, token };
                 } else {
                     console.log("Login with Google: login error due to invalid or missing token", userCredential.user);
                     throw new Error("Login with Google: Authentication error: invalid or missing token");
@@ -183,6 +168,47 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         };
     }
 
+    private async createUserIfNotPresent(uid: string, email: string, userCredential: firebase.auth.UserCredential) {
+        if (!this.userRepository.exists(uid)) {
+            console.log("Google login: persisting user as it does not currently exist in Firestore");
+            let persistedUser = await this.createNewUser(uid, email, userCredential.user?.displayName || "",
+                "", UserStatus.ACTIVE, Provider.GOOGLE);
+            console.log("Google Login: persisted user", persistedUser);
+        }
+        else {
+            //TODO: should merge accounts/data?
+            console.log("Google login: user already exists in Firestore");
+        }
+    }
+
+    private async createNewUser(uid: string, email: string, firstName: string, lastName: string, status: string, authProvider: Provider) {
+        const userToPersist = {
+            userId: uid,
+            email: email,
+            username: email,
+            firstName: firstName,
+            lastName: lastName,
+            status: status,
+            provider: authProvider
+        } as User;
+        let persistedUser = await this.userRepository.persistUser(userToPersist);
+        return persistedUser;
+    }
+
+    private async logoutIfAlreadyLoggedInWithDifferentProvider(googleAuthMaterial: GoogleAuthMaterial): Promise<object> {
+        const userData = this.userDataFromToken(googleAuthMaterial.idToken);
+        const userSession = await this.sessionForEmail(userData.email);
+        if (userSession != null /*&& userSession.provider != Provider.GOOGLE*/) {
+            console.log(`Session already exists for user with email: ${userData.email} -- logging out`);
+            return this.logout(userSession.token);
+        }
+        return Promise.resolve({});
+    }
+
+    private async sessionForEmail(email: string): Promise<AuthUser | null> {
+        return this.userSessionRepository.findCurrentUserByEmail(email);
+    }
+
     /**
      * This can be used for 2 purposes:
      * 
@@ -196,11 +222,11 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         try {
 
             let decodedToken = await this.verifyIdToken(token);
-            const currentUser = await this.userSessionRepository.findCurrentUser(decodedToken.uid);
+            const currentUser = await this.userSessionRepository.findCurrentUserById(decodedToken.uid);
 
             if (refresh) {
                 console.log("Refresh requested");
-                const currentUser = await this.userSessionRepository.findCurrentUser(decodedToken.uid);
+                const currentUser = await this.userSessionRepository.findCurrentUserById(decodedToken.uid);
                 if (currentUser) {
                     console.log("Found existing user, refreshToken is", currentUser.refreshToken);
                     const refreshResult = await this.refreshToken(currentUser.refreshToken);
@@ -415,7 +441,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
     private async refreshFromExpiredToken(token: string): Promise<AuthenticationResult> {
         const userData = this.userDataFromToken(token);
         console.log("UserId from token", userData.userId);
-        const currentUserData: any = await this.userSessionRepository.findCurrentUser(userData.userId);
+        const currentUserData: any = await this.userSessionRepository.findCurrentUserById(userData.userId);
         //TODO: check expiration date (created issue #189)
         // - the session creation should be AFTER the expiration time
         // - the token expiration time - session creation time > session_duration (1 month?)
@@ -437,7 +463,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
         console.log("Saving current user");
         return await this.firebaseInstance.get().auth().onAuthStateChanged(async (currentUser: firebase.User) => {
             if (currentUser) {
-                console.log("Saving current user");
+                console.log("Save current user after login");
                 const user = {
                     userId: currentUser.uid,
                     email: currentUser.email,

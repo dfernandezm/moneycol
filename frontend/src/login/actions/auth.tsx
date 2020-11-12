@@ -228,24 +228,24 @@ export const verifyAuthWithDispatch = async (dispatch: Dispatch, _: any, apolloC
   // tab or closed browser a protected route (use case for verify)
   
   try {
-    let token = localStateService.getToken();
+    let savedToken = localStateService.getToken();
     let user = localStateService.getUser();
 
     // This can fail if userStr is undefined of empty catch block will pick it and prompt for login
 
-    if (token && user) {
+    if (savedToken && user) {
       const { data } = await apolloClient.mutate({
         mutation: VERIFY_TOKEN_GQL,
-        variables: { token }
+        variables: { savedToken }
       });
       
-      const newToken = data.verifyToken.token;
-      let user = { email: data.verifyToken.email, userId: data.verifyToken.userId, token: newToken }
+      const { token, email, userId }  = data.verifyToken;
+      let user = { email, userId, token }
       
-      localStateService.setToken(newToken);
+      localStateService.setToken(token);
       localStateService.setUserFromObject(user);
 
-      dispatch(receiveLogin(user, newToken));
+      dispatch(receiveLogin(user, token));
     } 
   } catch (err) {
     console.log("Error verifying, will need re-login", err);

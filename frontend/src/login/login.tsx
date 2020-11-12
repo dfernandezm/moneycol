@@ -74,6 +74,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
   };
 
   // See for alternative: https://scotch.io/courses/getting-started-with-react-and-redux/dispatching-on-click
+
   const handleSubmit = async () => {
     setProvider("PASSWORD");
     const { email, password } = state;
@@ -91,7 +92,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
   }
 
   //TODO: check in other sites if setting this error is required
-  // Failure to open Google or login with it
+  // Failure to open Google or login within the popup - #258
   const handleErrorOnGooglePreLogin = async (errorResponse: object) => {
     setProvider("GOOGLE");
     console.log("Google login error: ", errorResponse);
@@ -148,6 +149,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             onClick={handleSubmit}>
             { isLoggingIn ? "Signing In" : "Sign in" }
           </Button>
+
           <GoogleLoginScreen
             onSuccess={handleSuccessfulGooglePreLogin}
             onFailure={handleErrorOnGooglePreLogin}
@@ -158,6 +160,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
                 Error occurred during login with Google
               </Typography>))
           }
+
           <Typography component="p">
             <Link component={RouterLink} to="/users/resetPassword">
               Forgotten password?

@@ -23,6 +23,7 @@ export class FirebaseConfig {
     };
 
     // Preferred, picks GOOGLE_APPLICATION_CREDENTIALS service account json
+    // Needs exporting of this environment variable
     private SERVICE_ACCOUNT_AUTH = {
         credential: admin.credential.applicationDefault(),
         databaseURL: "https://moneycol.firebaseio.com"

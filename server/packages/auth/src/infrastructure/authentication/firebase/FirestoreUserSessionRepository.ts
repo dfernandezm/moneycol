@@ -1,3 +1,4 @@
+import { FirebaseFirestore } from '@firebase/firestore-types';
 import { firebaseInstance } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
 import { AuthUser } from "../AuthenticationService";
@@ -22,11 +23,12 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
             token: user.token,
             refreshToken: user.refreshToken,
             email: user.email,
-            lastLogin: user.lastLogin
+            lastLogin: user.lastLogin,
+            provider: user.provider
         });
     }
 
-    async findCurrentUser(userId: string): Promise<AuthUser | null> {
+    async findCurrentUserById(userId: string): Promise<AuthUser | null> {
         let db = firebaseInstance.getFirestore();
         let docRef = db.collection('sessions').doc(userId);
         let docSnapshot = await docRef.get();
@@ -44,6 +46,19 @@ export default class FirestoreUserSessionRepository implements UserSessionReposi
         } else {
             return null;
         }
+    }
+
+    async findCurrentUserByEmail(email: string): Promise<AuthUser | null> {
+        let db: FirebaseFirestore = firebaseInstance.getFirestore();
+        let usersRef = db.collection("sessions");
+        let usersSnapshot = await usersRef.where("email", "==", email.toLowerCase()).get();
+
+        if (usersSnapshot.empty) {
+            console.log('No session found with email ' + email);
+            return null;
+        }
+
+        return usersSnapshot.docs[0].data() as AuthUser;
     }
 
     async removeUserSession(userData: UserData, token: string): Promise<any> {
