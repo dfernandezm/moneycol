@@ -72,9 +72,16 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
               />  
+
+            <ProtectedRoute
+              exact
+              path="/collections"
+              component={CollectionsScreen}
+              isAuthenticated={isAuthenticated}
+              isVerifying={isVerifying}
+              />  
             
             <Route path="/login" component={Login} />
-            <Route path="/collections" component={CollectionsScreen} />
             <Route path="/users/verify" component={Verify} />
             <Route path="/users/verifyEmail" component={VerifyEmail} />
             <Route path="/users/signup" component={Signup} />

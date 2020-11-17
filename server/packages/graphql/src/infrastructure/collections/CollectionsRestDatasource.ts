@@ -20,7 +20,7 @@ export class CollectionsRestDatasource extends RESTDataSource {
   }
 
   async getCollectionsForCollector(collectorId: string): Promise<CollectionApiResult[]> {
-    return this.get(`collections/collector/${collectorId}`);
+    return this.get(`collections`);
   }
 
   async getItemsForCollection(collectionId: string): Promise<CollectionApiResult> {
@@ -54,18 +54,15 @@ export class CollectionsRestDatasource extends RESTDataSource {
   }
 
   protected async willSendRequest?(request: RequestOptions) {
-     //TODO: this could be a lighter validation, as the collections API revalidates it as well
+     //TODO: this could be a lighter validation with jwt.decode, as the collections API revalidates it as well
     await resolverHelper.validateRequestToken(this.context.token, "collectionsOperation");
-    console.log("Setting token in request to collections API", this.context.token);
-    request.headers.set('Authorization', "Bearer " + this.context.token);
+    console.log("Setting token in request to collections API: \n", this.context.token);
+    request.headers.set("Authorization", "Bearer " + this.context.token);
   }
 
-  //TODO: workaround for now, the server should return this already. Created bug #130 for this
   protected didEncounterError(error: ApolloError, _request: Request) {
-    let message = error.extensions.response.body.message;
-    console.log("Error from API", message);
-    error.extensions.code = "BAD_REQUEST";
-    error.extensions.response.status = 400;
+    let message = error.extensions.response.body.message ? error.extensions.response.body.message : error.extensions.response.body.error;
+    console.log(`Error from API, code -> ${error.extensions.code}, status -> ${error.extensions.response.status}, message -> ${message}`);
     throw error;
   }
 

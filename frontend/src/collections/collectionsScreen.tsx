@@ -5,7 +5,7 @@ const CollectionsScreen: React.FC = () => {
   
     return (
        
-         <CollectionsTable collector={"david9090"} />
+         <CollectionsTable collector={"13M99QaYnCZ2AKkwDo4YyMTw1ih1"} />
         
     )
 }

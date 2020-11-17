@@ -127,16 +127,20 @@ input GoogleAuthMaterial {
 }
 
 type Query {
-  # Search for banknotes
+
+  # Search and Collections
   search(term: String!, from: Int, to: Int): SearchResult!
   collectionData(collectionId: String!): BankNoteCollection
   itemsForCollection(collectionId: String!): BankNoteCollection
+  collectionsForCollector(collectorId: String!): [BankNoteCollection]!
 
   # Users
-  findUserProfile(userId: String!): UserProfileResult!
+  findUserProfile(userId: String!): UserProfileResult! 
 }
 
 type Mutation {
+
+  # Collections
   addCollection(collection: NewCollectionInput): BankNoteCollection!
   addBankNoteToCollection(data: AddBankNoteToCollection): BankNoteCollection!
   removeBankNoteFromCollection(banknoteId: String!, collectionId: String!): BankNoteCollection!

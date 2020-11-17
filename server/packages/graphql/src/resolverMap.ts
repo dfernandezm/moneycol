@@ -15,7 +15,7 @@ import { CollectionApiResult } from "./infrastructure/collections/types";
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 
 // Authentication
-import { AuthenticationError, ValidationError } from 'apollo-server-express';
+import { AuthenticationError, ValidationError, ForbiddenError, ApolloError } from 'apollo-server-express';
 import { authenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand } from '@moneycol-server/auth';
 
 // Users
@@ -37,6 +37,20 @@ const resolverMap: IResolvers = {
             let col: CollectionApiResult = await ctx.dataSources.collectionsAPI.getCollectionById(args.collectionId);
             // These collections are returned without items
             return new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []);
+        },
+
+        async collectionsForCollector(_: void, args: { collectorId: string }, { dataSources: { collectionsAPI }}): Promise<BankNoteCollection[]> {
+            try {
+                
+                let collections: CollectionApiResult[] = await collectionsAPI.getCollectionsForCollector(args.collectorId);
+                console.log("Collections returned", collections);
+                // These collections are returned without items
+                let bankNoteCollections = collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, [])); 
+                console.log("Resolver: collectionsForCollector\n", collections);
+                return bankNoteCollections;
+            } catch (err) {
+                throw handleErrors(err, "collectionsForCollector");
+            }
         },
 
         async itemsForCollection(_: void, { collectionId }, { dataSources: { collectionsAPI } }): Promise<BankNoteCollection> {
@@ -229,16 +243,26 @@ const decorateBanknoteCollection =
         return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);
     }
 
+    //TODO: these errors contain lots of information in stacktrace, should be cut to minimum information
 const handleErrors = (err: Error, request: string): Error => {
-    console.log(`Error for ${request} request`, err);
+    console.log(`Error received for ${request} request`, err);
     if (err instanceof InvalidValueError) {
         return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
-    } else if (err instanceof AuthenticationError) {
+    } else if (err instanceof ApolloError && err instanceof AuthenticationError) {
         console.log(`Authentication required for ${request}`);
+        throw err;
+    } else if (err instanceof ForbiddenError) {
+        console.log(`Forbidden access during operation ${request}`);
         return err;    
     } else {
         return new Error(`General error in ${request}: ${err.message}`);
     }
+}
+
+type ErrorResult = {
+    type: string
+    message: string
+    status: number
 }
 
 export default resolverMap;

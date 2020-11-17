@@ -21,7 +21,8 @@ type Values = Omit<ChangePasswordData, 'email'>;
 
 /**
  * The form where authenticated users can change their password if they have signed up with email/password. This is a protected route, therefore
- * users will be prompted to login if accessed directly
+ * users will be prompted to login if accessed directly. This is achieved by wrapping this component with the higher
+ * order <ProtectedRoute .../> (see main.tsx)
  * 
  */
 const ChangePasswordForm: React.FC<RouteComponentProps> = (props: RouteComponentProps) => {
