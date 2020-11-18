@@ -22,7 +22,8 @@ interface Props {
     collector: string
 }
 
-// error handling: no connection, timeout, etc.
+//TODO: error handling: no connection, timeout, etc.
+// separate GQL from static component?
 const CollectionsTable: React.FC<Props> = ({ collector }) => {
     
     const classes = useStyles();
