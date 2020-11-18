@@ -12,12 +12,12 @@ import javax.inject.Singleton;
 @Slf4j
 @Singleton
 @Requires(notEnv="test")
-public class CloudFirebaseProvider implements FirebaseProvider {
+public class CloudFirestoreProvider implements FirestoreProvider {
     private static String PROJECT_ID = "moneycol";
     private SourceCredentials sourceCredentials;
 
     @Inject
-    public CloudFirebaseProvider(SourceCredentials sourceCredentials) {
+    public CloudFirestoreProvider(SourceCredentials sourceCredentials) {
         this.sourceCredentials = sourceCredentials;
     }
 
