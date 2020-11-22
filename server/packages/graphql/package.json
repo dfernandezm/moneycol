@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node 'dist/server.js'",
     "start:dev": "yarn build:dev",
-    "build:dev": "nodemon 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
+    "build:dev": "nodemon -w ../auth -w ../users -w ./src 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
     "start:elasticsearch": "~/development/repos/elasticsearch-6.5.0/bin/elasticsearch",
     "build": "yarn run clean && yarn run compile && ncp src/schema dist/schema",
     "clean": "rimraf -rf ./dist",

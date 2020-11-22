@@ -22,7 +22,10 @@ interface Props {
     collector: string
 }
 
+//TODO: error handling: no connection, timeout, etc.
+// separate GQL from static component?
 const CollectionsTable: React.FC<Props> = ({ collector }) => {
+    
     const classes = useStyles();
     const { data, loading, error } = useQuery(COLLECTIONS_FOR_COLLECTOR, {
         variables: { collectorId: collector },
@@ -30,6 +33,8 @@ const CollectionsTable: React.FC<Props> = ({ collector }) => {
 
     if (loading) return <p>Loading</p>;
     if (error) return <p>Error: {error}</p>;
+    if (!data.collectionsForCollector) return <p>Empty</p>;
+
     return (
         <Container maxWidth="lg">
         <TableContainer component={Paper}>
@@ -41,7 +46,7 @@ const CollectionsTable: React.FC<Props> = ({ collector }) => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.collections.map((collection: BankNoteCollection) => (
+                    {data.collectionsForCollector.map((collection: BankNoteCollection) => (
                         <TableRow key={collection.name}>
                             <TableCell component="th" scope="row">
                                 {collection.name}
