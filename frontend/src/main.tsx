@@ -17,7 +17,7 @@ import ProtectedRoute from "./login/protectedRoute";
 import Protected  from "./login/protected";
 import Login from "./login/login";
 import { RootState } from './login/reducers';
-import { CollectionsScreen } from './collections/collectionsScreen';
+
 import VerifyEmail from './users/verifyEmail/verifyEmail';
 import Signup from './users/signup/signup';
 import UpdateUserProfile from './users/userprofile/updateUserProfile';
@@ -26,7 +26,9 @@ import InfoScreen from './users/changePassword/infoScreen';
 import ResetPassword from './users/changePassword/resetPassword';
 import CreateNewPassword from './users/changePassword/createNewPassword';
 import Verify from './users/verifyEmail/verify';
-import GoogleLoginScreen from './login/google/googleLogin';
+
+import { CollectionsScreen } from './collections/collectionsScreen';
+import { CreateCollection } from './collections/createCollection';
 
 export interface MainProps {
   isAuthenticated: boolean,
@@ -79,7 +81,15 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               component={CollectionsScreen}
               isAuthenticated={isAuthenticated}
               isVerifying={isVerifying}
-              />  
+              />
+
+            <ProtectedRoute
+              exact
+              path="/collections/new"
+              component={CreateCollection}
+              isAuthenticated={isAuthenticated}
+              isVerifying={isVerifying}
+              />    
             
             <Route path="/login" component={Login} />
             <Route path="/users/verify" component={Verify} />
