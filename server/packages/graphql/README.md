@@ -7,14 +7,14 @@
 Start Elasticsearch:
 
 ```
-npm run start:elasticsearch
+yarn start:elasticsearch
 ```
 
-For this script to work, edit `package.json` and set your Elasticsearch installation directory. Restore a backup to have data. [pending: docker setup with a backup]
+For this script to work, edit `package.json` and set your Elasticsearch installation directory. Restore a backup to have data.
 
 Start GraphQL server in dev mode:
 ```
-ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev
+FIREBASE_API_KEY=XXXX ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 COLLECTIONS_API_HOST=localhost:8080 yarn start:dev
 ```
 
 Visit the playground for GraphQL at http://localhost:4000/graphql.
@@ -355,4 +355,25 @@ In order to fine tune scopes and access rights, it's best practice to create a s
 ## Lerna monorepo
 
 Need to run `yarn build` in the `graphql` module to ensure `dist/schema` is created.
-It should run with `yarn start` (compiled) and `yarn start:dev` (nodemon)
+It should run with `yarn start` (compiled) and `yarn start:dev` (nodemon).
+
+### Nodemon 
+
+For `nodemon` to reflect latest changes, a hardcoded watch has been added for `users` and `auth` modules:
+
+
+```
+...
+"build:dev": "nodemon -w ../auth -w ../users 'src/server.ts' --exec 'ts-node' -r tsconfig-paths/register src/server.ts -e ts,graphql",
+...
+```
+
+`nodemon` will watch the folders for changes. For this to complete, incremental compilation should be started in 
+the modules. This way changes will be picked up as the source files are saved. Move to the folder where the module
+is (`auth` or `users` at this point) and run:
+
+```
+yarn compile:watch
+```
+
+This way, the TS files will be compiled, the folder will pick the changes and `nodemon` will restart the GraphQL server and the changes will be reflected.

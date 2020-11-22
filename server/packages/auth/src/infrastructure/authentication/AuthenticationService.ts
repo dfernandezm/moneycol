@@ -15,7 +15,7 @@ export type AuthUser = {
     email: string | null,
     provider: string,
     userId: string,
-    lastLogin: Date
+    lastLogin: Date,
 }
 
 export type ChangePasswordCommand = {
