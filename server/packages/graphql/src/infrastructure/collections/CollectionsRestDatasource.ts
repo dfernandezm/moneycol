@@ -10,12 +10,15 @@ import {
 import {
   ApolloError
 } from 'apollo-server-errors';
+import { tokenHelper } from '../../tokenHelper';
 
 export class CollectionsRestDatasource extends RESTDataSource {
   
   constructor() {
     super();
-    this.baseURL = process.env.COLLECTIONS_API_HOST ? `http://${process.env.COLLECTIONS_API_HOST}/` : 'http://localhost:8001/';
+    this.baseURL = process.env.COLLECTIONS_API_HOST ? 
+    `http://${process.env.COLLECTIONS_API_HOST}/` : 
+    'http://localhost:8001/';
     console.log("Base url for collections datasource is " + this.baseURL)
   }
 
@@ -54,8 +57,10 @@ export class CollectionsRestDatasource extends RESTDataSource {
   }
 
   protected async willSendRequest?(request: RequestOptions) {
-     //TODO: this could be a lighter validation with jwt.decode, as the collections API revalidates it as well
-    await resolverHelper.validateRequestToken(this.context.token, "collectionsOperation");
+     
+    // light token decoding, the Collections API validates it
+    tokenHelper.validateToken(this.context.token);
+
     console.log("Setting token in request to collections API: \n", this.context.token);
     request.headers.set("Authorization", "Bearer " + this.context.token);
   }
