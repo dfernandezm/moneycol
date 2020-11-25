@@ -29,6 +29,7 @@ const searchService: SearchService = new ElasticSearchService();
 
 const resolverMap: IResolvers = {
     Query: {
+        
         async search(_: void, args: { term: string, from: number, to: number }, ctx): Promise<SearchResult> {
             return searchService.search("en", args.term, args.from, args.to);
         },

@@ -1,40 +1,28 @@
 import express from 'express';
-import { ApolloServer, AuthenticationError } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import depthLimit from 'graphql-depth-limit';
 import { createServer } from 'http';
 import compression from 'compression';
 import cors from 'cors';
 import schema from './schema';
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
-import jwt from 'jsonwebtoken';
+import { tokenHelper } from './tokenHelper';
 
 const app = express();
 const collectionsApiDatasource = new CollectionsRestDatasource();
+const PLAYGROUND_INTROSPECTION_QUERY = "IntrospectionQuery";
 
 const server = new ApolloServer({
   schema,
   context: ({ req }) => {
 
-    // See: https://www.apollographql.com/docs/apollo-server/security/authentication/
-
-    // Note! This example uses the `req` object to access headers,
-    // but the arguments received by `context` vary by integration.
-    // This means they will vary for Express, Koa, Lambda, etc.!
-    //
-    // To find out the correct arguments for a specific integration,
-    // see the `context` option in the API reference for `apollo-server`:
-    // https://www.apollographql.com/docs/apollo-server/api/apollo-server/
-
-    // Get the user token from the headers.
-    let token = req.headers.authorization || '';
-    let user = {};
-
-    if (token) {
-      token = token.replace("Bearer", "").trim();
+    // Playground polls every 2 seconds for schema changes, this can be changed
+    // in the settings
+    if (req.body.operationName !== PLAYGROUND_INTROSPECTION_QUERY) {
+      return tokenHelper.extractTokenFromRequest(req);
     }
 
-    // add the user and token to the context as-is, it will be checked in the relevant parts
-    return { user, token };
+    return {};
   },
 
   dataSources: () => {

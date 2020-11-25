@@ -1,10 +1,10 @@
-import { SearchResult, BankNoteInputCollectionItem, StoredBankNoteCollection } from './infrastructure/search/SearchResult';
-import { BankNoteCollection } from './infrastructure/search/SearchResult';
-import { CollectionResult } from './infrastructure/search/SearchResult';
-import { NewCollectionInput } from './infrastructure/search/SearchResult';
-import { UpdateCollectionInput } from './infrastructure/search/SearchResult';
-import { BankNoteCollectionItem } from './infrastructure/search/SearchResult';
-import { BankNote } from "./types/BankNote";
+import { SearchResult, BankNoteInputCollectionItem, StoredBankNoteCollection } from '../src/infrastructure/search/SearchResult';
+import { BankNoteCollection } from '../src/infrastructure/search/SearchResult';
+import { CollectionResult } from '../src/infrastructure/search/SearchResult';
+import { NewCollectionInput } from '../src/infrastructure/search/SearchResult';
+import { UpdateCollectionInput } from '../src/infrastructure/search/SearchResult';
+import { BankNoteCollectionItem } from '../src/infrastructure/search/SearchResult';
+import { BankNote } from "../src/types/BankNote";
 import uuid from "uuid/v4";
 //This would be a dataSource
 //https://www.apollographql.com/docs/tutorial/data-source/
