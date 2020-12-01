@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CollectionDTO {
-    private String id;
+    private String collectionId;
     private String name;
     private String description;
     private List<CollectionItemDTO> items;
