@@ -25,7 +25,7 @@ public class CollectionEventsPublisherTest {
                         .collectionId(collectionId)
                         .build();
 
-//        DomainEventListener<CollectionNameModifiedEvent> listener =
+//        DomainEventSubscriber<CollectionNameModifiedEvent> listener =
 //                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
 //                    @Override
 //                    public void listen(CollectionNameModifiedEvent domainEvent) {
