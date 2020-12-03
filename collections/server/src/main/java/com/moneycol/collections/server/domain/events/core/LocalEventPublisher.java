@@ -1,13 +1,32 @@
 package com.moneycol.collections.server.domain.events.core;
 
 import com.google.common.eventbus.EventBus;
+import org.assertj.core.util.VisibleForTesting;
 
 public class LocalEventPublisher implements DomainEventPublisher {
 
+    private static final String DEFAULT_LOCAL_EVENTBUS_NAME = "default";
     private EventBus eventBus;
+    private LocalDeadEventListener deadEventListener;
+
+    public LocalEventPublisher() {
+        this(DEFAULT_LOCAL_EVENTBUS_NAME);
+    }
+
+    public LocalEventPublisher(LocalDeadEventListener deadEventListener) {
+        eventBus = new EventBus(DEFAULT_LOCAL_EVENTBUS_NAME);
+        this.deadEventListener = deadEventListener;
+        registerDeadEventListener();
+    }
 
     public LocalEventPublisher(String eventPublisherName) {
         eventBus = new EventBus(eventPublisherName);
+        this.deadEventListener = new LocalDeadEventListener();
+        registerDeadEventListener();
+    }
+
+    private void registerDeadEventListener() {
+        eventBus.register(deadEventListener);
     }
 
     @Override
@@ -21,5 +40,14 @@ public class LocalEventPublisher implements DomainEventPublisher {
 
     public void unregister(DomainEventListener domainEventListener) {
         eventBus.unregister(domainEventListener);
+    }
+
+    @VisibleForTesting
+    public int deadEventCount() {
+        if (deadEventListener == null) {
+            return -1;
+        } else {
+            return deadEventListener.deadEventCount();
+        }
     }
 }

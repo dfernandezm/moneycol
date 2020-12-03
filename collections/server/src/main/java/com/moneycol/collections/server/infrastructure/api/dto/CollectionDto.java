@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CollectionDTO {
+public class CollectionDto {
     private String collectionId;
     private String name;
     private String description;
