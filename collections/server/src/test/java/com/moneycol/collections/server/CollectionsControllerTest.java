@@ -5,7 +5,7 @@ import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
@@ -112,14 +112,14 @@ public class CollectionsControllerTest {
     @ParameterizedTest
     @CsvSource({"\"A banknote collection\",\"All the banknotes in London\""})
     void testCollectionCreation(String collectionName, String collectionDescription) {
-        CollectionDTO collectionDTO = CollectionDTO.builder()
-                                        .id("")
+        CollectionDto collectionDTO = CollectionDto.builder()
+                                        .collectionId("")
                                         .name(collectionName)
                                         .description(collectionDescription)
                                         .items(new ArrayList<>())
                                         .build();
 
-        MutableHttpRequest<CollectionDTO> aRequest = POST("/collections", collectionDTO).contentType(MediaType.APPLICATION_JSON);
+        MutableHttpRequest<CollectionDto> aRequest = POST("/collections", collectionDTO).contentType(MediaType.APPLICATION_JSON);
         aRequest.bearerAuth(accessToken);
         HttpResponse<CollectionCreatedResult> collectionCreatedResult = client.toBlocking().exchange(aRequest, Argument.of(CollectionCreatedResult.class));
 
@@ -145,14 +145,14 @@ public class CollectionsControllerTest {
         // When: updating its name/description
         String newName = "newName";
         String newDescription = "newDescription";
-        CollectionDTO collectionDTO = CollectionDTO.builder()
-                                        .id(collectionId)
+        CollectionDto collectionDTO = CollectionDto.builder()
+                                        .collectionId(collectionId)
                                         .name(newName)
                                         .description(newDescription)
                                         .items(new ArrayList<>())
                                         .build();
 
-        MutableHttpRequest<CollectionDTO> updateCollectionEndpoint =
+        MutableHttpRequest<CollectionDto> updateCollectionEndpoint =
                 HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
         updateCollectionEndpoint.bearerAuth(accessToken);
 
@@ -178,17 +178,17 @@ public class CollectionsControllerTest {
         delayMilliseconds(600);
 
         // When: getting it by Id
-        MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
+        MutableHttpRequest<CollectionDto> getCollectionByIdEndpoint =
                 HttpRequest.GET("/collections/" + collectionId);
         getCollectionByIdEndpoint.bearerAuth(accessToken);
 
-        HttpResponse<CollectionDTO> collectionCreatedResp =
-                client.toBlocking().exchange(getCollectionByIdEndpoint, Argument.of(CollectionDTO.class));
+        HttpResponse<CollectionDto> collectionCreatedResp =
+                client.toBlocking().exchange(getCollectionByIdEndpoint, Argument.of(CollectionDto.class));
 
         // Then: the result is the expected
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getId(), is(collectionId));
+        assertThat(collectionCreatedResp.getBody().get().getCollectionId(), is(collectionId));
         assertThat(collectionCreatedResp.getBody().get().getName(), is(aName));
         assertThat(collectionCreatedResp.getBody().get().getDescription(), is(aDescription));
     }
@@ -243,10 +243,10 @@ public class CollectionsControllerTest {
     @Test
     void testUpdateCollectionGives404() {
 
-        // Given: an inexistent ID
+        // Given: an nonexistent ID
         String collectionId = CollectionId.randomId();
-        CollectionDTO cdto = CollectionDTO.builder()
-                                .id("")
+        CollectionDto collectionDto = CollectionDto.builder()
+                                .collectionId("")
                                 .name("")
                                 .description("")
                                 .items(new ArrayList<>())
@@ -254,7 +254,7 @@ public class CollectionsControllerTest {
 
         // When: updating a collection with it
         MutableHttpRequest<?> updateCollectionEndpoint =
-                HttpRequest.PUT("/collections/" + collectionId, cdto);
+                HttpRequest.PUT("/collections/" + collectionId, collectionDto);
         updateCollectionEndpoint.bearerAuth(accessToken);
 
         HttpResponse<JsonNode> collectionUpdatedResp =
@@ -397,8 +397,8 @@ public class CollectionsControllerTest {
     void testCollectionWithNoNameReturns400() {
 
         // Given: a collection with empty name
-        CollectionDTO cdto = CollectionDTO.builder()
-                                .id("")
+        CollectionDto collectionDto = CollectionDto.builder()
+                                .collectionId("")
                                 .name("")
                                 .description("")
                                 .items(new ArrayList<>())
@@ -406,7 +406,7 @@ public class CollectionsControllerTest {
 
         // When: trying to create it
         String endpoint = "/collections";
-        MutableHttpRequest<CollectionDTO> createCollectionEndpoint = HttpRequest.POST(endpoint, cdto);
+        MutableHttpRequest<CollectionDto> createCollectionEndpoint = HttpRequest.POST(endpoint, collectionDto);
         createCollectionEndpoint.bearerAuth(accessToken);
 
         HttpResponse<JsonNode> createCollectionResp =
@@ -438,15 +438,15 @@ public class CollectionsControllerTest {
         // When: updating the name/description
         String newName = "newName";
         String newDescription = "newDescription";
-        CollectionDTO collectionDTO =
-                CollectionDTO.builder()
-                        .id(collectionId)
+        CollectionDto collectionDTO =
+                CollectionDto.builder()
+                        .collectionId(collectionId)
                         .name(newName)
                         .description(newDescription)
                         .items(new ArrayList<>())
                         .build();
 
-        MutableHttpRequest<CollectionDTO> updateCollectionEndpoint =
+        MutableHttpRequest<CollectionDto> updateCollectionEndpoint =
                 HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
         updateCollectionEndpoint.bearerAuth(accessToken);
         HttpResponse<CollectionCreatedResult> collectionCreatedResp =
@@ -550,7 +550,7 @@ public class CollectionsControllerTest {
         delayMilliseconds(1500);
 
         // When: another collector tries to access it (access token is for another collectorId)
-        MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
+        MutableHttpRequest<CollectionDto> getCollectionByIdEndpoint =
                 HttpRequest.GET("/collections/" + collectionId);
         getCollectionByIdEndpoint.bearerAuth(accessToken);
 

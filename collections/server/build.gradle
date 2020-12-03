@@ -28,6 +28,7 @@ ext {
     hamcrestVersion = "1.3"
     micronautVersion = "2.0.3"
     guavaVersion = "30.0-jre"
+    assertjVersion = "3.18.1"
 }
 
 dependencies {
@@ -54,6 +55,7 @@ dependencies {
     implementation group: 'com.google.cloud', name: 'google-cloud-firestore', version: '2.1.0'
 
     implementation("com.google.guava:guava:$guavaVersion")
+    implementation("org.assertj:assertj-core:$assertjVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic")
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))

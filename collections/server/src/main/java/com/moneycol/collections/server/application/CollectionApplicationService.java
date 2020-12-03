@@ -8,7 +8,7 @@ import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
 import io.micronaut.core.util.StringUtils;
@@ -59,7 +59,7 @@ public class CollectionApplicationService {
                                     .build();
     }
 
-    public List<CollectionDTO> byCollector(String collectorId) {
+    public List<CollectionDto> byCollector(String collectorId) {
         Collector collector = Collector.withCollectorId(collectorId);
 
         List<Collection> collections = collectionRepository.byCollector(CollectorId.of(collector.id()));
@@ -67,8 +67,8 @@ public class CollectionApplicationService {
         return collections
                     .stream()
                     .map(collection ->
-                            CollectionDTO.builder()
-                            .id(collection.id())
+                            CollectionDto.builder()
+                            .collectionId(collection.id())
                             .name(collection.name())
                             .description(collection.description())
                             .items(toCollectionItemDTOs(collection))
@@ -76,14 +76,14 @@ public class CollectionApplicationService {
                     .collect(Collectors.toList());
     }
 
-    public CollectionDTO byId(String userId, String collectionId) {
+    public CollectionDto byId(String userId, String collectionId) {
         checkCollectionOwnership(userId, collectionId);
 
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
         List<CollectionItemDTO> collectionItemDTOS = toCollectionItemDTOs(collection);
 
-        return CollectionDTO.builder()
-                .id(collection.id())
+        return CollectionDto.builder()
+                .collectionId(collection.id())
                 .name(collection.name())
                 .description(collection.description())
                 .items(collectionItemDTOS)
