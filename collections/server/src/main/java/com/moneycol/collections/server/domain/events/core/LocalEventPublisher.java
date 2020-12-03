@@ -3,7 +3,7 @@ package com.moneycol.collections.server.domain.events.core;
 import com.google.common.eventbus.EventBus;
 import org.assertj.core.util.VisibleForTesting;
 
-public class LocalEventPublisher implements DomainEventPublisher {
+public class LocalEventPublisher implements DomainEventPublisher<DomainEvent> {
 
     private static final String DEFAULT_LOCAL_EVENTBUS_NAME = "default";
     private EventBus eventBus;
@@ -34,12 +34,8 @@ public class LocalEventPublisher implements DomainEventPublisher {
         eventBus.post(domainEvent);
     }
 
-    public void register(DomainEventListener eventListener) {
-        eventBus.register(eventListener);
-    }
-
-    public void unregister(DomainEventListener domainEventListener) {
-        eventBus.unregister(domainEventListener);
+    public void register(DomainEventSubscriber eventSubscriber) {
+        eventBus.register(eventSubscriber);
     }
 
     @VisibleForTesting

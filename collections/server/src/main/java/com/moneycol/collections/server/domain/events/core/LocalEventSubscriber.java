@@ -8,21 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public abstract class LocalEventSubscriber<E extends DomainEvent> implements DomainEventListener<E> {
+public abstract class LocalEventSubscriber implements DomainEventSubscriber<DomainEvent> {
 
-    private List<E> domainEvents = new ArrayList<>();
+    private List<DomainEvent> domainEvents = new ArrayList<>();
 
     @Subscribe
     @Override
-    public void subscribe(E domainEvent) {
+    public void subscribe(DomainEvent domainEvent) {
         domainEvents.add(domainEvent);
-        listen(domainEvent);
+        //listen(domainEvent);
     }
 
-    public abstract void listen(E domainEvent);
-
-    @Subscribe
-    public void handleDeadEvent(DeadEvent deadEvent) {
-        log.info("Dead Event in local subscriber");
+    @Override
+    public Class<DomainEvent> subscribedToEventType() {
+        return null;
     }
+
+    public abstract void listen(DomainEvent domainEvent);
 }
