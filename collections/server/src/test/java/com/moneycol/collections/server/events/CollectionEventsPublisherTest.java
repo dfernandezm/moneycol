@@ -2,11 +2,7 @@ package com.moneycol.collections.server.events;
 
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.events.CollectionNameModifiedEvent;
-import com.moneycol.collections.server.domain.events.core.DomainEvent;
-import com.moneycol.collections.server.domain.events.core.DomainEventListener;
-import com.moneycol.collections.server.domain.events.core.LocalDeadEventListener;
-import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
-import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
+import com.moneycol.collections.server.domain.events.core.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -29,16 +25,16 @@ public class CollectionEventsPublisherTest {
                         .collectionId(collectionId)
                         .build();
 
-        DomainEventListener<CollectionNameModifiedEvent> listener =
-                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
-                    @Override
-                    public void listen(CollectionNameModifiedEvent domainEvent) {
-                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
-                        assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
-                    }
-                };
+//        DomainEventListener<CollectionNameModifiedEvent> listener =
+//                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
+//                    @Override
+//                    public void listen(CollectionNameModifiedEvent domainEvent) {
+//                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
+//                        assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
+//                    }
+//                };
 
-        collectionEventsPublisher.register(listener);
+        //collectionEventsPublisher.register(listener);
         collectionEventsPublisher.publish(collectionNameModifiedEvent);
 
     }
@@ -67,12 +63,14 @@ public class CollectionEventsPublisherTest {
         LocalEventPublisher collectionEventsPublisher = new LocalEventPublisher(new LocalDeadEventListener());
 
         //TODO: This should work by not listening on that event and forward to dead letter
-        collectionEventsPublisher.register(new LocalEventSubscriber<DomainEvent>() {
-            @Override
-            public void listen(DomainEvent domainEvent) {
-               System.out.println("No domain event should be handled");
-            }
-        });
+//        collectionEventsPublisher.register(new LocalEventSubscriber<DomainEvent>() {
+//            @Override
+//            public void listen(DomainEvent domainEvent) {
+//               System.out.println("No domain event should be handled");
+//            }
+//        });
+
+        collectionEventsPublisher.register(new CollectionEventSubscriber());
 
         collectionEventsPublisher.publish(aDomainEvent());
         collectionEventsPublisher.publish(aDomainEvent());
