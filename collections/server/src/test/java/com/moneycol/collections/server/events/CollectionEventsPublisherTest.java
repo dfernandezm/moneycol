@@ -14,7 +14,8 @@ public class CollectionEventsPublisherTest {
     @Test
     public void publishesKnownEventTest() {
 
-        LocalEventPublisher collectionEventsPublisher = new LocalEventPublisher();
+        DomainEventPublisher<CollectionNameModifiedEvent> collectionEventsPublisher =
+                new LocalGenericEventPublisher<>();
 
         CollectionId collectionId = CollectionId.of(CollectionId.randomId());
         String newCollectionName = "newCollectionName";
@@ -25,16 +26,16 @@ public class CollectionEventsPublisherTest {
                         .collectionId(collectionId)
                         .build();
 
-//        DomainEventSubscriber<CollectionNameModifiedEvent> listener =
-//                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
-//                    @Override
-//                    public void listen(CollectionNameModifiedEvent domainEvent) {
-//                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
-//                        assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
-//                    }
-//                };
+        DomainEventSubscriber<CollectionNameModifiedEvent> listener =
+                new LocalGenericEventSubscriber<CollectionNameModifiedEvent>() {
+            @Override
+            public void handleEvent(CollectionNameModifiedEvent domainEvent) {
+                assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
+                assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
+            }
+        };
 
-        //collectionEventsPublisher.register(listener);
+        collectionEventsPublisher.register(listener);
         collectionEventsPublisher.publish(collectionNameModifiedEvent);
 
     }

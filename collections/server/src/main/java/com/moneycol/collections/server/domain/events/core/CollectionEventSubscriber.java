@@ -4,7 +4,7 @@ import com.moneycol.collections.server.domain.events.CollectionNameModifiedEvent
 
 public class CollectionEventSubscriber extends LocalEventSubscriber {
     @Override
-    public void listen(DomainEvent domainEvent) {
+    public void handleEvent(DomainEvent domainEvent) {
         if (!(domainEvent instanceof CollectionNameModifiedEvent)) {
             //super.handleDeadEvent(domainEvent.ge);
             System.out.println("Not handled");
