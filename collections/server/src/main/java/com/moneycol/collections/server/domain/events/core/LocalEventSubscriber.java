@@ -1,6 +1,5 @@
 package com.moneycol.collections.server.domain.events.core;
 
-import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,13 +15,18 @@ public abstract class LocalEventSubscriber implements DomainEventSubscriber<Doma
     @Override
     public void subscribe(DomainEvent domainEvent) {
         domainEvents.add(domainEvent);
-        //listen(domainEvent);
+
+        Class<?> subscribedToType = this.subscribedToEventType();
+
+        if (domainEvent.getClass() == subscribedToType) {
+            handleEvent(domainEvent);
+        }
     }
 
     @Override
     public Class<DomainEvent> subscribedToEventType() {
-        return null;
+        return DomainEvent.class;
     }
 
-    public abstract void listen(DomainEvent domainEvent);
+    public abstract void handleEvent(DomainEvent domainEvent);
 }
