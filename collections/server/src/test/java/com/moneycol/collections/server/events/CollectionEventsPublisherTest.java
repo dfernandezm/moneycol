@@ -2,7 +2,13 @@ package com.moneycol.collections.server.events;
 
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.events.CollectionNameModifiedEvent;
-import com.moneycol.collections.server.domain.events.core.*;
+import com.moneycol.collections.server.domain.events.core.DomainEvent;
+import com.moneycol.collections.server.domain.events.core.DomainEventPublisher;
+import com.moneycol.collections.server.domain.events.core.DomainEventSubscriber;
+import com.moneycol.collections.server.domain.events.core.LocalDeadEventListener;
+import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
+import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
+import com.moneycol.collections.server.infrastructure.EventBusRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -15,7 +21,7 @@ public class CollectionEventsPublisherTest {
     public void publishesKnownEventTest() {
 
         DomainEventPublisher<CollectionNameModifiedEvent> collectionEventsPublisher =
-                new LocalGenericEventPublisher<>();
+                new LocalEventPublisher<>();
 
         CollectionId collectionId = CollectionId.of(CollectionId.randomId());
         String newCollectionName = "newCollectionName";
@@ -27,17 +33,21 @@ public class CollectionEventsPublisherTest {
                         .build();
 
         DomainEventSubscriber<CollectionNameModifiedEvent> listener =
-                new LocalGenericEventSubscriber<CollectionNameModifiedEvent>() {
-            @Override
-            public void handleEvent(CollectionNameModifiedEvent domainEvent) {
-                assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
-                assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
-            }
+                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
+                    @Override
+                    public Class<CollectionNameModifiedEvent> subscribedToEventType() {
+                        return CollectionNameModifiedEvent.class;
+                    }
+
+                    @Override
+                    public void handleEvent(CollectionNameModifiedEvent domainEvent) {
+                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
+                        assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
+                    }
         };
 
         collectionEventsPublisher.register(listener);
         collectionEventsPublisher.publish(collectionNameModifiedEvent);
-
     }
 
     @Test
@@ -46,7 +56,6 @@ public class CollectionEventsPublisherTest {
         collectionEventsPublisher.publish(aDomainEvent());
 
         assertThat(collectionEventsPublisher.deadEventCount()).isEqualTo(1);
-
     }
 
     @Test
@@ -56,36 +65,33 @@ public class CollectionEventsPublisherTest {
         collectionEventsPublisher.publish(anotherDomainEvent());
 
         assertThat(collectionEventsPublisher.deadEventCount()).isEqualTo(2);
-
     }
-
-    @Test
-    public void multipleDeadEventListenersDontHandleSameEventMoreThanOnce() {
-        LocalEventPublisher collectionEventsPublisher = new LocalEventPublisher(new LocalDeadEventListener());
-
-        //TODO: This should work by not listening on that event and forward to dead letter
-//        collectionEventsPublisher.register(new LocalEventSubscriber<DomainEvent>() {
-//            @Override
-//            public void listen(DomainEvent domainEvent) {
-//               System.out.println("No domain event should be handled");
-//            }
-//        });
-
-        collectionEventsPublisher.register(new CollectionEventSubscriber());
-
-        collectionEventsPublisher.publish(aDomainEvent());
-        collectionEventsPublisher.publish(aDomainEvent());
-
-        assertThat(collectionEventsPublisher.deadEventCount()).isEqualTo(2);
-
-    }
-
 
     @Test
     public void emptyDeadEventCountTest() {
         LocalEventPublisher collectionEventsPublisher = new LocalEventPublisher(new LocalDeadEventListener());
-
         assertThat(collectionEventsPublisher.deadEventCount()).isEqualTo(0);
+    }
+
+    @Test
+    public void handleEventIsCalled() {
+        final boolean[] called = {false};
+        EventBusRegistry eventBusRegistry = new EventBusRegistry(new LocalEventPublisher<>(),
+                new LocalEventSubscriber<DomainEvent>() {
+                    @Override
+                    public void handleEvent(DomainEvent domainEvent) {
+                        called[0] = true;
+                    }
+
+                    @Override
+                    public Class<DomainEvent> subscribedToEventType() {
+                        return DomainEvent.class;
+                    }
+                });
+
+        eventBusRegistry.publish(aDomainEvent());
+        assertThat(called[0]).isTrue();
+
     }
 
     private DomainEvent aDomainEvent() {

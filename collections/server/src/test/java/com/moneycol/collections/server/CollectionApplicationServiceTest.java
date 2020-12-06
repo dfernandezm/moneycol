@@ -15,12 +15,17 @@ import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.domain.events.core.DomainEvent;
+import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
+import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
+import com.moneycol.collections.server.infrastructure.EventBusRegistry;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,10 +61,24 @@ import static org.mockito.ArgumentMatchers.any;
 public class CollectionApplicationServiceTest {
 
     private static FirestoreProvider firestoreProvider;
+    private static EventBusRegistry eventBusRegistry;
 
     @BeforeAll
     public static void setup() {
         firestoreProvider = FirestoreHelper.initContainer();
+        eventBusRegistry = new EventBusRegistry(new LocalEventPublisher<>(),
+                new LocalEventSubscriber<DomainEvent>() {
+                    @Override
+                    public void handleEvent(DomainEvent domainEvent) {
+                        Assertions.assertThat(domainEvent.eventId()).isNotNull();
+                    }
+
+                    @Override
+                    public Class<DomainEvent> subscribedToEventType() {
+                        return DomainEvent.class;
+                    }
+                });
+
     }
 
     @AfterEach
@@ -74,7 +93,7 @@ public class CollectionApplicationServiceTest {
 
         // Given
         CollectionRepository collectionRepo = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
 
         // When
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
@@ -221,7 +240,7 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(collectionId2, collectionName2, "desc", collectorId);
 
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
 
         // When: updating the first collection providing name2 instead of name1
         UpdateCollectionDataCommand updateCollectionDataCommand =
@@ -251,7 +270,7 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(collectionId, collectionName, "desc", collectorId);
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
 
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
                                                             .name(collectionName)
                                                             .description("newDesc")
@@ -306,7 +325,7 @@ public class CollectionApplicationServiceTest {
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
 
         // When: adding an item to it
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         String itemId = "itemId";
         CollectionItemDTO collectionItemDTO = new CollectionItemDTO(itemId);
         List<CollectionItemDTO> items = new ArrayList<>();
@@ -384,7 +403,7 @@ public class CollectionApplicationServiceTest {
 
         // When: Deleting an item from the collection
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         RemoveItemFromCollectionCommand removeItemFromCollectionCommand = RemoveItemFromCollectionCommand.builder()
                                                                             .collectorId(collectorId)
                                                                             .collectionId(aCollectionId)
@@ -415,7 +434,7 @@ public class CollectionApplicationServiceTest {
 
         // when: deleting an item from the collection
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
 
         CollectionItemDTO item1Dto = new CollectionItemDTO("item3");
         CollectionItemDTO item2Dto = new CollectionItemDTO("item4");
@@ -465,7 +484,7 @@ public class CollectionApplicationServiceTest {
                                                             .collectorId(aCollectorId)
                                                             .build();
 
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
 
         // When: creating it
         Executable s = () ->  cas.createCollection(createCollectionCommand);
