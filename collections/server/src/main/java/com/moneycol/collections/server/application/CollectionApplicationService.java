@@ -8,6 +8,8 @@ import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
+import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
+import com.moneycol.collections.server.infrastructure.EventBusRegistry;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
@@ -23,10 +25,13 @@ import java.util.stream.Collectors;
 public class CollectionApplicationService {
 
     private CollectionRepository collectionRepository;
+    private EventBusRegistry eventBusRegistry;
 
     @Inject
-    public CollectionApplicationService(CollectionRepository collectionRepository) {
+    public CollectionApplicationService(CollectionRepository collectionRepository,
+                                        EventBusRegistry eventBusRegistry) {
         this.collectionRepository = collectionRepository;
+        this.eventBusRegistry = eventBusRegistry;
     }
 
     public CollectionCreatedResult createCollection(CreateCollectionCommand createCollectionCommand) {
@@ -51,6 +56,13 @@ public class CollectionApplicationService {
                                         collector);
 
         Collection createdCollection = collectionRepository.create(collection);
+
+        eventBusRegistry.publish(
+                CollectionCreatedEvent.builder()
+                .collectionId(createdCollection.id())
+                .name(createdCollection.name())
+                .description(createdCollection.description())
+                .build());
 
         return CollectionCreatedResult.builder()
                                     .collectionId(createdCollection.id())
@@ -105,6 +117,7 @@ public class CollectionApplicationService {
         collection.name(collectionDataCommand.getName());
         collection.description(collectionDataCommand.getDescription());
         collectionRepository.update(collection);
+
         return CollectionUpdatedResult.builder()
                 .collectionId(collection.id())
                 .name(collection.name())

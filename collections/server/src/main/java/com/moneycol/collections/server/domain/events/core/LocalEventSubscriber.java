@@ -7,26 +7,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public abstract class LocalEventSubscriber implements DomainEventSubscriber<DomainEvent> {
+public abstract class LocalEventSubscriber<T extends DomainEvent> implements DomainEventSubscriber<T> {
 
     private List<DomainEvent> domainEvents = new ArrayList<>();
 
     @Subscribe
     @Override
-    public void subscribe(DomainEvent domainEvent) {
+    public final void subscribe(T domainEvent) {
         domainEvents.add(domainEvent);
 
         Class<?> subscribedToType = this.subscribedToEventType();
 
-        if (domainEvent.getClass() == subscribedToType) {
+        //TODO: not valid, need to check types better
+        if (domainEvent.getClass().isAssignableFrom(subscribedToType)) {
             handleEvent(domainEvent);
         }
     }
 
-    @Override
-    public Class<DomainEvent> subscribedToEventType() {
-        return DomainEvent.class;
-    }
-
-    public abstract void handleEvent(DomainEvent domainEvent);
+    public abstract void handleEvent(T domainEvent);
 }
