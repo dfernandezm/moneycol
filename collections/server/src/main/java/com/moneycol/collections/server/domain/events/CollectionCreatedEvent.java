@@ -1,6 +1,7 @@
 package com.moneycol.collections.server.domain.events;
 
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
+import io.micronaut.core.annotation.Introspected;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Data
 @Builder
+@Introspected
 public class CollectionCreatedEvent implements DomainEvent {
 
     private String collectionId;

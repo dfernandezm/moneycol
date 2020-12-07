@@ -18,7 +18,7 @@ import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
 import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
 import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
-import com.moneycol.collections.server.infrastructure.EventBusRegistry;
+import com.moneycol.collections.server.infrastructure.DomainEventRegistry;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
@@ -61,12 +61,12 @@ import static org.mockito.ArgumentMatchers.any;
 public class CollectionApplicationServiceTest {
 
     private static FirestoreProvider firestoreProvider;
-    private static EventBusRegistry eventBusRegistry;
+    private static DomainEventRegistry eventBusRegistry;
 
     @BeforeAll
     public static void setup() {
         firestoreProvider = FirestoreHelper.initContainer();
-        eventBusRegistry = new EventBusRegistry(new LocalEventPublisher<>(),
+        eventBusRegistry = new DomainEventRegistry(new LocalEventPublisher<>(),
                 new LocalEventSubscriber<DomainEvent>() {
                     @Override
                     public void handleEvent(DomainEvent domainEvent) {
