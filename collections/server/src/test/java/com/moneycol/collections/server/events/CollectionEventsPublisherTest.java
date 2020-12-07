@@ -8,7 +8,7 @@ import com.moneycol.collections.server.domain.events.core.DomainEventSubscriber;
 import com.moneycol.collections.server.domain.events.core.LocalDeadEventListener;
 import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
 import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
-import com.moneycol.collections.server.infrastructure.EventBusRegistry;
+import com.moneycol.collections.server.infrastructure.DomainEventRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -76,7 +76,7 @@ public class CollectionEventsPublisherTest {
     @Test
     public void handleEventIsCalled() {
         final boolean[] called = {false};
-        EventBusRegistry eventBusRegistry = new EventBusRegistry(new LocalEventPublisher<>(),
+        DomainEventRegistry eventBusRegistry = new DomainEventRegistry(new LocalEventPublisher<>(),
                 new LocalEventSubscriber<DomainEvent>() {
                     @Override
                     public void handleEvent(DomainEvent domainEvent) {

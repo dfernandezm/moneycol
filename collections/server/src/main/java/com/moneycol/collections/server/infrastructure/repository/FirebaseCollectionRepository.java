@@ -31,13 +31,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-//https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/firestore/src/main/java/com/example/firestore/Quickstart.java
-//https://github.com/golobitch/fun7/blob/e0e641b449d4b6d46a2a13e3c9fd1f30c3722d4b/src/test/java/ch/golobit/fun7/service/MultiplayerServiceTest.java
-// https://cloud.google.com/firestore/docs/quickstart-servers
-//TODO: wrap in RX
-//TODO: convert futures to Flowables
-//TODO: https://github.com/google/guava/wiki/EventBusExplained
-// Querying: https://firebase.google.com/docs/firestore/query-data/get-data
+/**
+ * Implementation of Collection repository using firestore
+ *
+ *
+ * Firestore subcollections usecases:
+ * https://firebase.google.com/docs/firestore/manage-data/structure-data?authuser=0
+ * https://firebase.google.com/docs/firestore/manage-data/transactions#batched-writes
+ *
+ *
+ * Some samples
+ *
+ * @see https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/firestore/src/main/java/com/example/firestore/Quickstart.java
+ * @see https://github.com/golobitch/fun7/blob/e0e641b449d4b6d46a2a13e3c9fd1f30c3722d4b/src/test/java/ch/golobit/fun7/service/MultiplayerServiceTest.java
+ * @see https://cloud.google.com/firestore/docs/quickstart-servers
+ *
+ */
 @Slf4j
 @Primary
 @Singleton
@@ -80,9 +89,7 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         return s.map(query -> query.size() > 0);
     }
 
-    // Firestore subcollections usecases:
-    // https://firebase.google.com/docs/firestore/manage-data/structure-data?authuser=0
-    // https://firebase.google.com/docs/firestore/manage-data/transactions#batched-writes
+
     @Override
     public Collection update(Collection collection) {
         Map<String, Object> data = new LinkedHashMap<>();

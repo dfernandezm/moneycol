@@ -9,7 +9,7 @@ import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
-import com.moneycol.collections.server.infrastructure.EventBusRegistry;
+import com.moneycol.collections.server.infrastructure.DomainEventRegistry;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
@@ -25,11 +25,11 @@ import java.util.stream.Collectors;
 public class CollectionApplicationService {
 
     private CollectionRepository collectionRepository;
-    private EventBusRegistry eventBusRegistry;
+    private DomainEventRegistry eventBusRegistry;
 
     @Inject
     public CollectionApplicationService(CollectionRepository collectionRepository,
-                                        EventBusRegistry eventBusRegistry) {
+                                        DomainEventRegistry eventBusRegistry) {
         this.collectionRepository = collectionRepository;
         this.eventBusRegistry = eventBusRegistry;
     }
