@@ -5,6 +5,9 @@ import com.moneycol.collections.server.domain.events.DefaultDomainEventSubscribe
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 
+/**
+ *  Micronaut Factory for Local EventBus implementation
+ */
 @Factory
 public class EventRegistryFactory {
 
