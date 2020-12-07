@@ -18,8 +18,10 @@ public abstract class LocalEventSubscriber<T extends DomainEvent> implements Dom
 
         Class<?> subscribedToType = this.subscribedToEventType();
 
-        //TODO: not valid, need to check types better
-        if (domainEvent.getClass().isAssignableFrom(subscribedToType)) {
+        log.debug("Received event {}", domainEvent.getClass());
+
+        if (subscribedToType.isAssignableFrom(domainEvent.getClass())) {
+            log.info("Handling event {}", domainEvent.getClass());
             handleEvent(domainEvent);
         }
     }
