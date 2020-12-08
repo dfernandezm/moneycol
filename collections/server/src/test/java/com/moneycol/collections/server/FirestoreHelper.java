@@ -149,6 +149,21 @@ public class FirestoreHelper {
         return itemIds;
     }
 
+
+    public static Map<String, Object> findEventData(String eventsPath, String eventId) {
+        try {
+            DocumentReference documentReference = firestore.collection(eventsPath).document(eventId);
+            DocumentSnapshot documentSnapshot = documentReference.get().get();
+            if (documentSnapshot.exists()) {
+                return documentSnapshot.getData();
+            } else {
+                throw new RuntimeException("Event in " + eventsPath + " does not exist with id " + eventId);
+            }
+        } catch (InterruptedException | ExecutionException ie) {
+            throw new RuntimeException("Event in " + eventsPath + " does not exist with id " + eventId, ie);
+        }
+    }
+
     private static void deleteCollection(CollectionReference collection, int batchSize) {
         try {
             // retrieve a small batch of documents to avoid out-of-memory errors
@@ -168,5 +183,7 @@ public class FirestoreHelper {
             System.err.println("Error deleting collection : " + e.getMessage());
         }
     }
+
+
 
 }

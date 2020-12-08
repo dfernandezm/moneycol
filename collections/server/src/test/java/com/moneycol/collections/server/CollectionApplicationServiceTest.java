@@ -25,7 +25,6 @@ import com.moneycol.collections.server.infrastructure.repository.FirebaseCollect
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -70,7 +69,6 @@ public class CollectionApplicationServiceTest {
                 new LocalEventSubscriber<DomainEvent>() {
                     @Override
                     public void handleEvent(DomainEvent domainEvent) {
-                        Assertions.assertThat(domainEvent.eventId()).isNotNull();
                     }
 
                     @Override
