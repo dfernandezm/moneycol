@@ -5,7 +5,6 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.moneycol.collections.server.domain.events.EventStore;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
-import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +14,7 @@ import javax.inject.Inject;
 public class FirestoreEventStore implements EventStore {
 
     private Firestore firestore;
+    private static final String COLLECTION_EVENTS_COLLECTION_NAME = "events";
 
     @Inject
     public FirestoreEventStore(FirestoreProvider firestoreProvider)  {
@@ -25,7 +25,9 @@ public class FirestoreEventStore implements EventStore {
     public void store(DomainEvent domainEvent) {
         try {
 
-            DocumentReference docRef = firestore.collection("events").document(domainEvent.eventId());
+            DocumentReference docRef = firestore
+                    .collection(COLLECTION_EVENTS_COLLECTION_NAME)
+                    .document(domainEvent.eventId());
             DocumentSnapshot documentSnapshot = docRef.get().get();
             if (documentSnapshot.exists()) {
                 log.warn("Event with id {} already exists - skipping", domainEvent.eventId());
@@ -39,7 +41,9 @@ public class FirestoreEventStore implements EventStore {
 
     private void createEvent(DomainEvent domainEvent) {
         try {
-            DocumentReference documentReference = firestore.collection("events").document(domainEvent.eventId());
+            DocumentReference documentReference = firestore
+                    .collection(COLLECTION_EVENTS_COLLECTION_NAME)
+                    .document(domainEvent.eventId());
             documentReference.set(domainEvent);
 
             log.info("Created event in Firestore with id {}",
