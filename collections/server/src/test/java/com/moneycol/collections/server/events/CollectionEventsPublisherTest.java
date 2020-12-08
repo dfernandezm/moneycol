@@ -1,7 +1,7 @@
 package com.moneycol.collections.server.events;
 
 import com.moneycol.collections.server.domain.CollectionId;
-import com.moneycol.collections.server.domain.events.CollectionNameModifiedEvent;
+import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
 import com.moneycol.collections.server.domain.events.core.DomainEventPublisher;
 import com.moneycol.collections.server.domain.events.core.DomainEventSubscriber;
@@ -20,34 +20,35 @@ public class CollectionEventsPublisherTest {
     @Test
     public void publishesKnownEventTest() {
 
-        DomainEventPublisher<CollectionNameModifiedEvent> collectionEventsPublisher =
+        DomainEventPublisher<CollectionCreatedEvent> collectionEventsPublisher =
                 new LocalEventPublisher<>();
 
         CollectionId collectionId = CollectionId.of(CollectionId.randomId());
         String newCollectionName = "newCollectionName";
 
-        CollectionNameModifiedEvent collectionNameModifiedEvent =
-                CollectionNameModifiedEvent.builder()
-                        .newName(newCollectionName)
-                        .collectionId(collectionId)
+
+        CollectionCreatedEvent collectionCreatedEvent =
+                CollectionCreatedEvent.builder()
+                        .name(newCollectionName)
+                        .collectionId(collectionId.id())
                         .build();
 
-        DomainEventSubscriber<CollectionNameModifiedEvent> listener =
-                new LocalEventSubscriber<CollectionNameModifiedEvent>() {
+        DomainEventSubscriber<CollectionCreatedEvent> listener =
+                new LocalEventSubscriber<CollectionCreatedEvent>() {
                     @Override
-                    public Class<CollectionNameModifiedEvent> subscribedToEventType() {
-                        return CollectionNameModifiedEvent.class;
+                    public Class<CollectionCreatedEvent> subscribedToEventType() {
+                        return CollectionCreatedEvent.class;
                     }
 
                     @Override
-                    public void handleEvent(CollectionNameModifiedEvent domainEvent) {
-                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId);
-                        assertThat(domainEvent.getNewCollectionName()).isEqualTo(newCollectionName);
+                    public void handleEvent(CollectionCreatedEvent domainEvent) {
+                        assertThat(domainEvent.getCollectionId()).isEqualTo(collectionId.id());
+                        assertThat(domainEvent.getName()).isEqualTo(newCollectionName);
                     }
         };
 
         collectionEventsPublisher.register(listener);
-        collectionEventsPublisher.publish(collectionNameModifiedEvent);
+        collectionEventsPublisher.publish(collectionCreatedEvent);
     }
 
     @Test
