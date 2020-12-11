@@ -236,7 +236,7 @@ export const verifyAuthWithDispatch = async (dispatch: Dispatch, _: any, apolloC
     if (savedToken && user) {
       const { data } = await apolloClient.mutate({
         mutation: VERIFY_TOKEN_GQL,
-        variables: { savedToken }
+        variables: { token: savedToken }
       });
       
       const { token, email, userId }  = data.verifyToken;
