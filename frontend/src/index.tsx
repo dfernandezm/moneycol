@@ -13,13 +13,15 @@ import configureStore from "./configureStore";
 import Main from './main';
 
 // This works in production/deployed as there is an ingress rule for /graphql that points to moneycolserver
-const URL = process.env.NODE_ENV === 'production' ? "graphql" : "http://localhost:4000/graphql"
+const baseUrl = window.location.origin
+console.log("Base URL is:", baseUrl);
+
+const URL = process.env.NODE_ENV === 'production' ? `${baseUrl}/graphql` : "http://localhost:4000/graphql"
 console.log("GraphQL uri is: ", URL)
 
 const errorLink = onError(({ graphQLErrors }) => {
   if (graphQLErrors) graphQLErrors.map(({ message }) => console.log(message))
 })
-
 
 const httpLink = createHttpLink({
   uri: URL,
