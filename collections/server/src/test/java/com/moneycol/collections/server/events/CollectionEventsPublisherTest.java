@@ -105,6 +105,11 @@ public class CollectionEventsPublisherTest {
             }
 
             @Override
+            public String eventName() {
+                return "ADomainEvent";
+            }
+
+            @Override
             public Long occurredOn() {
                 return Instant.now().toEpochMilli();
             }
@@ -116,6 +121,11 @@ public class CollectionEventsPublisherTest {
             @Override
             public String eventId() {
                 return "uuid2";
+            }
+
+            @Override
+            public String eventName() {
+                return "AnotherDomainEvent";
             }
 
             @Override
