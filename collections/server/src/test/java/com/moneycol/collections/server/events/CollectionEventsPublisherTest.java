@@ -2,14 +2,16 @@ package com.moneycol.collections.server.events;
 
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
+import com.moneycol.collections.server.domain.events.DomainEventStoringSubscriber;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
 import com.moneycol.collections.server.domain.events.core.DomainEventPublisher;
 import com.moneycol.collections.server.domain.events.core.DomainEventSubscriber;
 import com.moneycol.collections.server.domain.events.core.LocalDeadEventListener;
 import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
 import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
-import com.moneycol.collections.server.infrastructure.DomainEventRegistry;
+import com.moneycol.collections.server.infrastructure.event.DomainEventRegistry;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.Instant;
 
@@ -88,7 +90,7 @@ public class CollectionEventsPublisherTest {
                     public Class<DomainEvent> subscribedToEventType() {
                         return DomainEvent.class;
                     }
-                });
+                }, Mockito.mock(DomainEventStoringSubscriber.class));
 
         eventBusRegistry.publish(aDomainEvent());
         assertThat(called[0]).isTrue();

@@ -1,8 +1,10 @@
 package com.moneycol.collections.server.domain.events.core;
 
 import com.google.common.eventbus.EventBus;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.VisibleForTesting;
 
+@Slf4j
 public class LocalEventPublisher<T extends DomainEvent> implements DomainEventPublisher<T> {
 
     private static final String DEFAULT_LOCAL_EVENTBUS_NAME = "default";
@@ -35,6 +37,7 @@ public class LocalEventPublisher<T extends DomainEvent> implements DomainEventPu
     }
 
     public void register(DomainEventSubscriber eventSubscriber) {
+        log.info("Registering subscriber for: {}", eventSubscriber.getClass());
         eventBus.register(eventSubscriber);
     }
 

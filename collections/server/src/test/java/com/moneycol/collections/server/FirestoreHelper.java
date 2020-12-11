@@ -1,5 +1,6 @@
 package com.moneycol.collections.server;
 
+import com.google.api.client.util.Lists;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
@@ -21,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class FirestoreHelper {
@@ -161,6 +163,21 @@ public class FirestoreHelper {
             }
         } catch (InterruptedException | ExecutionException ie) {
             throw new RuntimeException("Event in " + eventsPath + " does not exist with id " + eventId, ie);
+        }
+    }
+
+    public static List<Map<String, Object>> findAllEvents() {
+        try {
+            Iterable<DocumentReference> documentReferences = firestore.collection("events").listDocuments();
+            return Lists.newArrayList(documentReferences).stream().map(documentReference -> {
+                try {
+                    return documentReference.get().get().getData();
+                } catch (InterruptedException | ExecutionException ie) {
+                    throw new RuntimeException("Error getting data", ie);
+                }
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting data", e);
         }
     }
 

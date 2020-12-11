@@ -1,5 +1,6 @@
-package com.moneycol.collections.server.infrastructure;
+package com.moneycol.collections.server.infrastructure.event;
 
+import com.moneycol.collections.server.domain.events.DomainEventStoringSubscriber;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
 import com.moneycol.collections.server.domain.events.core.DomainEventPublisher;
 import com.moneycol.collections.server.domain.events.core.DomainEventSubscriber;
@@ -29,10 +30,12 @@ public class DomainEventRegistry {
     @Inject
     public DomainEventRegistry(
             DomainEventPublisher<DomainEvent> defaultDomainEventPublisher,
-            DomainEventSubscriber<DomainEvent> defaultDomainEventSubscriber) {
+            DomainEventSubscriber<DomainEvent> defaultDomainEventSubscriber,
+            DomainEventStoringSubscriber storingDomainEventSubscriber) {
         this.publisher = defaultDomainEventPublisher;
         subscribers.add(defaultDomainEventSubscriber);
-        addSubscriber(defaultDomainEventSubscriber);
+        subscribers.add(storingDomainEventSubscriber);
+        subscribeToAll();
     }
 
     public void publish(DomainEvent domainEvent) {
