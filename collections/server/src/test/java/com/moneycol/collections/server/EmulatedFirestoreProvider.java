@@ -1,4 +1,4 @@
-package com.moneycol.collections.server.infrastructure.repository;
+package com.moneycol.collections.server;
 
 import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
@@ -6,6 +6,7 @@ import com.google.auth.Credentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import com.google.common.collect.ImmutableList;
+import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import io.micronaut.context.annotation.Requires;
 import lombok.extern.slf4j.Slf4j;
 
