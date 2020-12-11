@@ -10,13 +10,18 @@ public class DomainEventTest {
 
     @Test
     public void occurredOnIsConsistent() {
+        // Given: an event
         CollectionCreatedEvent collectionCreatedEvent = TestHelper.aCollectionCreatedEvent();
 
-
+        // When: getting an occurredOn date now
         Long occurredOnFirst = collectionCreatedEvent.occurredOn();
+
         TestHelper.delayMillisecond(150);
+
+        // And when: getting the same ocurredOn date after some delay
         Long ocurredOnNext = collectionCreatedEvent.occurredOn();
 
+        // Then: the ocurredOn date stays the same
         assertThat(occurredOnFirst).isEqualTo(ocurredOnNext);
     }
 

@@ -11,7 +11,6 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
-import com.moneycol.collections.server.infrastructure.repository.EmulatedFirestoreProvider;
 import io.micronaut.core.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.FirestoreEmulatorContainer;
