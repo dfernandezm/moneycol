@@ -9,9 +9,9 @@ import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
 import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
-import com.moneycol.collections.server.infrastructure.DomainEventRegistry;
+import com.moneycol.collections.server.infrastructure.event.DomainEventRegistry;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +92,7 @@ public class CollectionApplicationService {
         checkCollectionOwnership(userId, collectionId);
 
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
-        List<CollectionItemDTO> collectionItemDTOS = toCollectionItemDTOs(collection);
+        List<CollectionItemDto> collectionItemDTOS = toCollectionItemDTOs(collection);
 
         return CollectionDto.builder()
                 .collectionId(collection.id())
@@ -157,9 +157,9 @@ public class CollectionApplicationService {
         }
     }
 
-    private List<CollectionItemDTO> toCollectionItemDTOs(Collection collection) {
+    private List<CollectionItemDto> toCollectionItemDTOs(Collection collection) {
         return collection.items().stream()
-                .map(item -> new CollectionItemDTO(item.getItemId()))
+                .map(item -> new CollectionItemDto(item.getItemId()))
                 .collect(Collectors.toList());
     }
 }

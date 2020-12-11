@@ -6,7 +6,7 @@ import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
 import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import io.micronaut.context.annotation.Value;
@@ -316,9 +316,9 @@ public class CollectionsControllerTest {
         FirestoreHelper.createCollection(aCollectionId, "aCollection", "desc", collectorId);
         delayMilliseconds(500);
 
-        List<CollectionItemDTO> items = new ArrayList<>();
-        items.add(new CollectionItemDTO("itemId1"));
-        items.add(new CollectionItemDTO("itemId2"));
+        List<CollectionItemDto> items = new ArrayList<>();
+        items.add(new CollectionItemDto("itemId1"));
+        items.add(new CollectionItemDto("itemId2"));
         AddItemsDTO addItemsDTO = new AddItemsDTO(items);
 
         // When: adding items to the collection

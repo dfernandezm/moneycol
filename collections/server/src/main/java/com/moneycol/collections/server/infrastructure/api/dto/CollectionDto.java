@@ -15,5 +15,5 @@ public class CollectionDto {
     private String collectionId;
     private String name;
     private String description;
-    private List<CollectionItemDTO> items;
+    private List<CollectionItemDto> items;
 }

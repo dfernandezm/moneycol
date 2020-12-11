@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CollectionItemDTO {
+public class CollectionItemDto {
     private String itemId;
 }
