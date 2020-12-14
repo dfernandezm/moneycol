@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.function.Supplier;
 
 @Slf4j
-public class LambdaErrorHandling {
+public class LambdaErrorHandlers {
 
     /**
-     * Wraps the given {@link ThrowingSupplier} (which is a regular {@link Supplier} that throws a single
+     * Wraps the given {@link ThrowingSupplier} (which is a regular {@link Supplier} that throws
      * checked Exception) so that the checked exception is properly logged and wrapped in a RuntimeException
      *
      * See: https://www.baeldung.com/java-lambda-exceptions
@@ -18,7 +18,7 @@ public class LambdaErrorHandling {
      * @param <E> the Type of the Throwable/Exception being handled
      * @return a Supplier, that wraps the original operation providing checked exception loggin/rethrowing
      */
-    public static <T,E extends Throwable> Supplier<T> wrapInThrowingSupplier(ThrowingSupplier<T,E> supplier) {
+    public static <T,E extends Throwable> Supplier<T> handleCheckedSupplier(ThrowingSupplier<T,E> supplier) {
         return () -> {
             try {
                 return supplier.get();
