@@ -23,7 +23,7 @@ public class FirebaseHelper {
      * Ensure the Service Account has signBlob and signJwt permission apart from Firebase Auth
      * Admin rights. This way custom tokens can be generated.
      *
-     * @return
+     * @return the Firebase Auth Admin instance initialised
      * @throws IOException
      */
     public static FirebaseAuth initializeFirebaseAuth() throws IOException {

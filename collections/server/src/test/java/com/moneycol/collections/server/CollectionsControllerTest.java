@@ -47,7 +47,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-//https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+/**
+ * Examples taken from:
+ *
+ * https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+ *
+ */
 @Slf4j
 @MicronautTest(environments = "test")
 public class CollectionsControllerTest {
