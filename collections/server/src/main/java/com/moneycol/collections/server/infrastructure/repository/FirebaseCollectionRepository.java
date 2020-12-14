@@ -17,7 +17,7 @@ import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
-import com.moneycol.collections.server.infrastructure.util.LambdaErrorHandling;
+import com.moneycol.collections.server.infrastructure.util.LambdaErrorHandlers;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.util.CollectionUtils;
 import io.reactivex.Single;
@@ -68,27 +68,9 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         return createWithSupplier(collection);
     }
 
-    private Collection doCreateCollectionCatching(Collection collection) {
-        Map<String, Object> data = toMapData(collection);
-
-        try {
-            DocumentReference docRef = firestore.collection("collections").document(collection.id());
-            ApiFuture<WriteResult> result = docRef.set(data);
-            log.info("Created collection with collectionId {} for collector {} at {}",
-                    docRef.getId(),
-                    collection.collector().id(),
-                    result.get().getUpdateTime());
-        } catch (Exception e) {
-            log.error("Error creating", e);
-            throw new RuntimeException("Error creating collection", e);
-        }
-
-        return collection;
-    }
-
     @VisibleForTesting
     public Collection createWithSupplier(Collection collection) {
-        return LambdaErrorHandling.wrapInThrowingSupplier(() -> doCreateCollection(collection)).get();
+        return LambdaErrorHandlers.handleCheckedSupplier(() -> doCreateCollection(collection)).get();
     }
 
     private Collection doCreateCollection(Collection collection) throws InterruptedException, ExecutionException {

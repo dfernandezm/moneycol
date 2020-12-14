@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 
-public class ErrorHandlingSuppliersTest {
+public class ErrorHandlingLambdasTest {
 
     @ParameterizedTest
     @ValueSource(classes = {ExecutionException.class, InterruptedException.class})
@@ -31,7 +31,7 @@ public class ErrorHandlingSuppliersTest {
         // Given: an operation in firestore that throws a checked exception
         Firestore f = Mockito.mock(Firestore.class);
         FirebaseCollectionRepository firebaseCollectionRepo = mockFirebaseRepo(f);
-        DocumentReference dr = mockCollectionAndDocument(f);
+        DocumentReference dr = mockCollectionRefWithDocumentRef(f);
         mockApiFutureThrowingException(dr, checkedExceptionToThrow);
 
         // When: calling the operation
@@ -57,7 +57,7 @@ public class ErrorHandlingSuppliersTest {
         return new FirebaseCollectionRepository(firestoreProvider);
     }
 
-    private DocumentReference mockCollectionAndDocument(Firestore f) {
+    private DocumentReference mockCollectionRefWithDocumentRef(Firestore f) {
         CollectionReference cr = Mockito.mock(CollectionReference.class);
         DocumentReference dr = Mockito.mock(DocumentReference.class);
         Mockito.when(cr.document(anyString())).thenReturn(dr);
