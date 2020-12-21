@@ -9,6 +9,10 @@ import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { onError } from 'apollo-link-error'
+import LocaleProvider from './crema/@crema/utility/LocaleProvider';
+import CremaStyleProvider from './crema/@crema/utility/CremaStyleProvider';
+import CremaThemeProvider from './crema/@crema/utility/CremaThemeProvider';
+
 import configureStore from "./configureStore";
 import Main from './main';
 
@@ -52,7 +56,13 @@ const store = configureStore(client);
 const WrappedApp = (
   <ApolloProvider client={client}>
     <Provider store={store}>
-      <Main />
+      <CremaThemeProvider>
+        <CremaStyleProvider>
+          <LocaleProvider>
+            <Main />
+          </LocaleProvider>
+        </CremaStyleProvider>
+      </CremaThemeProvider>
     </Provider>
   </ApolloProvider>
 );

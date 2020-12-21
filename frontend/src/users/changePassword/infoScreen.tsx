@@ -43,10 +43,11 @@ const InfoScreen: React.FC<AllInfoProps> = (props: AllInfoProps) => {
           buttonDestination:"/", 
           buttonText: "Return to main page"});
       } else {
+        const withState = props.location.state as any 
         setInfo({
-          message: props.location.state.message,
-          buttonDestination: props.location.state.buttonDestination,
-          buttonText: props.location.state.buttonText,
+          message: withState.message,
+          buttonDestination: withState.buttonDestination,
+          buttonText: withState.buttonText,
           isError: false
         });
       }

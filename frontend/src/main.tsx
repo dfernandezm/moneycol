@@ -16,6 +16,7 @@ import { connect } from "react-redux";
 import ProtectedRoute from "./login/protectedRoute";
 import Protected  from "./login/protected";
 import Login from "./login/login";
+import SigninFirebase from "./login/loginCrema";
 import { RootState } from './login/reducers';
 
 import VerifyEmail from './users/verifyEmail/verifyEmail';
@@ -91,7 +92,7 @@ const Main: React.FC<MainProps> = (props: MainProps) => {
               isVerifying={isVerifying}
               />    
             
-            <Route path="/login" component={Login} />
+            <Route path="/login" component={SigninFirebase} />
             <Route path="/users/verify" component={Verify} />
             <Route path="/users/verifyEmail" component={VerifyEmail} />
             <Route path="/users/signup" component={Signup} />
