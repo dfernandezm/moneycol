@@ -12,6 +12,7 @@ import { onError } from 'apollo-link-error'
 import LocaleProvider from './crema/@crema/utility/LocaleProvider';
 import CremaStyleProvider from './crema/@crema/utility/CremaStyleProvider';
 import CremaThemeProvider from './crema/@crema/utility/CremaThemeProvider';
+import CssBaseline from '@material-ui/core/CssBaseline';
 
 import configureStore from "./configureStore";
 import Main from './main';
@@ -59,6 +60,8 @@ const WrappedApp = (
       <CremaThemeProvider>
         <CremaStyleProvider>
           <LocaleProvider>
+           <CssBaseline />
+
             <Main />
           </LocaleProvider>
         </CremaStyleProvider>

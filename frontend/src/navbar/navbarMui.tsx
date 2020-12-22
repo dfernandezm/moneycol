@@ -34,8 +34,8 @@ const useStyles = makeStyles((theme: Theme) =>
             display: 'none',
             [theme.breakpoints.up('sm')]: {
                 display: 'block',
-            },
-            fontFamily: "Roboto Mono"
+            }
+            //fontFamily: "Roboto Mono"
         },
         sectionDesktop: {
             display: 'none',

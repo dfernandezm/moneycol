@@ -1,6 +1,7 @@
 body {
-  font: 14px "Roboto", Futura, sans-serif;
+  /*font: 14px "Roboto", Futura, sans-serif;*/
   /*background-color: rgb(247, 244, 244);*/
+  font-family: 'Poppins', sans-serif
 }
 
 .mainContent {
@@ -10,7 +11,8 @@ body {
   margin: 0 auto;
   text-align: justify;
   padding-top: 20px;
-  font: 14px "Roboto", Futura, sans-serif;
+  font-family: 'Poppins', sans-serif
+  /*font: 14px "Roboto", Futura, sans-serif;*/
 }
 
 .mainContent > div {
