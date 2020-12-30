@@ -2,7 +2,8 @@ import { AuthenticationService, AuthenticationResult, ChangePasswordCommand, Cha
 import { FirebaseConfig } from "@moneycol-server/users";
 import jwt from 'jsonwebtoken';
 const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
-
+const INVALID_PASSWORD_ERROR_CODE = "auth/wrong-password";
+//node_modules/@firebase/auth-types/index.d.ts
 // This import loads the firebase namespace.
 import firebase from 'firebase/app';
 
@@ -11,6 +12,7 @@ import { InvalidValueError } from "@moneycol-server/users";
 import { UserRepository, UserStatus, User } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
 import { UserNotFoundError }from "@moneycol-server/users";
+import { Error } from "@firebase/auth-types";
 
 type RefreshTokenResponse = {
     refreshToken: string,
@@ -79,7 +81,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                     }
                 }).catch((error: Error) => {
                     console.log("Authentication error login with email/password: ", error);
-                    reject(new Error("Authentication error login with email/password: " + error));
+                    reject(error);
                 })
         });
     }

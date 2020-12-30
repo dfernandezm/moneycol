@@ -1,7 +1,7 @@
 //Consider: https://typegraphql.ml/
 //https://www.compose.com/articles/use-all-the-databases-part-2/#elasticsearch
 
-import { IResolvers, addErrorLoggingToSchema } from 'graphql-tools';
+import { IResolvers } from 'graphql-tools';
 import { SearchService } from './infrastructure/search/SearchService';
 import { ElasticSearchService } from './infrastructure/search/ElasticSearchService';
 import { SearchResult } from './infrastructure/search/SearchResult';
@@ -24,6 +24,8 @@ import { userService, InvalidValueError } from '@moneycol-server/users';
 
 // Support
 import { resolverHelper } from './infrastructure/ResolverHelper';
+import { InvalidPasswordError } from './InvalidPasswordError';
+import { ErrorCodes } from './errorCodes';
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -112,7 +114,7 @@ const resolverMap: IResolvers = {
             return decorateBanknoteCollection(collectionId, collectionsAPI);
         },
 
-        // See how to link to React: https://www.howtographql.com/graphql-js/6-authentication/
+        
         // Authentication
         async loginWithEmail(_: void, { email, password }, ctx): Promise<AuthenticationResult> {
             try {
@@ -121,7 +123,12 @@ const resolverMap: IResolvers = {
                 return authResult;
             } catch (err) {
                 console.log("Authentication error in login", err);
-                throw new AuthenticationError("Authentication error in login");
+
+                if (err.code === ErrorCodes.INVALID_PASSWORD_ERROR_CODE) {
+                    throw new InvalidPasswordError("Invalid credentials provided");
+                } else {
+                    throw new AuthenticationError("Authentication error in login");
+                }
             }
         },
 
