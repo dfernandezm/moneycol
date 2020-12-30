@@ -1,10 +1,10 @@
 import { AuthenticationService, AuthenticationResult, ChangePasswordCommand, ChangePasswordResult, CompleteResetPasswordCommand, GoogleAuthMaterial, AuthUser } from "../AuthenticationService";
 import { FirebaseConfig } from "@moneycol-server/users";
 import jwt from 'jsonwebtoken';
+
 const TOKEN_EXPIRED_ERROR_CODE = "auth/id-token-expired";
 const INVALID_PASSWORD_ERROR_CODE = "auth/wrong-password";
-//node_modules/@firebase/auth-types/index.d.ts
-// This import loads the firebase namespace.
+
 import firebase from 'firebase/app';
 
 import requestPromise from 'request-promise';
@@ -12,6 +12,8 @@ import { InvalidValueError } from "@moneycol-server/users";
 import { UserRepository, UserStatus, User } from "@moneycol-server/users";
 import { UserSessionRepository } from "./UserSessionRepository";
 import { UserNotFoundError }from "@moneycol-server/users";
+
+// node_modules/@firebase/auth-types/index.d.ts 
 import { Error } from "@firebase/auth-types";
 
 type RefreshTokenResponse = {
@@ -35,6 +37,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
     private readonly firebaseInstance: FirebaseConfig;
     private readonly userRepository: UserRepository;
     private readonly userSessionRepository: UserSessionRepository;
+    private readonly REQUIRES_EMAIL_VERIFIED = false;
 
     constructor(firebaseInstance: FirebaseConfig, 
                 userRepository: UserRepository, 
@@ -61,7 +64,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                         const emailVerified = userCredential.user.emailVerified;
 
                         //TODO: check custom status in Firestore as email verification may be disabled
-                        if (!emailVerified) {
+                        if (this.REQUIRES_EMAIL_VERIFIED && !emailVerified) {
                            reject(new Error("User cannot login until email is verified")); 
                         }
 

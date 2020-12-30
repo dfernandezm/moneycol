@@ -78,7 +78,7 @@ class FirebaseUserService implements UserService {
                 username: createUserCommand.username,
                 firstName: createUserCommand.firstName,
                 lastName: createUserCommand.lastName,
-                status: UserStatus.PENDING_VERIFICATION,
+                status: UserStatus.ACTIVE, //TODO: temporarily allow no email verification
                 provider: "PASSWORD"
             }
 
