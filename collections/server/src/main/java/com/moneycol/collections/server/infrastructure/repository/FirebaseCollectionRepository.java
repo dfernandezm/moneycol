@@ -316,6 +316,6 @@ public class FirebaseCollectionRepository implements CollectionRepository {
         String collectorId = documentSnapshot.getString("collectorId");
         return Collection.withNameAndDescription(
                 CollectionId.of(collectionId), name, description,
-                Collector.of(CollectorId.of(collectorId)));
+                Collector.withStringCollectorId(collectorId));
     }
 }
