@@ -1,9 +1,19 @@
 substitutions:
   _MODULE_NAME: "moneycolfrontend"
-  _VERSION: "0.8.0"
+  _VERSION: "0.9.0"
   _SHORT_SHA: "$SHORT_SHA"
-  _DOCKERFILE_PATH: "/frontend"
+  _DOCKERFILE_PATH: "/frontend/crema_template-2.0"
 steps:
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: bash
+  args:
+    - '-c'
+    - |
+    ls -lrt
+    ls -lrt frontend/crema_template-2.0
+    cd frontend/crema_template-2.0
+    git checkout feature/moneycol-adapt
+
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}', '-f', '/workspace/${_DOCKERFILE_PATH}/Dockerfile', '/workspace/${_DOCKERFILE_PATH}' ]
 - name: 'gcr.io/cloud-builders/docker'

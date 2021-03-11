@@ -2,6 +2,32 @@
 
 This is the frontend of the system. Written in React, Typescript, Graphql and `create-react-app`.
 
+## Run with CREMA template locally
+
+CREMA template has been used and added as a `git submodule` (https://git-scm.com/book/en/v2/Git-Tools-Submodules) in order to keep it in a separate repo to get updates.
+
+
+### Update the submodule
+
+```
+cd crema_template-2.0
+git submodule update --remote --rebase
+```
+
+### Push changes to Submodule
+
+Just move into the folder, commit and push to the right branch as usual from inside the submodule directory. Once back into the main folder, the push can be made doing a check into the submodule.
+
+```
+git push --recurse-submodules=check
+```
+
+or push it all from outside the submodule:
+
+```
+
+```
+
 ## Run locally without backend
 
 Just run `npm start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use it for styling and static development.
