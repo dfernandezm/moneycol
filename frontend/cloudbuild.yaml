@@ -10,9 +10,6 @@ steps:
     - '-c'
     - |
     ls -lrt
-    ls -lrt frontend/crema_template-2.0
-    cd frontend/crema_template-2.0
-    git checkout feature/moneycol-adapt
 
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}', '-f', '/workspace/${_DOCKERFILE_PATH}/Dockerfile', '/workspace/${_DOCKERFILE_PATH}' ]
