@@ -22,12 +22,6 @@ Just move into the folder, commit and push to the right branch as usual from ins
 git push --recurse-submodules=check
 ```
 
-or push it all from outside the submodule:
-
-```
-
-```
-
 ## Run locally without backend
 
 Just run `npm start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use it for styling and static development.
@@ -35,9 +29,8 @@ Just run `npm start`. That would start the Webpack dev server, but the GraphQL q
 ## Run locally with backend
 
 ### Elasticsearch
+
 * Unzip the `data.zip` folder in a known location in your machine
-
-
 * Start the backend server (more details in [server startup](https://github.com/dfernandezm/moneycol/server/README.md))
 ```
 $ cd server
