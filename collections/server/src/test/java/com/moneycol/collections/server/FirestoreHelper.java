@@ -8,6 +8,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.WriteResult;
 import com.moneycol.collections.server.domain.Collection;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
@@ -192,7 +193,8 @@ public class FirestoreHelper {
             // future.get() blocks on document retrieval
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for (QueryDocumentSnapshot document : documents) {
-                document.getReference().delete();
+               ApiFuture<WriteResult>  writeResult =  document.getReference().delete();
+               writeResult.get();
                 ++deleted;
             }
             if (deleted >= batchSize) {
