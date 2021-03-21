@@ -11,6 +11,7 @@ import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDa
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -80,6 +81,19 @@ public class CollectionsControllerTest {
     public void obtainTokenForTestUser() {
         // Create environment variable or paste API key
         String apiKey = System.getenv("FIREBASE_API_KEY");
+        String googleAppCredentialsPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+
+        if (StringUtils.isNotEmpty(apiKey)) {
+            log.info("Firebase API key has been correctly set");
+        } else {
+           fail("Firebase API key is not present");
+        }
+
+        if (StringUtils.isNotEmpty(googleAppCredentialsPath)) {
+            log.info("Google Application Credentials are found from SA key");
+        } else {
+            fail("Google Application Credentials aren't present (SA key not present)");
+        }
 
         if (accessToken == null) {
             log.info("Obtaining new token....");

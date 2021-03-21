@@ -3,28 +3,20 @@
 Service to create/delete/update collections of items
 
 
-## Firebase emulator
+## Running tests
 
-Can be built from the Dockerfile inside `firebase`. The file `firebase.json` contains a binding to allow the emulator to be
-started and listening in all IP addresses of the container:
-
-```
-"emulators": {
-    "firestore": {
-      "host": "0.0.0.0",
-      "webchannel-port": 8080
-    }
-  }
-```
-
-This is necessary so that `docker -p` binds the port correctly to the host. If not set, firestore emulator will only listen to
-`localhost:8080` (hence, cannot be connected from outside the container).
-
-Run tests with emulator:
+TestContainers project is used to run integration tests against an emulated Firestore, therefore Docker should be installed in the host or CI server.
+Apart from that the following environment variables are required:
 
 ```
-$ docker pull eu.gcr.io/moneycol/firebase-emu:0.1.0
-$ docker run -p 8080:8080 -ti eu.gcr.io/moneycol/firebase-emu:0.1.0
-$ export GOOGLE_APPLICATION_CREDENTIALS=/Users/david/moneycol-firestore-collections-api.json
-$ ./gradlew clean test
+export FIREBASE_API_KEY=
+export GOOGLE_APPLICATION_CREDENTIALS=
+```
+
+These values are already set in GCS and picked up by the CloudBuild pipeline.
+
+To download test reports:
+
+```
+gsutil cp -r gs://moneycol-ci/collections-test-reports .
 ```
