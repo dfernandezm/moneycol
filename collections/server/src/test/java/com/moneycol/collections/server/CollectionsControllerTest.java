@@ -5,12 +5,13 @@ import com.moneycol.collections.server.application.CollectionCreatedResult;
 import com.moneycol.collections.server.domain.CollectionId;
 import com.moneycol.collections.server.domain.CollectionItem;
 import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -47,7 +48,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-//https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+/**
+ * Examples taken from:
+ *
+ * https://mfarache.github.io/mfarache/Building-microservices-Micronoaut/
+ *
+ */
 @Slf4j
 @MicronautTest(environments = "test")
 public class CollectionsControllerTest {
@@ -75,6 +81,19 @@ public class CollectionsControllerTest {
     public void obtainTokenForTestUser() {
         // Create environment variable or paste API key
         String apiKey = System.getenv("FIREBASE_API_KEY");
+        String googleAppCredentialsPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+
+        if (StringUtils.isNotEmpty(apiKey)) {
+            log.info("Firebase API key has been correctly set");
+        } else {
+           fail("Firebase API key is not present");
+        }
+
+        if (StringUtils.isNotEmpty(googleAppCredentialsPath)) {
+            log.info("Google Application Credentials are found from SA key");
+        } else {
+            fail("Google Application Credentials aren't present (SA key not present)");
+        }
 
         if (accessToken == null) {
             log.info("Obtaining new token....");
@@ -112,14 +131,14 @@ public class CollectionsControllerTest {
     @ParameterizedTest
     @CsvSource({"\"A banknote collection\",\"All the banknotes in London\""})
     void testCollectionCreation(String collectionName, String collectionDescription) {
-        CollectionDTO collectionDTO = CollectionDTO.builder()
-                                        .id("")
+        CollectionDto collectionDTO = CollectionDto.builder()
+                                        .collectionId("")
                                         .name(collectionName)
                                         .description(collectionDescription)
                                         .items(new ArrayList<>())
                                         .build();
 
-        MutableHttpRequest<CollectionDTO> aRequest = POST("/collections", collectionDTO).contentType(MediaType.APPLICATION_JSON);
+        MutableHttpRequest<CollectionDto> aRequest = POST("/collections", collectionDTO).contentType(MediaType.APPLICATION_JSON);
         aRequest.bearerAuth(accessToken);
         HttpResponse<CollectionCreatedResult> collectionCreatedResult = client.toBlocking().exchange(aRequest, Argument.of(CollectionCreatedResult.class));
 
@@ -145,14 +164,14 @@ public class CollectionsControllerTest {
         // When: updating its name/description
         String newName = "newName";
         String newDescription = "newDescription";
-        CollectionDTO collectionDTO = CollectionDTO.builder()
-                                        .id(collectionId)
+        CollectionDto collectionDTO = CollectionDto.builder()
+                                        .collectionId(collectionId)
                                         .name(newName)
                                         .description(newDescription)
                                         .items(new ArrayList<>())
                                         .build();
 
-        MutableHttpRequest<CollectionDTO> updateCollectionEndpoint =
+        MutableHttpRequest<CollectionDto> updateCollectionEndpoint =
                 HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
         updateCollectionEndpoint.bearerAuth(accessToken);
 
@@ -178,17 +197,17 @@ public class CollectionsControllerTest {
         delayMilliseconds(600);
 
         // When: getting it by Id
-        MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
+        MutableHttpRequest<CollectionDto> getCollectionByIdEndpoint =
                 HttpRequest.GET("/collections/" + collectionId);
         getCollectionByIdEndpoint.bearerAuth(accessToken);
 
-        HttpResponse<CollectionDTO> collectionCreatedResp =
-                client.toBlocking().exchange(getCollectionByIdEndpoint, Argument.of(CollectionDTO.class));
+        HttpResponse<CollectionDto> collectionCreatedResp =
+                client.toBlocking().exchange(getCollectionByIdEndpoint, Argument.of(CollectionDto.class));
 
         // Then: the result is the expected
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getId(), is(collectionId));
+        assertThat(collectionCreatedResp.getBody().get().getCollectionId(), is(collectionId));
         assertThat(collectionCreatedResp.getBody().get().getName(), is(aName));
         assertThat(collectionCreatedResp.getBody().get().getDescription(), is(aDescription));
     }
@@ -243,10 +262,10 @@ public class CollectionsControllerTest {
     @Test
     void testUpdateCollectionGives404() {
 
-        // Given: an inexistent ID
+        // Given: an nonexistent ID
         String collectionId = CollectionId.randomId();
-        CollectionDTO cdto = CollectionDTO.builder()
-                                .id("")
+        CollectionDto collectionDto = CollectionDto.builder()
+                                .collectionId("")
                                 .name("")
                                 .description("")
                                 .items(new ArrayList<>())
@@ -254,7 +273,7 @@ public class CollectionsControllerTest {
 
         // When: updating a collection with it
         MutableHttpRequest<?> updateCollectionEndpoint =
-                HttpRequest.PUT("/collections/" + collectionId, cdto);
+                HttpRequest.PUT("/collections/" + collectionId, collectionDto);
         updateCollectionEndpoint.bearerAuth(accessToken);
 
         HttpResponse<JsonNode> collectionUpdatedResp =
@@ -316,9 +335,9 @@ public class CollectionsControllerTest {
         FirestoreHelper.createCollection(aCollectionId, "aCollection", "desc", collectorId);
         delayMilliseconds(500);
 
-        List<CollectionItemDTO> items = new ArrayList<>();
-        items.add(new CollectionItemDTO("itemId1"));
-        items.add(new CollectionItemDTO("itemId2"));
+        List<CollectionItemDto> items = new ArrayList<>();
+        items.add(new CollectionItemDto("itemId1"));
+        items.add(new CollectionItemDto("itemId2"));
         AddItemsDTO addItemsDTO = new AddItemsDTO(items);
 
         // When: adding items to the collection
@@ -397,8 +416,8 @@ public class CollectionsControllerTest {
     void testCollectionWithNoNameReturns400() {
 
         // Given: a collection with empty name
-        CollectionDTO cdto = CollectionDTO.builder()
-                                .id("")
+        CollectionDto collectionDto = CollectionDto.builder()
+                                .collectionId("")
                                 .name("")
                                 .description("")
                                 .items(new ArrayList<>())
@@ -406,7 +425,7 @@ public class CollectionsControllerTest {
 
         // When: trying to create it
         String endpoint = "/collections";
-        MutableHttpRequest<CollectionDTO> createCollectionEndpoint = HttpRequest.POST(endpoint, cdto);
+        MutableHttpRequest<CollectionDto> createCollectionEndpoint = HttpRequest.POST(endpoint, collectionDto);
         createCollectionEndpoint.bearerAuth(accessToken);
 
         HttpResponse<JsonNode> createCollectionResp =
@@ -438,15 +457,15 @@ public class CollectionsControllerTest {
         // When: updating the name/description
         String newName = "newName";
         String newDescription = "newDescription";
-        CollectionDTO collectionDTO =
-                CollectionDTO.builder()
-                        .id(collectionId)
+        CollectionDto collectionDTO =
+                CollectionDto.builder()
+                        .collectionId(collectionId)
                         .name(newName)
                         .description(newDescription)
                         .items(new ArrayList<>())
                         .build();
 
-        MutableHttpRequest<CollectionDTO> updateCollectionEndpoint =
+        MutableHttpRequest<CollectionDto> updateCollectionEndpoint =
                 HttpRequest.PUT("/collections/" + collectionId, collectionDTO);
         updateCollectionEndpoint.bearerAuth(accessToken);
         HttpResponse<CollectionCreatedResult> collectionCreatedResp =
@@ -550,7 +569,7 @@ public class CollectionsControllerTest {
         delayMilliseconds(1500);
 
         // When: another collector tries to access it (access token is for another collectorId)
-        MutableHttpRequest<CollectionDTO> getCollectionByIdEndpoint =
+        MutableHttpRequest<CollectionDto> getCollectionByIdEndpoint =
                 HttpRequest.GET("/collections/" + collectionId);
         getCollectionByIdEndpoint.bearerAuth(accessToken);
 

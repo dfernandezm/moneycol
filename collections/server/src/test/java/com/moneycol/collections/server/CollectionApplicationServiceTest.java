@@ -15,13 +15,18 @@ import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.domain.base.Id;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.domain.events.DomainEventStoringSubscriber;
+import com.moneycol.collections.server.domain.events.core.DomainEvent;
+import com.moneycol.collections.server.domain.events.core.LocalEventPublisher;
+import com.moneycol.collections.server.domain.events.core.LocalEventSubscriber;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
+import com.moneycol.collections.server.infrastructure.event.DomainEventRegistry;
+import com.moneycol.collections.server.infrastructure.event.FirestoreEventStore;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.repository.FirebaseCollectionRepository;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.extern.slf4j.Slf4j;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,19 +37,17 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Use emulator support for Firebase:
@@ -56,15 +59,18 @@ import static org.mockito.ArgumentMatchers.any;
 public class CollectionApplicationServiceTest {
 
     private static FirestoreProvider firestoreProvider;
+    private static DomainEventRegistry eventBusRegistry;
 
     @BeforeAll
     public static void setup() {
         firestoreProvider = FirestoreHelper.initContainer();
+        eventBusRegistry = Mockito.mock(DomainEventRegistry.class);
     }
 
     @AfterEach
     public void cleanup() {
         FirestoreHelper.deleteAllCollections();
+        FirestoreHelper.deleteAllEvents();
     }
 
     @ParameterizedTest
@@ -74,7 +80,7 @@ public class CollectionApplicationServiceTest {
 
         // Given
         CollectionRepository collectionRepo = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
 
         // When
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
@@ -187,7 +193,7 @@ public class CollectionApplicationServiceTest {
 
         Exception e = assertThrows(CollectionNotFoundException.class, s);
 
-        assertThat(e.getMessage(), containsString(nonExistingCollectionId));
+        assertThat(e.getMessage()).contains(nonExistingCollectionId);
     }
 
     @Test
@@ -204,7 +210,7 @@ public class CollectionApplicationServiceTest {
         Collection updated = collectionRepository.update(collection);
 
         // Then the collection size is increased to 2
-        assertThat(updated.items(), hasSize(2));
+        assertThat(updated.items()).hasSize(2);
     }
 
     @Test
@@ -221,7 +227,7 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(collectionId2, collectionName2, "desc", collectorId);
 
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
 
         // When: updating the first collection providing name2 instead of name1
         UpdateCollectionDataCommand updateCollectionDataCommand =
@@ -251,7 +257,7 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(collectionId, collectionName, "desc", collectorId);
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
 
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
                                                             .name(collectionName)
                                                             .description("newDesc")
@@ -302,14 +308,14 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(aCollectionId, collectionName, collectionDescription, collectorId);
 
         // This is a big delay, but without it the collection added is not found when finding it
-        delaySecond(2);
+        delaySecond(3);
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
 
         // When: adding an item to it
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         String itemId = "itemId";
-        CollectionItemDTO collectionItemDTO = new CollectionItemDTO(itemId);
-        List<CollectionItemDTO> items = new ArrayList<>();
+        CollectionItemDto collectionItemDTO = new CollectionItemDto(itemId);
+        List<CollectionItemDto> items = new ArrayList<>();
         items.add(collectionItemDTO);
         AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.builder()
                                                                     .collectionId(aCollectionId)
@@ -320,9 +326,9 @@ public class CollectionApplicationServiceTest {
 
         // Then: collection is updated containing the item
         Collection updatedCollection = collectionRepository.byId(CollectionId.of(aCollectionId));
-        assertThat(updatedCollection, Matchers.notNullValue());
-        assertThat(updatedCollection.items(), hasSize(1));
-        assertThat(updatedCollection.items().get(0).getItemId(), is(itemId));
+        assertThat(updatedCollection).isNotNull();
+        assertThat(updatedCollection.items()).hasSize(1);
+        assertThat(updatedCollection.items()).startsWith(CollectionItem.of(itemId));
 
     }
 
@@ -363,7 +369,7 @@ public class CollectionApplicationServiceTest {
         collectionRepository.delete(CollectionId.of(aCollectionId));
 
         // Then: no documents should exist in the subcollection
-        assertThat(FirestoreHelper.findItemsForCollection(aCollectionId).size(), equalTo(0));
+        assertThat(FirestoreHelper.findItemsForCollection(aCollectionId)).isEmpty();
     }
 
     @Test
@@ -384,7 +390,7 @@ public class CollectionApplicationServiceTest {
 
         // When: Deleting an item from the collection
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
         RemoveItemFromCollectionCommand removeItemFromCollectionCommand = RemoveItemFromCollectionCommand.builder()
                                                                             .collectorId(collectorId)
                                                                             .collectionId(aCollectionId)
@@ -394,9 +400,9 @@ public class CollectionApplicationServiceTest {
 
         // Then: the deleted item is not present and the other is
         List<String> itemsInCollection = FirestoreHelper.findItemsForCollection(aCollectionId);
-        assertThat(itemsInCollection, hasSize(1));
-        assertThat(itemsInCollection.contains("item1"), is(false));
-        assertThat(itemsInCollection.contains("item2"), is(true));
+        assertThat(itemsInCollection).hasSize(1);
+        assertThat(itemsInCollection).doesNotContain("item1");
+        assertThat(itemsInCollection).contains("item2");
     }
 
     @Test
@@ -415,11 +421,11 @@ public class CollectionApplicationServiceTest {
 
         // when: deleting an item from the collection
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepository, eventBusRegistry);
 
-        CollectionItemDTO item1Dto = new CollectionItemDTO("item3");
-        CollectionItemDTO item2Dto = new CollectionItemDTO("item4");
-        List<CollectionItemDTO> collectionDTOS = new ArrayList<>();
+        CollectionItemDto item1Dto = new CollectionItemDto("item3");
+        CollectionItemDto item2Dto = new CollectionItemDto("item4");
+        List<CollectionItemDto> collectionDTOS = new ArrayList<>();
 
         collectionDTOS.add(item1Dto);
         collectionDTOS.add(item2Dto);
@@ -441,11 +447,11 @@ public class CollectionApplicationServiceTest {
 
         List<String> itemsInCollection = FirestoreHelper.findItemsForCollection(aCollectionId);
 
-        assertThat(itemsInCollection, hasSize(3));
-        assertThat(itemsInCollection.contains("item1"), is(false));
-        assertThat(itemsInCollection.contains("item4"), is(true));
-        assertThat(itemsInCollection.contains("item3"), is(true));
-        assertThat(itemsInCollection.contains("item2"), is(true));
+        assertThat(itemsInCollection).hasSize(3);
+        assertThat(itemsInCollection).doesNotContain("item1");
+        assertThat(itemsInCollection).contains("item4");
+        assertThat(itemsInCollection).contains("item3");
+        assertThat(itemsInCollection).contains("item2");
     }
 
     @Test
@@ -465,19 +471,101 @@ public class CollectionApplicationServiceTest {
                                                             .collectorId(aCollectorId)
                                                             .build();
 
-        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo);
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
 
         // When: creating it
         Executable s = () ->  cas.createCollection(createCollectionCommand);
 
         // Then: an error is thrown
         Exception e = assertThrows(InvalidCollectionException.class, s);
-        assertThat(e.getMessage(), containsString("collection cannot have an empty name"));
+        assertThat(e.getMessage()).contains("collection cannot have an empty name");
+    }
+
+    @Test
+    public void publishesEventOnCollectionCreation() {
+
+        // Given
+        CollectionRepository collectionRepo = new FirebaseCollectionRepository(firestoreProvider);
+        List<DomainEvent> publishedEvents = new ArrayList<>();
+        eventBusRegistry = new DomainEventRegistry(new LocalEventPublisher<>(),
+                new LocalEventSubscriber<DomainEvent>() {
+                    @Override
+                    public void handleEvent(DomainEvent domainEvent) {
+                        publishedEvents.add(domainEvent);
+                    }
+
+                    @Override
+                    public Class<DomainEvent> subscribedToEventType() {
+                        return DomainEvent.class;
+                    }
+                }, new DomainEventStoringSubscriber(new FirestoreEventStore(firestoreProvider)));
+
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
+        String collectionName = "aCollectionName";
+        String collectionDescription = "someDescription";
+        String collectorId = "aCollectorId";
+
+        // When
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                .name(collectionName)
+                .description(collectionDescription)
+                .items(new ArrayList<>())
+                .collectorId(collectorId)
+                .build();
+
+        cas.createCollection(createCollectionCommand);
+
+        // Then
+        assertThat(publishedEvents).hasSize(1);
+
+    }
+
+    @Test
+    public void publishesEventInFirestoreOnCollectionCreation() {
+
+        // Given
+        CollectionRepository collectionRepo = new FirebaseCollectionRepository(firestoreProvider);
+        List<DomainEvent> publishedEvents = new ArrayList<>();
+        eventBusRegistry = new DomainEventRegistry(
+                new LocalEventPublisher<>(),
+                new LocalEventSubscriber<DomainEvent>() {
+                    @Override
+                    public void handleEvent(DomainEvent domainEvent) {
+                        publishedEvents.add(domainEvent);
+                    }
+
+                    @Override
+                    public Class<DomainEvent> subscribedToEventType() {
+                        return DomainEvent.class;
+                    }
+                },
+                new DomainEventStoringSubscriber(new FirestoreEventStore(firestoreProvider)));
+
+        CollectionApplicationService cas = new CollectionApplicationService(collectionRepo, eventBusRegistry);
+        String collectionName = "aCollectionName";
+        String collectionDescription = "someDescription";
+        String collectorId = "aCollectorId";
+
+        // When
+        CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
+                .name(collectionName)
+                .description(collectionDescription)
+                .items(new ArrayList<>())
+                .collectorId(collectorId)
+                .build();
+
+        cas.createCollection(createCollectionCommand);
+        delaySecond(1);
+
+        // Then
+        List<Map<String, Object>> allEvents = FirestoreHelper.findAllEvents();
+        assertThat(allEvents).hasSize(1);
+
     }
 
     private CollectionRepository mockRepository() {
         CollectionRepository collectionRepo = Mockito.mock(CollectionRepository.class);
-        Mockito.when(collectionRepo.create(any())).thenAnswer((r) -> r.getArgument(0));
+        when(collectionRepo.create(any())).thenAnswer((r) -> r.getArgument(0));
         return collectionRepo;
     }
 

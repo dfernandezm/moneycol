@@ -8,8 +8,10 @@ import com.moneycol.collections.server.domain.CollectionRepository;
 import com.moneycol.collections.server.domain.Collector;
 import com.moneycol.collections.server.domain.CollectorId;
 import com.moneycol.collections.server.domain.base.Id;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.domain.events.CollectionCreatedEvent;
+import com.moneycol.collections.server.infrastructure.event.DomainEventRegistry;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +25,13 @@ import java.util.stream.Collectors;
 public class CollectionApplicationService {
 
     private CollectionRepository collectionRepository;
+    private DomainEventRegistry eventBusRegistry;
 
     @Inject
-    public CollectionApplicationService(CollectionRepository collectionRepository) {
+    public CollectionApplicationService(CollectionRepository collectionRepository,
+                                        DomainEventRegistry eventBusRegistry) {
         this.collectionRepository = collectionRepository;
+        this.eventBusRegistry = eventBusRegistry;
     }
 
     public CollectionCreatedResult createCollection(CreateCollectionCommand createCollectionCommand) {
@@ -52,6 +57,13 @@ public class CollectionApplicationService {
 
         Collection createdCollection = collectionRepository.create(collection);
 
+        eventBusRegistry.publish(
+                CollectionCreatedEvent.builder()
+                .collectionId(createdCollection.id())
+                .name(createdCollection.name())
+                .description(createdCollection.description())
+                .build());
+
         return CollectionCreatedResult.builder()
                                     .collectionId(createdCollection.id())
                                     .name(createdCollection.name())
@@ -59,7 +71,7 @@ public class CollectionApplicationService {
                                     .build();
     }
 
-    public List<CollectionDTO> byCollector(String collectorId) {
+    public List<CollectionDto> byCollector(String collectorId) {
         Collector collector = Collector.withCollectorId(collectorId);
 
         List<Collection> collections = collectionRepository.byCollector(CollectorId.of(collector.id()));
@@ -67,8 +79,8 @@ public class CollectionApplicationService {
         return collections
                     .stream()
                     .map(collection ->
-                            CollectionDTO.builder()
-                            .id(collection.id())
+                            CollectionDto.builder()
+                            .collectionId(collection.id())
                             .name(collection.name())
                             .description(collection.description())
                             .items(toCollectionItemDTOs(collection))
@@ -76,14 +88,14 @@ public class CollectionApplicationService {
                     .collect(Collectors.toList());
     }
 
-    public CollectionDTO byId(String userId, String collectionId) {
+    public CollectionDto byId(String userId, String collectionId) {
         checkCollectionOwnership(userId, collectionId);
 
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
-        List<CollectionItemDTO> collectionItemDTOS = toCollectionItemDTOs(collection);
+        List<CollectionItemDto> collectionItemDTOS = toCollectionItemDTOs(collection);
 
-        return CollectionDTO.builder()
-                .id(collection.id())
+        return CollectionDto.builder()
+                .collectionId(collection.id())
                 .name(collection.name())
                 .description(collection.description())
                 .items(collectionItemDTOS)
@@ -105,6 +117,7 @@ public class CollectionApplicationService {
         collection.name(collectionDataCommand.getName());
         collection.description(collectionDataCommand.getDescription());
         collectionRepository.update(collection);
+
         return CollectionUpdatedResult.builder()
                 .collectionId(collection.id())
                 .name(collection.name())
@@ -144,9 +157,9 @@ public class CollectionApplicationService {
         }
     }
 
-    private List<CollectionItemDTO> toCollectionItemDTOs(Collection collection) {
+    private List<CollectionItemDto> toCollectionItemDTOs(Collection collection) {
         return collection.items().stream()
-                .map(item -> new CollectionItemDTO(item.getItemId()))
+                .map(item -> new CollectionItemDto(item.getItemId()))
                 .collect(Collectors.toList());
     }
 }

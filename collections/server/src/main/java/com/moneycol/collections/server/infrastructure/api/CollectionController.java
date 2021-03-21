@@ -13,7 +13,7 @@ import com.moneycol.collections.server.application.UpdateCollectionDataCommand;
 import com.moneycol.collections.server.application.exception.DuplicateCollectionNameException;
 import com.moneycol.collections.server.domain.InvalidCollectionException;
 import com.moneycol.collections.server.infrastructure.api.dto.AddItemsDTO;
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionDto;
 import com.moneycol.collections.server.infrastructure.api.dto.UpdateCollectionDataDTO;
 import com.moneycol.collections.server.infrastructure.repository.CollectionNotFoundException;
 import com.moneycol.collections.server.infrastructure.security.InvalidCollectionAccessException;
@@ -60,7 +60,7 @@ public class CollectionController {
      * @return a List of collections this user owns
      */
     @Get(produces = MediaType.APPLICATION_JSON)
-    public Single<List<CollectionDTO>> myCollections(@Nullable Principal principal) {
+    public Single<List<CollectionDto>> myCollections(@Nullable Principal principal) {
         log.info("Finding collections for user: {}", principal.getName());
         return Single.just(collectionApplicationService.byCollector(principal.getName()));
     }
@@ -109,7 +109,7 @@ public class CollectionController {
      * @return
      */
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)
-    public Single<CollectionDTO> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
+    public Single<CollectionDto> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("User Id is: {}", principal.getName());
         log.info("Finding collection for ID: {}", collectionId);
         return Single.just(collectionApplicationService.byId(principal.getName(), collectionId));
@@ -124,7 +124,7 @@ public class CollectionController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Post
     public Single<CollectionCreatedResult> createCollection(@Nullable Principal principal,
-                                                            @Body CollectionDTO collectionDTO) {
+                                                            @Body CollectionDto collectionDTO) {
         log.info("Attempt to create collection for user {}: {}", principal.getName(), collectionDTO);
         CreateCollectionCommand createCollectionCommand = CreateCollectionCommand.builder()
                                                             .collectorId(principal.getName())

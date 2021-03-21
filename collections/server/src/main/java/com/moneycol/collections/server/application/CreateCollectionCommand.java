@@ -1,6 +1,6 @@
 package com.moneycol.collections.server.application;
 
-import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDTO;
+import com.moneycol.collections.server.infrastructure.api.dto.CollectionItemDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +15,6 @@ import java.util.List;
 public class CreateCollectionCommand {
     private String name;
     private String description;
-    private List<CollectionItemDTO> items;
+    private List<CollectionItemDto> items;
     private String collectorId;
 }
