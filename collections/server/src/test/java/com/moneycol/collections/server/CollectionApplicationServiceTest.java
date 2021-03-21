@@ -70,6 +70,7 @@ public class CollectionApplicationServiceTest {
     @AfterEach
     public void cleanup() {
         FirestoreHelper.deleteAllCollections();
+        FirestoreHelper.deleteAllEvents();
     }
 
     @ParameterizedTest

@@ -131,6 +131,10 @@ public class FirestoreHelper {
         deleteCollection(firestore.collection("collections"),10);
     }
 
+    public static void deleteAllEvents() {
+        deleteCollection(firestore.collection("events"),10);
+    }
+
     public static List<String> findItemsForCollection(String collectionId) {
         List<String> itemIds = new ArrayList<>();
         firestore
