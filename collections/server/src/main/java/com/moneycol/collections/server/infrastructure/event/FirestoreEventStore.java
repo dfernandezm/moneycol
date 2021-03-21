@@ -13,7 +13,7 @@ import javax.inject.Inject;
 @Slf4j
 public class FirestoreEventStore implements EventStore {
 
-    private Firestore firestore;
+    private final Firestore firestore;
     private static final String COLLECTION_EVENTS_COLLECTION_NAME = "events";
 
     @Inject
@@ -38,6 +38,7 @@ public class FirestoreEventStore implements EventStore {
             log.error("Error querying data existence for events", e);
         }
     }
+
 
     private void createEvent(DomainEvent domainEvent) {
         try {

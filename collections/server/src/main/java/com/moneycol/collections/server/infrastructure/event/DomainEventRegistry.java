@@ -14,12 +14,10 @@ import java.util.List;
 
 /**
  * Default implementation of an eventBus to publish/subscribe to domain events
- *
  * By default uses a pre-made {@link DomainEventPublisher} and {@link DomainEventSubscriber}
+ *
+ * Events may need to be subscribed to at application startup or use a dedicated ApplicationService for it
  */
-
-//TODO: need to subscribe to multiple events on startup??
-// or include EventStore in a global ApplicationService manager
 @Slf4j
 @Singleton
 public class DomainEventRegistry {

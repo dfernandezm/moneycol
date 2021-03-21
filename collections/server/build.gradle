@@ -79,7 +79,6 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 
-jib.to.image = "eu.gcr.io/moneycol/collections-api:0.1.0"
 jib.from.image = 'gcr.io/distroless/java:11-debug'
 
 test.classpath += configurations.developmentOnly
@@ -100,7 +99,6 @@ test {
     // Uncomment these lines to get full logging output when running
     testLogging.showStandardStreams = true
     testLogging.exceptionFormat = 'full'
-
 
 }
 

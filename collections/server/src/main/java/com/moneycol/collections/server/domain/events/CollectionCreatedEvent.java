@@ -19,7 +19,7 @@ public class CollectionCreatedEvent implements DomainEvent {
     @Builder.Default
     Long occurredOn = Instant.now().toEpochMilli();
 
-    String eventName = "CollectionCreated";
+    public static final String EVENT_NAME = "CollectionCreated";
     String collectionId;
     String name;
     String description;
@@ -31,7 +31,7 @@ public class CollectionCreatedEvent implements DomainEvent {
 
     @Override
     public String eventName() {
-        return eventName;
+        return EVENT_NAME;
     }
 
     @Override
