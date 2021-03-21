@@ -24,4 +24,8 @@ public class Collector {
     public String id() {
         return id.id();
     }
+
+    public static Collector withCollectorId(String collectorId) {
+        return withStringCollectorId(collectorId);
+    }
 }
