@@ -308,7 +308,7 @@ public class CollectionApplicationServiceTest {
         FirestoreHelper.createCollection(aCollectionId, collectionName, collectionDescription, collectorId);
 
         // This is a big delay, but without it the collection added is not found when finding it
-        // delaySecond(3);
+        delaySecond(3);
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
 
         // When: adding an item to it
@@ -555,7 +555,7 @@ public class CollectionApplicationServiceTest {
                 .build();
 
         cas.createCollection(createCollectionCommand);
-        // delaySecond(1);
+        delaySecond(1);
 
         // Then
         List<Map<String, Object>> allEvents = FirestoreHelper.findAllEvents();

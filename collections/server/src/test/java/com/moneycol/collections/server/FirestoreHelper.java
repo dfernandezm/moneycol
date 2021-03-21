@@ -71,6 +71,9 @@ public class FirestoreHelper {
         try {
             DocumentReference documentReference = firestore.collection("collections").document(id);
             documentReference.set(data);
+            ApiFuture<DocumentSnapshot> apiFuture = documentReference.get();
+            apiFuture.get();
+
             System.out.println("Created collection " + id);
             createItems(collectionItems, documentReference);
         } catch (Exception e) {
