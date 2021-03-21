@@ -109,7 +109,7 @@ public class CollectionApplicationServiceTest {
         String collectorId = UUID.randomUUID().toString();
 
         Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
-                description, Collector.of(CollectorId.of(collectorId)));
+                description, Collector.withStringCollectorId(collectorId));
 
         String id = col.id();
 
@@ -129,13 +129,13 @@ public class CollectionApplicationServiceTest {
         FirebaseCollectionRepository collectionRepository = new FirebaseCollectionRepository(firestoreProvider);
         String collectorId = UUID.randomUUID().toString();
 
-        Collection col =  Collection.withNameAndDescription(CollectionId.of(Id.randomId()), name,
-                description, Collector.of(CollectorId.of(collectorId)));
+        Collection col =  Collection.withNameAndDescription(CollectionId.fromRandomId(), name,
+                description, Collector.withStringCollectorId(collectorId));
 
         collectionRepository.create(col);
 
         Collection toUpdate =  Collection.withNameAndDescription(CollectionId.of(col.id()), newName,
-                description, Collector.of(CollectorId.of(collectorId)));
+                description, Collector.withStringCollectorId(collectorId));
 
         Collection updated = collectionRepository.update(toUpdate);
 
@@ -571,6 +571,6 @@ public class CollectionApplicationServiceTest {
 
     private Collection aCollection(String id, String name, String description, String collectorId) {
         return Collection.withNameAndDescription(CollectionId.of(id), name,
-                description, Collector.of(CollectorId.of(collectorId)));
+                description, Collector.withStringCollectorId(collectorId));
     }
 }

@@ -47,8 +47,8 @@ public class CollectionApplicationService {
 
         log.info("Creating collection for user {}", createCollectionCommand.getCollectorId());
 
-        CollectionId collectionId = CollectionId.of(Id.randomId());
-        Collector collector = Collector.withCollectorId(createCollectionCommand.getCollectorId());
+        CollectionId collectionId = CollectionId.fromRandomId();
+        Collector collector = Collector.withStringCollectorId(createCollectionCommand.getCollectorId());
 
         Collection collection = Collection.withNameAndDescription(collectionId,
                                         createCollectionCommand.getName(),
@@ -150,7 +150,7 @@ public class CollectionApplicationService {
 
     private void checkCollectionOwnership(String userId, String collectionId) {
         Collection collection = collectionRepository.byId(CollectionId.of(collectionId));
-        Collector collector = Collector.withCollectorId(userId);
+        Collector collector = Collector.withStringCollectorId(userId);
 
         if (!collection.isOwnedBy(collector)) {
             throw new InvalidCollectionAccessException("Collection with ID " + collectionId + " is not owned by " + userId);
