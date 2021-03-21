@@ -1,8 +1,13 @@
 # MoneyCol Frontend
 
-This is the frontend of the system. Written in React, Typescript, Graphql and `create-react-app`.
+This is the frontend of the system. Written in:
+- React
+- Typescript 
+- Graphql
+- `create-react-app`
+- CREMA template
 
-## Run with CREMA template locally
+## Run with CREMA template
 
 CREMA template has been used and added as a `git submodule` (https://git-scm.com/book/en/v2/Git-Tools-Submodules) in order to keep it in a separate repo to get updates.
 
@@ -21,6 +26,34 @@ Just move into the folder, commit and push to the right branch as usual from ins
 ```
 git push --recurse-submodules=check
 ```
+
+### Change the branch of the submodule
+
+It's a little confusing to get used to this, but submodules are not on a branch. They are, just a pointer to a particular commit of the submodule's repository (`crema_template-2.0` in this case).
+
+This means, when someone else checks out the repository, or pulls the code, and the does `git submodule update`, the submodule is checked out to that particular commit (the latest it was pushed to).
+
+This is great for a submodule that does not change often, because then everyone on the project can have the submodule at the same commit.
+
+If you want to move the submodule to a particular tag/commit/branch:
+
+```
+cd submodule_directory
+git checkout v1.0
+cd ..
+git add submodule_directory
+git commit -m "moved submodule to v1.0"
+git push
+```
+
+Then, another developer who wants to have `submodule_directory` changed to that tag, does:
+
+```
+git pull
+git submodule update --init
+```
+
+git pull changes which commit their submodule directory points to, `git submodule update` actually merges in the new code.
 
 ## Run locally without backend
 
