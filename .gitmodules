@@ -1,0 +1,3 @@
+[submodule "frontend/crema_template-2.0"]
+	path = frontend/crema_template-2.0
+	url = git@github.com:dfernandezm/crema_template-2.0.git

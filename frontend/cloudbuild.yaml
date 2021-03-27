@@ -1,12 +1,70 @@
 substitutions:
-  _MODULE_NAME: "moneycolfrontend"
-  _VERSION: "0.8.0"
-  _SHORT_SHA: "$SHORT_SHA"
-  _DOCKERFILE_PATH: "/frontend"
+  _MODULE_NAME: moneycolfrontend
+  _VERSION: 0.9.0
+  _SHORT_SHA: $SHORT_SHA
+  _DOCKERFILE_PATH: /frontend/crema_template-2.0
+
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}', '-f', '/workspace/${_DOCKERFILE_PATH}/Dockerfile', '/workspace/${_DOCKERFILE_PATH}' ]
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}']
+  # Sets up the SSH key to clone the submodule at crema_template-2.0
+  # It requires setup in Github and GCP secret manager following docs at
+  # https://cloud.google.com/build/docs/access-private-github-repos.
+  # Sets up the private part of SSH key for dfernandezm/crema-template_2.0 previously set in
+  # GCP Secret Manager / Github settings
+  - id: setup-ssh-submodule
+    name: gcr.io/cloud-builders/git
+    args:
+      - '-c'
+      - |
+        echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+        chmod 400 /root/.ssh/id_rsa
+        ssh-keyscan -t rsa github.com > known_hosts.github
+        cp known_hosts.github /root/.ssh/known_hosts
+    entrypoint: bash
+    secretEnv:
+      - SSH_KEY
+    volumes:
+      - name: ssh
+        path: /root/.ssh
+  # This is a crude way to get submodules working following recommendation at
+  # https://github.com/GoogleCloudPlatform/cloud-builders/issues/26#issuecomment-605929494
+  # There may be a simpler way to do it in 2021 due to the above step
+  - id: initialize-repo-with-submodule
+    name: gcr.io/cloud-builders/git
+    entrypoint: bash
+    env:
+      - GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+    args:
+      - '-c'
+      - |
+        git init 
+
+        # clean current working directory 
+        git clean  -d  -f . 
+        git remote add origin https://source.developers.google.com/p/moneycol/r/moneycol
+        git fetch origin $BRANCH_NAME 
+        git checkout $COMMIT_SHA
+        mkdir -p /root/.ssh/known_hosts ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+        git config -f .gitmodules submodule.crema_template-2.0.url https://source.developers.google.com/p/moneycol/r/crema_template-2.0 
+        git submodule init 
+        git submodule update
+    volumes:
+      - name: ssh
+        path: /root/.ssh
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}'
+      - '-f'
+      - '/workspace/${_DOCKERFILE_PATH}/Dockerfile'
+      - '/workspace/${_DOCKERFILE_PATH}'
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}'
 images:
-- 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}'
+  - 'eu.gcr.io/$PROJECT_ID/${_MODULE_NAME}:${_VERSION}-${_SHORT_SHA}'
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/id_github/versions/latest
+      env: SSH_KEY
