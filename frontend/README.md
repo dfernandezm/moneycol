@@ -3,7 +3,7 @@
 This is the frontend of the system. Written in:
 - React
 - Typescript 
-- Graphql
+- GraphQL
 - `create-react-app`
 - CREMA template
 
@@ -11,8 +11,9 @@ This is the frontend of the system. Written in:
 
 CREMA template has been used and added as a `git submodule` (https://git-scm.com/book/en/v2/Git-Tools-Submodules) in order to keep it in a separate repo to get updates.
 
-
 ### Update the submodule
+
+The branch being used in the `crema` submodule is `feature/moneycol-adapt`, built on top of `source-ts` (the Typescript template).
 
 ```
 cd crema_template-2.0
@@ -29,7 +30,7 @@ git push --recurse-submodules=check
 
 ### Change the branch of the submodule
 
-It's a little confusing to get used to this, but submodules are not on a branch. They are, just a pointer to a particular commit of the submodule's repository (`crema_template-2.0` in this case).
+It's a little confusing to get used to this, but submodules are not on a branch. They are, just a pointer to a particular commit of the submodule's repository (`crema_template-2.0` in this case, [here](https://github.com/dfernandezm/crema_template-2.0)).
 
 This means, when someone else checks out the repository, or pulls the code, and the does `git submodule update`, the submodule is checked out to that particular commit (the latest it was pushed to).
 
@@ -38,26 +39,26 @@ This is great for a submodule that does not change often, because then everyone 
 If you want to move the submodule to a particular tag/commit/branch:
 
 ```
-cd submodule_directory
-git checkout v1.0
+cd crema_template-2.0
+git checkout feature/moneycol-adapt
 cd ..
-git add submodule_directory
+git add crema_template-2.0
 git commit -m "moved submodule to v1.0"
 git push
 ```
 
-Then, another developer who wants to have `submodule_directory` changed to that tag, does:
+Then, another developer who wants to have `crema_template-2.0` changed to that tag, does:
 
 ```
 git pull
 git submodule update --init
 ```
 
-git pull changes which commit their submodule directory points to, `git submodule update` actually merges in the new code.
+`git pull` changes which commit their submodule directory points to, `git submodule update` actually merges in the new code.
 
 ## Run locally without backend
 
-Just run `npm start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use it for styling and static development.
+Move into `crema_template-2.0` and run `yarn start`. That would start the Webpack dev server, but the GraphQL queries won't work. Use this way for styling and static development.
 
 ## Run locally with backend
 
@@ -67,10 +68,10 @@ Just run `npm start`. That would start the Webpack dev server, but the GraphQL q
 * Start the backend server (more details in [server startup](https://github.com/dfernandezm/moneycol/server/README.md))
 ```
 $ cd server
-$ ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev
+$  FIREBASE_API_KEY=xxx ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 COLLECTIONS_API_HOST=localhost:8080 yarn start:dev
 ```
 
-* Open file `src/index.tsx` and change `uri` to `localhost:4000/graphql`. Reload browser and server calls should work.
+This will start the backend GraphQL server at `http://localhost:4000`, ready to be used. Elasticsearch should be running and Collections API too if those functionalities are to be used.
 
 ## Some resources and troubleshooting
 
@@ -86,7 +87,7 @@ $ ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 npm run start:dev
 * Setting up Apollo with Typescript in React example: https://github.com/apollographql/react-apollo/tree/master/examples/typescript
 * Use Apollo Client directly in event handlers: https://stackoverflow.com/questions/55890604/how-to-implement-search-function-in-react-graphql-using-react-hooks-and-apollo-c
 
-### Making GQL calls with Apollo Client instead of `useQuery`
+### Making GraphQL calls with Apollo Client instead of `useQuery`
 
 ```
 // From inside a component controlled by ApolloProvider
