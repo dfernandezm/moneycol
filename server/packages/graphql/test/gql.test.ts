@@ -2,209 +2,46 @@
 import { ApolloServer } from 'apollo-server';
 import { createTestClient } from 'apollo-server-testing';
 import gql from 'graphql-tag';
+import { CollectionsRestDatasource } from '../src/infrastructure/collections/CollectionsRestDatasource';
 import schema from '../src/schema';
+const VALID_EXPIRED_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMDBlOGZlNWYyYzg4Y2YwYzcwNDRmMzA3ZjdlNzM5Nzg4ZTRmMWUiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiZGFmZSBEYWZlNTIiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vbW9uZXljb2wiLCJhdWQiOiJtb25leWNvbCIsImF1dGhfdGltZSI6MTYxNjI3NDI1NiwidXNlcl9pZCI6IjEzTTk5UWFZbkNaMkFLa3dEbzRZeU1UdzFpaDEiLCJzdWIiOiIxM005OVFhWW5DWjJBS2t3RG80WXlNVHcxaWgxIiwiaWF0IjoxNjE2Mjc0MjU3LCJleHAiOjE2MTYyNzc4NTcsImVtYWlsIjoibW9uZXljb2x0ZXN0dXNlcjFAbWFpbGluYXRvci5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJtb25leWNvbHRlc3R1c2VyMUBtYWlsaW5hdG9yLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.cP6QTna7SHWSUFW5pAQDeBIrzVI5gr3No2d_p-qMpkfoFXt3TTcVUh8J0--1pfn8ydETiNzm_xv3pNUOtaIRN2QSoKK2RgyxNBcAgZFEohHZFlaumUUKOlh7RcP1w4_hYXkPQTg8fw1gb_a5RpljvKhuLtkpEYVimBJpb_LL34oJOlSaCOhxCmD_L126Vbb62lBXkIzepxhABwORmKS23QDLeXMBrDlImOMjHXyruGb1AXSDHbptiJxd8-ar7eaJT_ilgvWLgDCJCtMH-Qp69ml_1vhsgm-t8qszKhoTFnXYM_bVahPtMGCBzRd25DOxXam7VFUgY3FSdMa8JcyA8A";
 
 describe('Mutations', () => {
+  
+    // https://github.com/apollographql/fullstack-tutorial/blob/master/final/server/src/__tests__/integration.js
+    it('errors trying to create a collection without API', async () => {
 
-    it('runs login', async () => {
-
-        // https://github.com/apollographql/fullstack-tutorial/blob/master/final/server/src/__tests__/integration.js
-        const collectionsAPI = {};
+        const collectionsAPI = new CollectionsRestDatasource();
 
         // create a test server to test against, using our production typeDefs,
         // resolvers, and dataSources.
         const server = new ApolloServer({
             schema,
             dataSources: () => ({ collectionsAPI }),
-            context: () => ({ user: { id: 1, email: 'a@a.a' } }),
+            context: () => ({ token: VALID_EXPIRED_TOKEN }),
         });
 
-        // use the test server to create a query function
+        const collectionInput = {
+            name: "My collection",
+            description: "This is my collection",
+        }
+
         const { mutate } = createTestClient(server);
-        const email = "email@email.com";
-        const password = "aa";
-        const res = mutate({
-            mutation: LOGIN_GQL,
-            variables: { email, password },
+        const result = await mutate({
+            mutation: CREATE_COLLECTION,
+            variables: { collection: collectionInput },
         });
 
-        console.log("Res: ",  res);
-        
-    // create an instance of ApolloServer that mocks out context, while reusing
-    // existing dataSources, resolvers, and typeDefs.
-    // This function returns the server instance as well as our dataSource
-    // instances, so we can overwrite the underlying fetchers
-    //   const {server, launchAPI, userAPI} = constructTestServer({
-    //     context: () => ({user: {id: 1, email: 'a@a.a'}}),
-    //   });
-  
-    //   // mock the datasources' underlying fetch methods, whether that's a REST
-    //   // lookup in the RESTDataSource or the store query in the Sequelize datasource
-    //   launchAPI.get = jest.fn(() => [mockLaunchResponse]);
-    //   userAPI.store = mockStore;
-    //   userAPI.store.trips.findAll.mockReturnValueOnce([
-    //     {dataValues: {launchId: 1}},
-    //   ]);
-  
-    //   // use our test server as input to the createTestClient fn
-    //   // This will give us an interface, similar to apolloClient.query
-    //   // to run queries against our instance of ApolloServer
-    //   const {query} = createTestClient(server);
-    //   const res = await query({query: GET_LAUNCHES});
-    //   expect(res).toMatchSnapshot();
+        expect(JSON.stringify(result)).toContain('Cannot read property \'response\' of undefined');
     });
 });
 
-// mock the dataSource's underlying fetch methods
-//   launchAPI.get = jest.fn(() => [mockLaunchResponse]);
-//   userAPI.store = mockStore;
-//   userAPI.store.trips.findAll.mockReturnValueOnce([
-//     { dataValues: { launchId: 1 } },
-//   ]);
-
-// const {constructTestServer} = require('./__utils');
-
-// // the mocked REST API data
-// const {mockLaunchResponse} = require('../datasources/__tests__/launch');
-// // the mocked SQL DataSource store
-// const {mockStore} = require('../datasources/__tests__/user');
-
-
-export const LOGIN_GQL = gql`
-    mutation login($email: String!, $password: String!) {
-        loginWithEmail(email: $email, password: $password) {
-            token
-            email
-            userId
-        }
-    }
-`;
-
-const GET_LAUNCH = gql`
-  query launch($id: ID!) {
-    launch(id: $id) {
-      id
-      isBooked
-      rocket {
-        type
-      }
-      mission {
-        name
-      }
+export const CREATE_COLLECTION = gql`
+  mutation addCollection($collection: NewCollectionInput!) {
+    addCollection(collection: $collection) {
+      collectionId
+      name
+      description
     }
   }
 `;
-
-const LOGIN = gql`
-  mutation login($email: String!) {
-    login(email: $email) {
-      token
-    }
-  }
-`;
-
-const BOOK_TRIPS = gql`
-  mutation BookTrips($launchIds: [ID]!) {
-    bookTrips(launchIds: $launchIds) {
-      success
-      message
-      launches {
-        id
-        isBooked
-      }
-    }
-  }
-`;
-
-// describe('Queries', () => {
-//   it('fetches list of launches', async () => {
-//     // create an instance of ApolloServer that mocks out context, while reusing
-//     // existing dataSources, resolvers, and typeDefs.
-//     // This function returns the server instance as well as our dataSource
-//     // instances, so we can overwrite the underlying fetchers
-//     const {server, launchAPI, userAPI} = constructTestServer({
-//       context: () => ({user: {id: 1, email: 'a@a.a'}}),
-//     });
-
-//     // mock the datasources' underlying fetch methods, whether that's a REST
-//     // lookup in the RESTDataSource or the store query in the Sequelize datasource
-//     launchAPI.get = jest.fn(() => [mockLaunchResponse]);
-//     userAPI.store = mockStore;
-//     userAPI.store.trips.findAll.mockReturnValueOnce([
-//       {dataValues: {launchId: 1}},
-//     ]);
-
-//     // use our test server as input to the createTestClient fn
-//     // This will give us an interface, similar to apolloClient.query
-//     // to run queries against our instance of ApolloServer
-//     const {query} = createTestClient(server);
-//     const res = await query({query: GET_LAUNCHES});
-//     expect(res).toMatchSnapshot();
-//   });
-
-//   it('fetches single launch', async () => {
-//     const {server, launchAPI, userAPI} = constructTestServer({
-//       context: () => ({user: {id: 1, email: 'a@a.a'}}),
-//     });
-
-//     launchAPI.get = jest.fn(() => [mockLaunchResponse]);
-//     userAPI.store = mockStore;
-//     userAPI.store.trips.findAll.mockReturnValueOnce([
-//       {dataValues: {launchId: 1}},
-//     ]);
-
-//     const {query} = createTestClient(server);
-//     const res = await query({query: GET_LAUNCH, variables: {id: 1}});
-//     expect(res).toMatchSnapshot();
-//   });
-// });
-
-// describe('Mutations', () => {
-//   it('returns login token', async () => {
-//     const {server, launchAPI, userAPI} = constructTestServer({
-//       context: () => {},
-//     });
-
-//     userAPI.store = mockStore;
-//     userAPI.store.users.findOrCreate.mockReturnValueOnce([
-//       {id: 1, email: 'a@a.a'},
-//     ]);
-
-//     const {mutate} = createTestClient(server);
-//     const res = await mutate({
-//       mutation: LOGIN,
-//       variables: {email: 'a@a.a'},
-//     });
-//     expect(res.data.login.token).toEqual('YUBhLmE=');
-//   });
-
-//   it('books trips', async () => {
-//     const {server, launchAPI, userAPI} = constructTestServer({
-//       context: () => ({user: {id: 1, email: 'a@a.a'}}),
-//     });
-
-//     // mock the underlying fetches
-//     launchAPI.get = jest.fn();
-
-//     // look up the launches from the launch API
-//     launchAPI.get
-//       .mockReturnValueOnce([mockLaunchResponse])
-//       .mockReturnValueOnce([{...mockLaunchResponse, flight_number: 2}]);
-
-//     // book the trip in the store
-//     userAPI.store = mockStore;
-//     userAPI.store.trips.findOrCreate
-//       .mockReturnValueOnce([{get: () => ({launchId: 1})}])
-//       .mockReturnValueOnce([{get: () => ({launchId: 2})}]);
-
-//     // check if user is booked
-//     userAPI.store.trips.findAll.mockReturnValue([{}]);
-
-//     const {mutate} = createTestClient(server);
-//     const res = await mutate({
-//       mutation: BOOK_TRIPS,
-//       variables: {launchIds: ['1', '2']},
-//     });
-//     expect(res).toMatchSnapshot();
-//   });
-// });
