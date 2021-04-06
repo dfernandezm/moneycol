@@ -26,6 +26,7 @@ import { userService, InvalidValueError } from '@moneycol-server/users';
 import { resolverHelper } from './infrastructure/ResolverHelper';
 import { InvalidPasswordError } from './InvalidPasswordError';
 import { ErrorCodes } from './errorCodes';
+import { GeneralError } from './GeneralError';
 
 const searchService: SearchService = new ElasticSearchService();
 
@@ -74,10 +75,14 @@ const resolverMap: IResolvers = {
     Mutation: {
 
         async addCollection(_: void, args: { collection: NewCollectionInput }, { dataSources }): Promise<BankNoteCollection | null> {
-            let { collection } = args
-            console.log(`About to create collection for ${collection.collectorId}: ${collection.name}, ${collection.description}`);
-            let { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
-            return new BankNoteCollection(collectionId, name, description, collectorId, []);
+            try {
+                let { collection } = args
+                console.log(`About to create collection for ${collection.collectorId}: ${collection.name}, ${collection.description}`);
+                let { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
+                return new BankNoteCollection(collectionId, name, description, collectorId, []);     
+            } catch (err) {
+                throw handleErrors(err, "addCollection")
+            }
         },
 
         async addBankNoteToCollection(_: void, args: { data: AddBankNoteToCollection }, { dataSources }): Promise<BankNoteCollection> {
@@ -251,8 +256,9 @@ const decorateBanknoteCollection =
         return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);
     }
 
-    //TODO: these errors contain lots of information in stacktrace, should be cut to minimum information
-const handleErrors = (err: Error, request: string): Error => {
+//TODO: these errors contain lots of information in stacktrace, should be cut to minimum information
+// https://www.apollographql.com/docs/apollo-server/data/errors/#custom-errors
+const handleErrors = (err: ApolloError, request: string): Error => {
     console.log(`Error received for ${request} request`, err);
     if (err instanceof InvalidValueError) {
         return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
@@ -263,7 +269,13 @@ const handleErrors = (err: Error, request: string): Error => {
         console.log(`Forbidden access during operation ${request}`);
         return err;    
     } else {
-        return new Error(`General error in ${request}: ${err.message}`);
+        let newErr = new GeneralError(`General error in ${request}: ${err.message}`, err["code"]);
+        console.log("Err", err["code"])
+        if (err["code"] === "ECONNREFUSED") {
+            throw new ApolloError("Connection error with Collections API", "CONNECTION_REFUSED");
+        } else {
+            throw newErr;
+        }
     }
 }
 

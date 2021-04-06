@@ -66,6 +66,13 @@ export class CollectionsRestDatasource extends RESTDataSource {
   }
 
   protected didEncounterError(error: ApolloError, _request: Request) {
+    console.log("Error ===> ", error);
+
+    if (error.code && error.code === "ECONNREFUSED") {
+       console.log("Connection error")
+       throw error 
+    }
+    
     let message = error.extensions.response.body.message ? error.extensions.response.body.message : error.extensions.response.body.error;
     console.log(`Error from API, code -> ${error.extensions.code}, status -> ${error.extensions.response.status}, message -> ${message}`);
     throw error;
