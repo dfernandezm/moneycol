@@ -233,8 +233,7 @@ mutation AddCollection($collection: NewCollectionInput!) {
 {
   "collection": {
     "name": "My second collection",
-    "description": "This is my second collection",
-    "collectorId": "collectorId9"
+    "description": "This is my second collection"
   }
 }
 ```
