@@ -77,7 +77,7 @@ const resolverMap: IResolvers = {
         async addCollection(_: void, args: { collection: NewCollectionInput }, { dataSources }): Promise<BankNoteCollection | null> {
             try {
                 let { collection } = args
-                console.log(`About to create collection for ${collection.collectorId}: ${collection.name}, ${collection.description}`);
+                console.log(`About to create collection: ${collection.name}, ${collection.description}`);
                 let { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
                 return new BankNoteCollection(collectionId, name, description, collectorId, []);     
             } catch (err) {
@@ -256,25 +256,26 @@ const decorateBanknoteCollection =
         return new BankNoteCollection(collection.id, collection.name, collection.description, collection.collectorId, bankNotes);
     }
 
-//TODO: these errors contain lots of information in stacktrace, should be cut to minimum information
-// https://www.apollographql.com/docs/apollo-server/data/errors/#custom-errors
+// separate error handler to be done with #293
+export const CONNECTION_REFUSED_ERROR = "CONNECTION_REFUSED";
+
 const handleErrors = (err: ApolloError, request: string): Error => {
     console.log(`Error received for ${request} request`, err);
     if (err instanceof InvalidValueError) {
         return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
     } else if (err instanceof ApolloError && err instanceof AuthenticationError) {
         console.log(`Authentication required for ${request}`);
-        throw err;
+        return err;
     } else if (err instanceof ForbiddenError) {
         console.log(`Forbidden access during operation ${request}`);
         return err;    
     } else {
-        let newErr = new GeneralError(`General error in ${request}: ${err.message}`, err["code"]);
-        console.log("Err", err["code"])
+        const message = `General error during operation ${request}`;
+        let newErr = new GeneralError(message, err["code"]);
         if (err["code"] === "ECONNREFUSED") {
-            throw new ApolloError("Connection error with Collections API", "CONNECTION_REFUSED");
+            return new ApolloError("Connection error with Collections API", CONNECTION_REFUSED_ERROR);
         } else {
-            throw newErr;
+            return newErr;
         }
     }
 }
