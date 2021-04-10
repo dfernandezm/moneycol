@@ -165,6 +165,7 @@ const resolverMap: IResolvers = {
 
         async signUpWithEmail(_: void, args: { userInput: CreateUserCommand}): Promise<UserCreatedResult> {
             try {
+                console.log("Creating...");
                 const createdUserResult = await userService.signUpWithEmail(args.userInput);
                 console.log("Created User:", createdUserResult);
                 return createdUserResult;
@@ -172,7 +173,11 @@ const resolverMap: IResolvers = {
                 console.log("Error creating user", err);
                 if (err instanceof InvalidValueError) {
                     throw new ValidationError("Parameters invalid creating user: " + err.message);
-                } else {
+                } else if (err.code === "auth/weak-password") {
+                    console.log("Auth Error!!")
+                    throw new ApolloError("Invalid password", err.code);
+                }
+                else {
                     throw new Error("Error creating user: " + err.message);
                 }
             }

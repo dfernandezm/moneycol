@@ -51,7 +51,7 @@ describe('FirebaseAuthenticationService', () => {
             lastLogin: new Date()
         }
 
-        const userSessionRepositoryMock = setupUserSessionMock(user);
+        const userSessionRepositoryMock = setupUserSessionRepositoryMock(user);
         const authService = new FirebaseAuthenticationService(mockFirebaseConfig, userRepositoryMock, userSessionRepositoryMock);
 
         const authResult = await authService.loginWithEmailPassword(email, password);
@@ -71,12 +71,14 @@ describe('FirebaseAuthenticationService', () => {
         }
     }
 
-    const setupUserSessionMock = (user: AuthUser) => {
+    const setupUserSessionRepositoryMock = (user: AuthUser) => {
         return {
             saveCurrentUser: jest.fn(async () => Promise.resolve({})),
             findCurrentUser: jest.fn(async () => Promise.resolve(user)),
             removeUserSession: jest.fn(async () => { }),
-            checkRevoked: jest.fn(async () => false)
+            checkRevoked: jest.fn(async () => false),
+            findCurrentUserById: jest.fn(async () => Promise.resolve(user)),
+            findCurrentUserByEmail: jest.fn(async () => Promise.resolve(user))
         }
     }
 

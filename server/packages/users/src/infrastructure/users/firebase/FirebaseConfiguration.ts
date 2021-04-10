@@ -1,5 +1,5 @@
 // This import loads the firebase namespace.
-import firebase, { firestore } from 'firebase/app';
+import firebase from 'firebase/app';
  
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
@@ -8,19 +8,7 @@ import 'firebase/firestore';
 
 import * as admin from "firebase-admin";
 
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
-
 export class FirebaseConfig {
-
-    private FIREBASE_CONFIG = {
-        apiKey: FIREBASE_API_KEY,
-        authDomain: "moneycol.firebaseapp.com",
-        databaseURL: "https://moneycol.firebaseio.com",
-        projectId: "moneycol",
-        storageBucket: "moneycol.appspot.com",
-        messagingSenderId: "461081581931",
-        appId: "1:461081581931:web:3ca5344ae0e1df6dfa542e"
-    };
 
     // Preferred, picks GOOGLE_APPLICATION_CREDENTIALS service account json
     // Needs exporting of this environment variable
@@ -36,7 +24,15 @@ export class FirebaseConfig {
     // firebase auth client
     get() {
         if (!this.firebaseApp.auth) {
-            this.firebaseApp = firebase.initializeApp(this.FIREBASE_CONFIG);
+            this.firebaseApp = firebase.initializeApp({
+                apiKey: this.apiKey(),
+                authDomain: "moneycol.firebaseapp.com",
+                databaseURL: "https://moneycol.firebaseio.com",
+                projectId: "moneycol",
+                storageBucket: "moneycol.appspot.com",
+                messagingSenderId: "461081581931",
+                appId: "1:461081581931:web:3ca5344ae0e1df6dfa542e"
+            });
         }
         return this.firebaseApp;
     }
@@ -49,7 +45,6 @@ export class FirebaseConfig {
         return this.adminApp;
     }
 
-    // firestore
     getFirestore() {
         if (!this.firestore.collection) {
             this.firestore = this.getAdmin().firestore();
@@ -58,7 +53,7 @@ export class FirebaseConfig {
     }
 
     apiKey() {
-        return FIREBASE_API_KEY;
+        return process.env.FIREBASE_API_KEY;
     }
 }
 

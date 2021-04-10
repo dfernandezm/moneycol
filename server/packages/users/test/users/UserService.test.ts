@@ -3,7 +3,8 @@ import { UserService, CreateUserCommand, UserRepository, User, UserStatus, Email
 import { FirebaseConfig } from "../../src/infrastructure/users/firebase/FirebaseConfiguration";
 import InvalidValueError from '../../src/infrastructure/users/InvalidValueError';
 import UserInInvalidStateError from '../../src/infrastructure/users/UserInInvalidStateError';
-
+import AuthError from '../../src/infrastructure/users/firebase/AuthError';
+import Error from '@firebase/auth';
 
 describe('FirebaseUserService', () => {
 
@@ -24,6 +25,7 @@ describe('FirebaseUserService', () => {
     jest.clearAllMocks();
 
     createUserWithEmailAndPasswordMock = setupFirebaseCreateUserEmailMock(userId);
+    
     updateProfileMock = jest.fn();
     sendEmailVerificationMock = jest.fn();
     persistUserMock = jest.fn();
@@ -117,7 +119,29 @@ describe('FirebaseUserService', () => {
     // Then an error is thrown
     await expect(instance.updateUserProfile(updateUserCommand)).rejects.toThrow(UserInInvalidStateError);
   });
+
+  test('fails to create user when password is too short', async () => {
+    
+    // Given
+    const createUserCommand: CreateUserCommand = aUserCommand();
+    createUserCommand.password = "short";
+    createUserCommand.repeatedPassword = "short";
+
+    // When
+    let createUserWithEmailAndPasswordErrorMock = setupMockedFirebaseCreateUserEmailWithError('auth/weak-password', 'Password should be at least 6 characters');
+    mockFirebaseConfig = setupFirebaseMock(createUserWithEmailAndPasswordErrorMock, updateProfileMock, sendEmailVerificationMock);
+    instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
+
+    expect(async () => {
+      await instance.signUpWithEmail(createUserCommand);
+    }).rejects.toThrow(AuthError);
+
+  });
+
 });
+
+
+
 
 const aPersistedUser = (): User => {
   return {
@@ -172,4 +196,12 @@ const setupFirebaseMock = (createUserWithEmailAndPasswordMock: jest.Mock,
   return mockFirebaseConfig;
 }
 
+class FirebaseAuthError implements Error {
+  name: string;
+  message: string;
+  stack?: string;
+  
+}
+
 const setupFirebaseCreateUserEmailMock = (userId: string) => jest.fn((email: string, password: string) => Promise.resolve({ user: { uid: userId } }));
+const setupMockedFirebaseCreateUserEmailWithError = (errorCode: string, message: string) => jest.fn((email: string, password: string) => Promise.reject({errorCode, message}));
