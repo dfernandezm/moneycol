@@ -165,7 +165,6 @@ const resolverMap: IResolvers = {
 
         async signUpWithEmail(_: void, args: { userInput: CreateUserCommand}): Promise<UserCreatedResult> {
             try {
-                console.log("Creating...");
                 const createdUserResult = await userService.signUpWithEmail(args.userInput);
                 console.log("Created User:", createdUserResult);
                 return createdUserResult;
@@ -173,9 +172,9 @@ const resolverMap: IResolvers = {
                 console.log("Error creating user", err);
                 if (err instanceof InvalidValueError) {
                     throw new ValidationError("Parameters invalid creating user: " + err.message);
-                } else if (err.code === "auth/weak-password") {
-                    console.log("Auth Error!!")
-                    throw new ApolloError("Invalid password", err.code);
+                } else if (err.code === ErrorCodes.WEAK_PASSWORD_ERROR_CODE) {
+                    // should extend ApolloError
+                    throw new ApolloError(WEAK_PASSWORD_ERROR_MESSAGE, ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
                 }
                 else {
                     throw new Error("Error creating user: " + err.message);
@@ -263,6 +262,8 @@ const decorateBanknoteCollection =
 
 // separate error handler to be done with #293
 export const CONNECTION_REFUSED_ERROR = "CONNECTION_REFUSED";
+export const WEAK_PASSWORD_ERROR = "WEAK_PASSWORD";
+export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
 
 const handleErrors = (err: ApolloError, request: string): Error => {
     console.log(`Error received for ${request} request`, err);

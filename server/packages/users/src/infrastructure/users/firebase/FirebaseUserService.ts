@@ -14,16 +14,15 @@ import 'firebase/firestore';
 import UserInInvalidStateError from "../UserInInvalidStateError";
 import AuthError from "./AuthError";
 
-const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
-const WEAK_PASSWORD_ERROR_CODE = 'auth/weak-password';
-
+export const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
+export const WEAK_PASSWORD_ERROR_CODE = 'auth/weak-password';
+export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
 
 class FirebaseUserService implements UserService {
 
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
     private emailService: EmailService;
-
 
     constructor(firebaseInstance: FirebaseConfig,
         userRepository: UserRepository,
@@ -106,7 +105,7 @@ class FirebaseUserService implements UserService {
             if (err instanceof InvalidValueError) {
                 throw err;
             } else {
-                //Better error handling
+                // Better error handling
                 // there are certain errors on firebase that need to bubble up or wrap
                 // as they have specific codes and are informational. Need handler to wrap these errors
                 // properly
@@ -246,10 +245,10 @@ class FirebaseUserService implements UserService {
     }
 
     private wrapErrorWithCode(err: any, defaultMessage: string): AuthError  {
-        console.log("Error handling");
-        if (err.code) {
-            if (err.code === WEAK_PASSWORD_ERROR_CODE) {
-                return new AuthError(err.code, "Password should have at least 6 characters");
+        console.log("Error handling", err.errorCode);
+        if (err.errorCode) {
+            if (err.errorCode === WEAK_PASSWORD_ERROR_CODE) {
+                return new AuthError(WEAK_PASSWORD_ERROR_CODE, WEAK_PASSWORD_ERROR_MESSAGE);
             }
         } 
         return new AuthError("AUTHENTICATION_ERROR", defaultMessage);

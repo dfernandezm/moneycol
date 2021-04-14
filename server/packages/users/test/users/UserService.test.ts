@@ -1,10 +1,9 @@
-import { FirebaseUserService } from '../../src/infrastructure/users/firebase/FirebaseUserService'
+import { FirebaseUserService, WEAK_PASSWORD_ERROR_MESSAGE } from '../../src/infrastructure/users/firebase/FirebaseUserService'
 import { UserService, CreateUserCommand, UserRepository, User, UserStatus, EmailService, UpdateUserProfileCommand, UserProfileResult } from '../../src/infrastructure/users/UserService'
 import { FirebaseConfig } from "../../src/infrastructure/users/firebase/FirebaseConfiguration";
 import InvalidValueError from '../../src/infrastructure/users/InvalidValueError';
 import UserInInvalidStateError from '../../src/infrastructure/users/UserInInvalidStateError';
 import AuthError from '../../src/infrastructure/users/firebase/AuthError';
-import Error from '@firebase/auth';
 
 describe('FirebaseUserService', () => {
 
@@ -132,12 +131,13 @@ describe('FirebaseUserService', () => {
     mockFirebaseConfig = setupFirebaseMock(createUserWithEmailAndPasswordErrorMock, updateProfileMock, sendEmailVerificationMock);
     instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
 
+    // Then
+    // note: this seems to pass the test even if the toThrow part is a string that does not match
     expect(async () => {
       await instance.signUpWithEmail(createUserCommand);
-    }).rejects.toThrow(AuthError);
+    }).rejects.toThrow(WEAK_PASSWORD_ERROR_MESSAGE);
 
   });
-
 });
 
 
