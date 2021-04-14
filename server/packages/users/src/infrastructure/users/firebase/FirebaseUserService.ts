@@ -12,15 +12,17 @@ import 'firebase/database';
 import 'firebase/firestore';
 
 import UserInInvalidStateError from "../UserInInvalidStateError";
+import AuthError from "./AuthError";
 
-const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
+export const ACCOUNT_DISABLED_ERROR_CODE = 'auth/user-disabled';
+export const WEAK_PASSWORD_ERROR_CODE = 'auth/weak-password';
+export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
 
 class FirebaseUserService implements UserService {
 
     private firebaseInstance: FirebaseConfig;
     private userRepository: UserRepository;
     private emailService: EmailService;
-
 
     constructor(firebaseInstance: FirebaseConfig,
         userRepository: UserRepository,
@@ -56,6 +58,7 @@ class FirebaseUserService implements UserService {
             const emailVerified = false;
             const firebaseAuth = this.firebaseInstance.get().auth();
 
+            console.log("Creating user...");
             const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
             const userId = result.user.uid;
             console.log("Firebase user created: ", userId);
@@ -102,15 +105,12 @@ class FirebaseUserService implements UserService {
             if (err instanceof InvalidValueError) {
                 throw err;
             } else {
-                //TODO: error handling
+                // Better error handling
                 // there are certain errors on firebase that need to bubble up or wrap
                 // as they have specific codes and are informational. Need handler to wrap these errors
                 // properly
-                if (err.code) {
-                    throw err;
-                } else {
-                    throw new Error("Error creating user");
-                }
+                const authError = this.wrapErrorWithCode(err, "Error creating user");
+                throw authError;
             }
         }
     }
@@ -242,6 +242,16 @@ class FirebaseUserService implements UserService {
         if (password !== repeatedPassword) {
             throw new InvalidValueError(`Passwords don't match`);
         }
+    }
+
+    private wrapErrorWithCode(err: any, defaultMessage: string): AuthError  {
+        console.log("Error handling", err.errorCode);
+        if (err.errorCode) {
+            if (err.errorCode === WEAK_PASSWORD_ERROR_CODE) {
+                return new AuthError(WEAK_PASSWORD_ERROR_CODE, WEAK_PASSWORD_ERROR_MESSAGE);
+            }
+        } 
+        return new AuthError("AUTHENTICATION_ERROR", defaultMessage);
     }
 }
 
