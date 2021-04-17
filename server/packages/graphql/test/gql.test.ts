@@ -11,13 +11,13 @@ const VALID_EXPIRED_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMDBlOGZlNWYyYzg4Y2Y
 
 // to run some tests the real API is required whilst the emulator is not in place 
 // https://github.com/dfernandezm/moneycol/issues/294
-process.env.FIREBASE_API_KEY = "REAL_API_KEY"
+process.env.FIREBASE_API_KEY = "AIzaSyCaOesbM4MpEXGUiP0TgXfvuXOOF9Ky334"
 
 describe('Mutations', () => {
 
     // Based on examples from:
     // https://github.com/apollographql/fullstack-tutorial/blob/master/final/server/src/__tests__/integration.js
-    it('returns a known connection error when trying to communicate with not connected API', async () => {
+    xit('returns a known connection error when trying to communicate with not connected API', async () => {
 
         // instantiate the real DataSource
         const collectionsAPI = new CollectionsRestDatasource();
@@ -52,18 +52,9 @@ describe('Mutations', () => {
 
     xit('returns an authentication type error when password is too weak', async () => {
 
-      // instantiate the real DataSource
-      const collectionsAPI = new CollectionsRestDatasource();
-
-      // create a test server to test against, using our production typeDefs,
-      // resolvers, and dataSources. Add a valid (expired) token as well.
-      const server = new ApolloServer({
-          schema,
-          dataSources: () => ({ collectionsAPI }),
-          context: () => ({ token: VALID_EXPIRED_TOKEN }),
-      });
-
+      const server = createApolloTestServer();
       const { mutate } = createTestClient(server);
+
       const result = await mutate({
           mutation: SIGN_UP,
           variables: {
@@ -82,6 +73,35 @@ describe('Mutations', () => {
       expect(error.code).toBe(ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
       expect(error.message).toBe(WEAK_PASSWORD_ERROR_MESSAGE);
   });
+
+  it('returns an authentication type error with login fails with too many attempts', async () => {
+    // add also user-not-found
+    const server = createApolloTestServer();
+    const { mutate } = createTestClient(server);
+    let lastError;
+
+    for (let i=0; i<7; i++) {
+     try {
+      const result = await mutate({
+        mutation: LOGIN,
+        variables: {
+            email: "moneycolTestUser1@mailinator.com",
+            password: "invalid"
+        }
+      });
+    console.log(result);
+     } catch(err) {
+        lastError = err;
+     }
+   
+  }
+
+   
+
+   
+    expect(lastError.code).toBe('auth/too-many-requests');
+    // expect(error.message).toBe(WEAK_PASSWORD_ERROR_MESSAGE);
+});
 });
 
 const firstGraphQLError = (result: GraphQLResponse) => {
@@ -114,3 +134,32 @@ mutation signUp($userInput: SignUpUserInput!) {
   }
 }
 `;
+
+export const LOGIN = gql`
+mutation login($email: String!, $password: String!) {
+  loginWithEmail(email: $email, password: $password) {
+    email
+    token
+    userId
+  }
+}`
+
+
+// ---
+// {
+//   "email": "email@example.com",
+//   "password": "xxxx"
+// }
+
+const createApolloTestServer = () => {
+  const collectionsAPI = new CollectionsRestDatasource();
+
+  // create a test server to test against, using our production typeDefs,
+  // resolvers, and dataSources. Add a valid (expired) token as well.
+  const server = new ApolloServer({
+    schema,
+    dataSources: () => ({ collectionsAPI }),
+    context: () => ({ token: VALID_EXPIRED_TOKEN }),
+  });
+  return server;
+}
