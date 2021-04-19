@@ -13,7 +13,6 @@ describe('FirebaseAuthenticationService', () => {
 
     });
 
-
     // https://stackoverflow.com/questions/61391590/how-to-mock-firebase-auth-usercredential-jest/61400492#61400492
     const setupUserCredentialMock = (userId: string, email: string, emailVerified: boolean) => {
         return {
@@ -25,6 +24,7 @@ describe('FirebaseAuthenticationService', () => {
     }
 
     test('logs with email and password successfully obtaining token', async () => {
+
         const userId = "testUserId";
         const email = "test@user.com";
         const password = "pass";
@@ -34,22 +34,16 @@ describe('FirebaseAuthenticationService', () => {
         const lastName = "lastName";
         const testToken = "testToken";
 
-        const userCredentialMock = setupUserCredentialMock(userId, email, emailVerified);
+        const userCredentialMock = setupUserCredentialMock(userId, email, emailVerified)
+        const userCredentialMockFn = jest.fn(async () => userCredentialMock);
         const userCreated: User = {
             userId, username, email, firstName, lastName, status: UserStatus.ACTIVE
         }
 
-        mockFirebaseConfig = setupFirebaseMock(userCredentialMock);
+        mockFirebaseConfig = setupFirebaseMock(userCredentialMockFn);
         const userRepositoryMock = setupUserRepositoryMock(userCreated);
 
-        const user: AuthUser = {
-            token: testToken,
-            refreshToken: "",
-            email: "",
-            provider: "",
-            userId: userId,
-            lastLogin: new Date()
-        }
+        const user: AuthUser = anUser(testToken, userId)
 
         const userSessionRepositoryMock = setupUserSessionRepositoryMock(user);
         const authService = new FirebaseAuthenticationService(mockFirebaseConfig, userRepositoryMock, userSessionRepositoryMock);
@@ -59,6 +53,49 @@ describe('FirebaseAuthenticationService', () => {
         expect(authResult).toEqual({ email, userId, token: testToken })
         expect(userCredentialMock.user.getIdToken).toHaveBeenCalled()
 
+    });
+
+    test('fails with too many login attempts', async () => {
+
+        const errorCode = 'auth/too-many-requests'
+        const errorMessage = 'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
+
+        const errorThrown = (errCode:string , errMessage: string) => Promise.reject({errCode, errMessage});
+        const errorThrownMock = jest.fn(() => errorThrown(errorCode, errorMessage))
+
+        mockFirebaseConfig = setupFirebaseMock(errorThrownMock)
+
+        const user: AuthUser = {
+            token: "",
+            refreshToken: "",
+            email: "",
+            provider: "",
+            userId: "userId",
+            lastLogin: new Date()
+        }
+
+        const userId = "testUserId";
+        const email = "test@user.com";
+        const password = "pass";
+        const username = "testUsername";
+        const firstName = "firstName";
+        const lastName = "lastName";
+
+        const userCreated: User = {
+            userId, username, email, firstName, lastName, status: UserStatus.ACTIVE
+        }
+
+        const userRepositoryMock = setupUserRepositoryMock(userCreated);
+
+        const userSessionRepositoryMock = setupUserSessionRepositoryMock(user);
+        const authService = new FirebaseAuthenticationService(mockFirebaseConfig, userRepositoryMock, userSessionRepositoryMock);
+
+        try {
+            await authService.loginWithEmailPassword(email, password);
+        } catch(error) {
+            expect(error.errCode).toEqual(errorCode);
+            expect(error.errMessage).toEqual(errorMessage);
+        }
     });
 
     const setupUserRepositoryMock = (user: User) => {
@@ -82,13 +119,13 @@ describe('FirebaseAuthenticationService', () => {
         }
     }
 
-    const setupFirebaseMock = (userCredentialMock: object): FirebaseConfig => {
+    const setupFirebaseMock = (signInWithEmailAndPasswordMock: jest.Mock): FirebaseConfig => {
         let mockFirebaseConfig = new FirebaseConfig();
         mockFirebaseConfig.get = () => {
             return {
                 auth: () => {
                     return {
-                        signInWithEmailAndPassword: jest.fn(async () => userCredentialMock),
+                        signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
                         onAuthStateChanged: jest.fn(() => { })
                     }
                 }
@@ -97,4 +134,16 @@ describe('FirebaseAuthenticationService', () => {
 
         return mockFirebaseConfig
     }
+
 });
+
+function anUser(testToken: string, userId: string): AuthUser {
+    return {
+        token: testToken,
+        refreshToken: "",
+        email: "",
+        provider: "",
+        userId: userId,
+        lastLogin: new Date()
+    };
+}
