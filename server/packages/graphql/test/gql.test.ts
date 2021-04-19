@@ -4,14 +4,14 @@ import { GraphQLResponse } from 'apollo-server-types';
 import gql from 'graphql-tag';
 import { ErrorCodes } from '../src/errorCodes';
 import { CollectionsRestDatasource } from '../src/infrastructure/collections/CollectionsRestDatasource';
-import { CONNECTION_REFUSED_ERROR, WEAK_PASSWORD_ERROR_MESSAGE } from '../src/resolverMap';
+import { CONNECTION_REFUSED_ERROR, TOO_MANY_LOGIN_ATTEMPTS_ERROR, TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE, WEAK_PASSWORD_ERROR_MESSAGE } from '../src/resolverMap';
 import schema from '../src/schema';
 
 const VALID_EXPIRED_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMDBlOGZlNWYyYzg4Y2YwYzcwNDRmMzA3ZjdlNzM5Nzg4ZTRmMWUiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiZGFmZSBEYWZlNTIiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vbW9uZXljb2wiLCJhdWQiOiJtb25leWNvbCIsImF1dGhfdGltZSI6MTYxNjI3NDI1NiwidXNlcl9pZCI6IjEzTTk5UWFZbkNaMkFLa3dEbzRZeU1UdzFpaDEiLCJzdWIiOiIxM005OVFhWW5DWjJBS2t3RG80WXlNVHcxaWgxIiwiaWF0IjoxNjE2Mjc0MjU3LCJleHAiOjE2MTYyNzc4NTcsImVtYWlsIjoibW9uZXljb2x0ZXN0dXNlcjFAbWFpbGluYXRvci5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJtb25leWNvbHRlc3R1c2VyMUBtYWlsaW5hdG9yLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.cP6QTna7SHWSUFW5pAQDeBIrzVI5gr3No2d_p-qMpkfoFXt3TTcVUh8J0--1pfn8ydETiNzm_xv3pNUOtaIRN2QSoKK2RgyxNBcAgZFEohHZFlaumUUKOlh7RcP1w4_hYXkPQTg8fw1gb_a5RpljvKhuLtkpEYVimBJpb_LL34oJOlSaCOhxCmD_L126Vbb62lBXkIzepxhABwORmKS23QDLeXMBrDlImOMjHXyruGb1AXSDHbptiJxd8-ar7eaJT_ilgvWLgDCJCtMH-Qp69ml_1vhsgm-t8qszKhoTFnXYM_bVahPtMGCBzRd25DOxXam7VFUgY3FSdMa8JcyA8A";
 
 // to run some tests the real API is required whilst the emulator is not in place 
 // https://github.com/dfernandezm/moneycol/issues/294
-process.env.FIREBASE_API_KEY = "AIzaSyCaOesbM4MpEXGUiP0TgXfvuXOOF9Ky334"
+process.env.FIREBASE_API_KEY = "REAL_API_KEY"
 
 describe('Mutations', () => {
 
@@ -78,11 +78,9 @@ describe('Mutations', () => {
     // add also user-not-found
     const server = createApolloTestServer();
     const { mutate } = createTestClient(server);
-    let lastError;
-
+    let result;
     for (let i=0; i<7; i++) {
-     try {
-      const result = await mutate({
+     result = await mutate({
         mutation: LOGIN,
         variables: {
             email: "moneycolTestUser1@mailinator.com",
@@ -90,17 +88,11 @@ describe('Mutations', () => {
         }
       });
     console.log(result);
-     } catch(err) {
-        lastError = err;
-     }
-   
   }
 
-   
-
-   
-    expect(lastError.code).toBe('auth/too-many-requests');
-    // expect(error.message).toBe(WEAK_PASSWORD_ERROR_MESSAGE);
+  const error = firstGraphQLError(result);
+  expect(error.code).toBe(ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS);
+  expect(error.message).toBe(TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE);
 });
 });
 

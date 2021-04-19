@@ -119,21 +119,14 @@ const resolverMap: IResolvers = {
             return decorateBanknoteCollection(collectionId, collectionsAPI);
         },
 
-        
         // Authentication
-        async loginWithEmail(_: void, { email, password }, ctx): Promise<AuthenticationResult> {
+        async loginWithEmail(_: void, { email, password }): Promise<AuthenticationResult> {
             try {
                 let authResult: AuthenticationResult = await authenticationService.loginWithEmailPassword(email, password);
-                console.log("Resolver: authResult", authResult);
                 return authResult;
             } catch (err) {
                 console.log("Authentication error in login", err);
-
-                if (err.code === ErrorCodes.INVALID_PASSWORD_ERROR_CODE) {
-                    throw new InvalidPasswordError("Invalid credentials provided");
-                } else {
-                    throw new AuthenticationError("Authentication error in login");
-                }
+                throw handleErrors(err, "loginWithEmail");
             }
         },
 
@@ -170,15 +163,7 @@ const resolverMap: IResolvers = {
                 return createdUserResult;
             } catch (err) {
                 console.log("Error creating user", err);
-                if (err instanceof InvalidValueError) {
-                    throw new ValidationError("Parameters invalid creating user: " + err.message);
-                } else if (err.code === ErrorCodes.WEAK_PASSWORD_ERROR_CODE) {
-                    // should extend ApolloError
-                    throw new ApolloError(WEAK_PASSWORD_ERROR_MESSAGE, ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
-                }
-                else {
-                    throw new Error("Error creating user: " + err.message);
-                }
+                throw handleErrors(err, "signUpWithEmail");
             }
         },
 
@@ -264,32 +249,37 @@ const decorateBanknoteCollection =
 export const CONNECTION_REFUSED_ERROR = "CONNECTION_REFUSED";
 export const WEAK_PASSWORD_ERROR = "WEAK_PASSWORD";
 export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
+export const TOO_MANY_LOGIN_ATTEMPTS_ERROR = "TOO_MANY_LOGIN_ATTEMPTS_ERROR";
+export const TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE = "Too many login attempts";
 
 const handleErrors = (err: ApolloError, request: string): Error => {
     console.log(`Error received for ${request} request`, err);
     if (err instanceof InvalidValueError) {
         return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
+    } else if (err.code === ErrorCodes.INVALID_PASSWORD_ERROR_CODE) {
+        return new InvalidPasswordError("Invalid credentials provided");
+     } else if (err.code === ErrorCodes.WEAK_PASSWORD_ERROR_CODE) {
+        // should extend ApolloError
+        throw new ApolloError(WEAK_PASSWORD_ERROR_MESSAGE, ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
+    } else if (err.code && err.code === ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS) {
+        return new ApolloError(TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE, ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS);
     } else if (err instanceof ApolloError && err instanceof AuthenticationError) {
         console.log(`Authentication required for ${request}`);
         return err;
+    } else if (err.code && err.code.indexOf("auth") > -1) {
+        return new AuthenticationError("Authentication error in login");
     } else if (err instanceof ForbiddenError) {
         console.log(`Forbidden access during operation ${request}`);
-        return err;    
+        return err;
     } else {
         const message = `General error during operation ${request}`;
         let newErr = new GeneralError(message, err["code"]);
         if (err["code"] === "ECONNREFUSED") {
-            return new ApolloError("Connection error with Collections API", CONNECTION_REFUSED_ERROR);
+            return new ApolloError("Connection error", CONNECTION_REFUSED_ERROR);
         } else {
             return newErr;
         }
     }
-}
-
-type ErrorResult = {
-    type: string
-    message: string
-    status: number
 }
 
 export default resolverMap;
