@@ -247,6 +247,7 @@ const decorateBanknoteCollection =
 
 // separate error handler to be done with #293
 export const CONNECTION_REFUSED_ERROR = "CONNECTION_REFUSED";
+export const CONNECTION_REFUSED_ERROR_MESSAGE = "Connection error";
 export const WEAK_PASSWORD_ERROR = "WEAK_PASSWORD";
 export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
 export const TOO_MANY_LOGIN_ATTEMPTS_ERROR = "TOO_MANY_LOGIN_ATTEMPTS_ERROR";
