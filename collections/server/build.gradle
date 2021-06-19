@@ -77,6 +77,8 @@ dependencies {
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
 
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    implementation 'com.codeborne:selenide:5.22.1'
 }
 
 jib.from.image = 'gcr.io/distroless/java:11-debug'
