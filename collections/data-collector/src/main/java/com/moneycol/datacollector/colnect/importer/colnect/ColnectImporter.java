@@ -1,4 +1,4 @@
-package com.moneycol.collections.server.infrastructure.importer;
+package com.moneycol.datacollector.colnect.importer.colnect;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
