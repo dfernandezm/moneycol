@@ -1,4 +1,6 @@
 package com.moneycol.datacollector.colnect;
 
-public class ColnectCrawlerClient {
+public interface ColnectCrawlerClient {
+    void setupCrawler();
+    ColnectBanknotesDataSet startCrawler();
 }
