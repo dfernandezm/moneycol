@@ -26,6 +26,7 @@ public class CountrySeriesListing {
     }
 
     public CountryBanknotesListing visitAllBanknotesListing() {
+        //TODO: antigua & barbuda has no link 'banknotesForCountryListingLink'
         log.info("Visiting listing for country {}", countryName);
         banknotesForCountryListingLink.click();
         return new CountryBanknotesListing(countryName, 1);

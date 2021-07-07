@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 /**
@@ -25,6 +26,7 @@ public class CountryBanknotesListing {
 
     private static final List<SelenideElement> banknotesList = $$("#plist_items > div");
     private final List<SelenideElement> pageLinks = $$("a.pager_page");
+    private final SelenideElement pagerQuick = $("input.pager_quick");
 
     private final String countryName;
     private final Integer pageNumber;
@@ -43,7 +45,7 @@ public class CountryBanknotesListing {
         log.info("Total banknotes in page {}", banknotesList.size());
         return banknotesList
                 .parallelStream()
-                .map(this::banknoteDataFor)
+                .map(this::parseBanknoteData)
                 .collect(Collectors.toList());
     }
 
@@ -60,8 +62,8 @@ public class CountryBanknotesListing {
     }
 
     public CountryBanknotesListing visitNextPage() {
-        log.info("Going to visit next page");
         int nextPageNumber = pageNumber + 1;
+        log.info("Going to visit next page: {}", pageNumber);
         Optional<SelenideElement> pageLinkElement = nextPageElement(nextPageNumber);
         pageLinkElement.ifPresent(SelenideElement::click);
         return CountryBanknotesListing.builder()
@@ -74,7 +76,7 @@ public class CountryBanknotesListing {
         return link.getText().equals(number + "");
     }
 
-    private BanknoteData banknoteDataFor(SelenideElement banknoteDataListBlock) {
+    private BanknoteData parseBanknoteData(SelenideElement banknoteDataListBlock) {
 
         String banknoteName = banknoteDataListBlock.find(By.className("item_header")).getText();
         SelenideElement dataBlock = banknoteDataListBlock.find(By.className("i_d"));

@@ -31,9 +31,9 @@ public class ColnectLandingPage {
         this.url = url != null ? url : BANKNOTES_BY_COUNTRY_ENG_URL;
     }
 
-    public List<CountrySeriesListing> countriesSeriesListings() {
+    public List<CountrySeriesListing> countrySeriesListings() {
         return countriesLinks
-                .stream()
+                .parallelStream()
                 .map(this::countriesListingPageFrom)
                 .collect(Collectors.toList());
     }
@@ -41,7 +41,7 @@ public class ColnectLandingPage {
     private CountrySeriesListing countriesListingPageFrom(SelenideElement countryLinkEl) {
         String countryLink = countryLinkEl.attr("href");
         String countryName = countryNameFrom(countryLinkEl.getText());
-        log.info("Country {}, Link {}", countryName, countryLink);
+        log.info("Getting links for Country {}, Link {}", countryName, countryLink);
         return CountrySeriesListing.builder()
                 .url(countryLink)
                 .countryName(countryName)
@@ -71,7 +71,7 @@ public class ColnectLandingPage {
         System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
 
         ColnectLandingPage colnectLandingPage = open(BANKNOTES_BY_COUNTRY_ENG_URL, ColnectLandingPage.class);
-        List<CountrySeriesListing> countrySeriesListing = colnectLandingPage.countriesSeriesListings();
+        List<CountrySeriesListing> countrySeriesListing = colnectLandingPage.countrySeriesListings();
         Map<String, List<BanknoteData>> countriesData = new LinkedHashMap<>();
 
         List<List<CountrySeriesListing>> partitions = Lists.partition(countrySeriesListing, 3);

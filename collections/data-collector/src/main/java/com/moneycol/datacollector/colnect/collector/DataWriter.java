@@ -1,8 +1,5 @@
 package com.moneycol.datacollector.colnect.collector;
 
-public class DataWriter {
-
-    public void writeData() {
-
-    }
+public interface DataWriter {
+    void writeDataBatch(DataBatch dataBatch);
 }
