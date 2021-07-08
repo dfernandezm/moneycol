@@ -21,6 +21,10 @@ public class LocalJsonFileDataWriter implements DataWriter {
         String country = banknotesDataSet.getCountry();
         String filePath = String.format("/tmp/%s.json", country);
 
+        writeJsonToFile(banknotesDataSet, country, filePath);
+    }
+
+    private void writeJsonToFile(BanknotesDataSet banknotesDataSet, String country, String filePath) {
         try {
             objectMapper.writeValue(new File(filePath), banknotesDataSet);
         } catch (IOException e) {
