@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 /**
@@ -26,7 +25,6 @@ public class CountryBanknotesListing {
 
     private static final List<SelenideElement> banknotesList = $$("#plist_items > div");
     private final List<SelenideElement> pageLinks = $$("a.pager_page");
-    private final SelenideElement pagerQuick = $("input.pager_quick");
 
     private final String countryName;
     private final Integer pageNumber;
@@ -93,6 +91,8 @@ public class CountryBanknotesListing {
             banknoteDataRaw.put(name, value);
         });
 
+
+        // May contain dates like 1945-05-01, so parseInt is not good idea
         String year = banknoteDataRaw.get("Issued on:");
 
         return BanknoteData.builder()

@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Selenide.open;
 public class CountrySeriesListing {
 
     private final String url;
-    private final SelenideElement banknotesForCountryListingLink =
+    private final SelenideElement allBanknotesForCountryLink =
             $("div.navigation_box > div > strong:nth-child(3)");
     private final String countryName;
 
@@ -26,9 +26,16 @@ public class CountrySeriesListing {
     }
 
     public CountryBanknotesListing visitAllBanknotesListing() {
-        //TODO: antigua & barbuda has no link 'banknotesForCountryListingLink'
-        log.info("Visiting listing for country {}", countryName);
-        banknotesForCountryListingLink.click();
+        // Countries like Antigua & barbuda have no link 'banknotesForCountryListingLink',
+        // no Series / very low number of banknotes
+        if (!allBanknotesForCountryLink.exists()) {
+            log.info("Country {} has no link for banknotes listing -- all banknotes are in this page already",
+                    countryName);
+        } else {
+            log.info("Visiting listing for country {}", countryName);
+            allBanknotesForCountryLink.click();
+        }
+
         return new CountryBanknotesListing(countryName, 1);
     }
 }

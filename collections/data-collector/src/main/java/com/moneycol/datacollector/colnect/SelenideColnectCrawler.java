@@ -1,9 +1,8 @@
 package com.moneycol.datacollector.colnect;
 
-import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
-import com.moneycol.datacollector.colnect.collector.GcsDataWriter;
+import com.moneycol.datacollector.colnect.collector.LocalJsonFileDataWriter;
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
 import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
@@ -11,9 +10,7 @@ import com.moneycol.datacollector.colnect.pages.CountrySeriesListing;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +26,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     public void setupCrawler() {
-        Configuration.headless = true;
+        //Configuration.headless = true;
         System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
     }
 
@@ -40,64 +37,79 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         }
     }
 
-    // https://stackoverflow.com/questions/19348248/waiting-on-a-list-of-future
-
     @Override
-    public ColnectBanknotesDataSet startCrawler() {
+    public BanknotesDataSet startCrawler() {
         ColnectLandingPage colnectLandingPage = ColnectLandingPage.builder().build();
         colnectLandingPage.visit();
 
         List<CountrySeriesListing> countrySeriesListings = colnectLandingPage.countrySeriesListings();
-        Map<String, List<BanknoteData>> countriesData = new LinkedHashMap<>();
 
         // Batches of 3 countries, then wait
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
 
         countryGroups.forEach(countrySeriesList -> {
-            processCountry(countriesData, countrySeriesList);
-            sleep(1);
+            processCountryGroup(countrySeriesList);
+            log.info("Waiting 5 seconds before proceeding with next group");
+            sleep(5);
         });
-
-        sleep(3600000);
 
         return null;
     }
 
-    private void processCountry(Map<String, List<BanknoteData>> countriesData, List<CountrySeriesListing> countrySeriesList) {
+    private void processCountryGroup(List<CountrySeriesListing> countrySeriesList) {
 
         List<CountryBanknotesListing> countryBanknotesListings = new ArrayList<>();
-
-
         countrySeriesList.forEach(countrySeries -> {
             countrySeries.visit();
             sleep(1);
-            CountryBanknotesListing firstPageOfBanknoteData = countrySeries.visitAllBanknotesListing();
-            log.info("Data for country {} found", firstPageOfBanknoteData.getCountryName());
-            countryBanknotesListings.add(firstPageOfBanknoteData);
-            log.info("Waiting");
+            processCountryData(countryBanknotesListings, countrySeries);
+            log.info("Waiting before processing next batch");
             sleep(3);
         });
 
-        log.info("Listing finished");
+        log.info("Country group finished");
     }
 
-    private void traverseCountryBanknotesListing(CountryBanknotesListing firstListing) {
-        CountryBanknotesListing currentListing = firstListing;
-        while (firstListing.hasMorePages()) {
-            log.info("New page for banknotes in {}", firstListing);
-            currentListing = currentListing.visitNextPage();
-            processBanknoteListing(currentListing);
-            sleep(1);
+    private void processCountryData(List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {
+        CountryBanknotesListing firstPageOfBanknoteData = countrySeries.visitAllBanknotesListing();
+        String country = firstPageOfBanknoteData.getCountryName();
+        log.info("Traversing data for country {} found", country);
+        countryBanknotesListings.add(firstPageOfBanknoteData);
+        List<BanknoteData> countryBanknoteData = traverseAllCountryBanknotes(firstPageOfBanknoteData);
+
+        if (countryBanknoteData.size() > 0) {
+            BanknotesDataSet banknotesDataSet = BanknotesDataSet.builder()
+                    .country(country)
+                    .banknotes(countryBanknoteData)
+                    .build();
+
+            log.info("Writing data batch for {}", country);
+            // do it async
+            dataWriter.writeDataBatch(banknotesDataSet);
+            log.info("Data for {} successfully written", country);
         }
     }
 
-    private void processBanknoteListing(CountryBanknotesListing banknotesListing) {
+    private List<BanknoteData> traverseAllCountryBanknotes(CountryBanknotesListing firstListing) {
+        CountryBanknotesListing currentListing = firstListing;
+        List<BanknoteData> banknotesDataForCountry = new ArrayList<>();
+        while (currentListing.hasMorePages()) {
+            log.info("New page for banknotes in {}", firstListing);
+            currentListing = currentListing.visitNextPage();
+            banknotesDataForCountry.addAll(processBanknoteListing(currentListing));
+            sleep(1);
+        }
+        return banknotesDataForCountry;
+    }
+
+    private List<BanknoteData> processBanknoteListing(CountryBanknotesListing banknotesListing) {
         List<BanknoteData> banknoteData = banknotesListing.banknoteDataForCurrentPage();
         banknoteData.forEach(data -> log.info(data.toString()));
+        return banknoteData;
     }
 
     public static void main(String args[]) {
-        SelenideColnectCrawler selenideColnectCrawler = new SelenideColnectCrawler(new GcsDataWriter());
+        SelenideColnectCrawler selenideColnectCrawler = new SelenideColnectCrawler(new LocalJsonFileDataWriter());
         selenideColnectCrawler.setupCrawler();
         selenideColnectCrawler.startCrawler();
     }
