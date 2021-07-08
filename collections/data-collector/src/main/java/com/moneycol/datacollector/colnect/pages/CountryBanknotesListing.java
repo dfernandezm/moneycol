@@ -2,6 +2,7 @@ package com.moneycol.datacollector.colnect.pages;
 
 import com.codeborne.selenide.SelenideElement;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 
@@ -26,7 +27,10 @@ public class CountryBanknotesListing {
     private static final List<SelenideElement> banknotesList = $$("#plist_items > div");
     private final List<SelenideElement> pageLinks = $$("a.pager_page");
 
+    @Getter
     private final String countryName;
+
+    @Getter
     private final Integer pageNumber;
 
     @Builder

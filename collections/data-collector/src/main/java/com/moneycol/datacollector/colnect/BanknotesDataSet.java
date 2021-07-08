@@ -14,5 +14,6 @@ import java.util.List;
 @Setter
 public class BanknotesDataSet {
     private String country;
+    private Integer pageNumber;
     private List<BanknoteData> banknotes;
 }

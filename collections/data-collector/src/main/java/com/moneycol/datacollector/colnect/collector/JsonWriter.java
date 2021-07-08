@@ -18,9 +18,18 @@ public class JsonWriter {
         objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
     }
 
-    public <T> void writeJsonToFile(String filePath, T object) {
+    public <T> void asJsonFile(String filePath, T object) {
         try {
             objectMapper.writeValue(new File(filePath), object);
+        } catch (IOException e) {
+            log.error("Error writing json", e);
+            throw new JsonWritingException("Error writing json");
+        }
+    }
+
+    public <T> String asJsonString(T object) {
+        try {
+            return objectMapper.writeValueAsString(object);
         } catch (IOException e) {
             log.error("Error writing json", e);
             throw new JsonWritingException("Error writing json");

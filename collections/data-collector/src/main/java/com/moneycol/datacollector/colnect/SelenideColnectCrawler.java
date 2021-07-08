@@ -1,8 +1,9 @@
 package com.moneycol.datacollector.colnect;
 
+import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
-import com.moneycol.datacollector.colnect.collector.LocalJsonFileDataWriter;
+import com.moneycol.datacollector.colnect.collector.GcsDataWriter;
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
 import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
@@ -26,7 +27,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     public void setupCrawler() {
-        //Configuration.headless = true;
+        Configuration.headless = true;
         System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
     }
 
@@ -57,7 +58,6 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     private void processCountryGroup(List<CountrySeriesListing> countrySeriesList) {
-
         List<CountryBanknotesListing> countryBanknotesListings = new ArrayList<>();
         countrySeriesList.forEach(countrySeries -> {
             countrySeries.visit();
@@ -73,6 +73,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     private void processCountryData(List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {
         CountryBanknotesListing firstPageOfBanknoteData = countrySeries.visitAllBanknotesListing();
         String country = firstPageOfBanknoteData.getCountryName();
+
         log.info("Traversing data for country {} found", country);
         countryBanknotesListings.add(firstPageOfBanknoteData);
         List<BanknoteData> countryBanknoteData = traverseAllCountryBanknotes(firstPageOfBanknoteData);
@@ -84,8 +85,9 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
                     .build();
 
             log.info("Writing data batch for {}", country);
+
             // do it async
-            dataWriter.writeDataBatch(banknotesDataSet);
+            //dataWriter.writeDataBatch(banknotesDataSet);
             log.info("Data for {} successfully written", country);
         }
     }
@@ -96,7 +98,16 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         while (currentListing.hasMorePages()) {
             log.info("New page for banknotes in {}", firstListing);
             currentListing = currentListing.visitNextPage();
-            banknotesDataForCountry.addAll(processBanknoteListing(currentListing));
+
+            List<BanknoteData> countryBanknoteData = processBanknoteListing(currentListing);
+            BanknotesDataSet banknotesDataSet = BanknotesDataSet.builder()
+                    .country(firstListing.getCountryName())
+                    .banknotes(countryBanknoteData)
+                    .pageNumber(currentListing.getPageNumber())
+                    .build();
+
+            dataWriter.writeDataBatch(banknotesDataSet);
+            banknotesDataForCountry.addAll(countryBanknoteData);
             sleep(1);
         }
         return banknotesDataForCountry;
@@ -109,7 +120,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     public static void main(String args[]) {
-        SelenideColnectCrawler selenideColnectCrawler = new SelenideColnectCrawler(new LocalJsonFileDataWriter());
+        SelenideColnectCrawler selenideColnectCrawler = new SelenideColnectCrawler(new GcsDataWriter());
         selenideColnectCrawler.setupCrawler();
         selenideColnectCrawler.startCrawler();
     }
