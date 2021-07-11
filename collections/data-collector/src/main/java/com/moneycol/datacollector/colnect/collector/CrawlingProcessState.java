@@ -5,12 +5,23 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Builder
+//TODO: adapt lombok to Jackson read/write ways
+
 @ToString
 @Getter
 @Setter
 public class CrawlingProcessState {
-    private final String seriesUrl;
-    private final String countryListingUrl;
-    private final Integer pageNumber;
+
+    public CrawlingProcessState() {}
+
+    @Builder
+    public CrawlingProcessState(String seriesUrl, String currentUrl, Integer pageNumber) {
+        this.seriesUrl = seriesUrl;
+        this.currentUrl = currentUrl;
+        this.pageNumber = pageNumber;
+    }
+
+    private String seriesUrl;
+    private String currentUrl;
+    private Integer pageNumber;
 }

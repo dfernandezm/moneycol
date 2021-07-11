@@ -38,6 +38,16 @@ public class JsonWriter {
         }
     }
 
+    public CrawlingProcessState toObject(String jsonString) {
+        setupMapper();
+        try {
+            return objectMapper.readValue(jsonString, CrawlingProcessState.class);
+        } catch (IOException e) {
+            log.error("Error writing json", e);
+            throw new JsonWritingException("Error writing json");
+        }
+    }
+
     public <T> String prettyPrint(T object) {
         setupMapper();
         try {

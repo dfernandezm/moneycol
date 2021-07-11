@@ -42,10 +42,6 @@ public class CountryBanknotesListing {
         this.enclosingLink = enclosingLink;
     }
 
-    public String getCountryName() {
-        return countryName;
-    }
-
     public String getUrl() {
         return enclosingLink;
     }

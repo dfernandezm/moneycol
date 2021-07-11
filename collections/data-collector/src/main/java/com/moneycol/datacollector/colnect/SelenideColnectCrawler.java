@@ -46,7 +46,11 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
         List<CountrySeriesListing> countrySeriesListings = colnectLandingPage.countrySeriesListings();
 
-        // TODO: recover from existing state (discard all previous)
+        // find state file, skip series listings
+        log.info("Checking for state file");
+        CrawlingProcessState crawlingProcessState = dataWriter.findState();
+        countrySeriesListings = skipUntil(countrySeriesListings, crawlingProcessState.getSeriesUrl());
+
         // Batches of 3 countries, then wait
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
         countryGroups.forEach(countrySeriesList -> {
@@ -54,6 +58,30 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
         });
+    }
+
+    public List<CountrySeriesListing> skipUntil(List<CountrySeriesListing> series, String seriesUrl) {
+        List<CountrySeriesListing> countrySeriesListings = new ArrayList<>();
+        int i = 0;
+        boolean found = false;
+        while (i < series.size()) {
+            CountrySeriesListing serie = series.get(i);
+            if (found) {
+                countrySeriesListings.add(serie);
+            } else {
+                found = serie.getUrl().equals(seriesUrl);
+                if (found) {
+                    log.info("Found url in state {}", seriesUrl);
+                    countrySeriesListings.add(serie);
+                } else {
+                    log.info("Url not found yet, skipping {}", serie.getUrl());
+                }
+            }
+            i++;
+        }
+
+        // Series from the one in state
+        return countrySeriesListings;
     }
 
     private void processCountryGroup(List<CountrySeriesListing> countrySeriesList) {
@@ -76,22 +104,22 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
         log.info("Traversing data for country {} found", countryName);
         countryBanknotesListings.add(firstPageOfBanknoteData);
-        collectAllCountryBanknotesFrom(allBanknotesForThisCountryUrl, firstPageOfBanknoteData);
+        collectAllCountryBanknotesFrom(countrySeries.getUrl(), allBanknotesForThisCountryUrl, firstPageOfBanknoteData);
     }
 
-    private List<BanknoteData> collectAllCountryBanknotesFrom(String allBanknotesUrl, CountryBanknotesListing firstListing) {
+    private List<BanknoteData> collectAllCountryBanknotesFrom(String countrySeriesUrl, String allBanknotesUrl, CountryBanknotesListing firstListing) {
         CountryBanknotesListing currentListing = firstListing;
         int pageNumber = currentListing.getPageNumber();
 
         List<BanknoteData> banknotesDataForCountry = processBanknotesInListing(currentListing, pageNumber);
-        saveState(allBanknotesUrl, pageNumber);
+        saveState(countrySeriesUrl, allBanknotesUrl, pageNumber);
 
         while (currentListing.hasMorePages()) {
             sleep(1);
             currentListing = currentListing.visitNextPage();
             pageNumber = currentListing.getPageNumber();
             processBanknotesInListing(currentListing, pageNumber);
-            saveState(currentListing.getUrl(), pageNumber);
+            saveState(countrySeriesUrl, currentListing.getUrl(), pageNumber);
         }
 
         return banknotesDataForCountry;
@@ -120,9 +148,10 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         return banknotesListing.banknoteDataForCurrentPage();
     }
 
-    private void saveState(String url, Integer pageNumber) {
+    private void saveState(String countrySeriesUrl, String countryListingUrl, Integer pageNumber) {
         CrawlingProcessState crawlingProcessState = CrawlingProcessState.builder()
-                .countryListingUrl(url)
+                .seriesUrl(countrySeriesUrl)
+                .currentUrl(countryListingUrl)
                 .pageNumber(pageNumber)
                 .build();
         dataWriter.saveState(crawlingProcessState);

@@ -15,6 +15,7 @@ public class GcsDataWriter implements DataWriter {
     private final JsonWriter jsonWriter = new JsonWriter();
     private static final String BUCKET_NAME = "moneycol-import";
     private final String OBJECT_NAME_FORMAT = "colnect/%s-%s-p-%s.json";
+    private final String STATE_FILE_NAME = "state.json";
 
     @Override
     public void writeDataBatch(BanknotesDataSet banknotesDataSet) {
@@ -38,14 +39,22 @@ public class GcsDataWriter implements DataWriter {
     public void saveState(CrawlingProcessState crawlingProcessState) {
         log.info("Saving state {}", crawlingProcessState);
         String jsonData = jsonWriter.asJsonString(crawlingProcessState);
-        String objectName = "state.json";
-        writeDataToGcs(objectName, jsonData);
+        writeDataToGcs(STATE_FILE_NAME, jsonData);
         log.info("Crawling state saved {}", crawlingProcessState);
     }
 
     @Override
     public CrawlingProcessState findState() {
-        return null;
+        //TODO: return null if it does not exist
+        String stateJson = readDataFromGcs(STATE_FILE_NAME);
+        return jsonWriter.toObject(stateJson);
+    }
+
+    public String readDataFromGcs(String objectName) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
+        byte[] bytes = storage.readAllBytes(blobId);
+        return new String(bytes);
     }
 
     private void writeDataToGcs(String objectName, String data) {
