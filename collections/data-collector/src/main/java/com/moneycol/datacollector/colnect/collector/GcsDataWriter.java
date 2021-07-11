@@ -13,29 +13,59 @@ import lombok.extern.slf4j.Slf4j;
 public class GcsDataWriter implements DataWriter {
 
     private final JsonWriter jsonWriter = new JsonWriter();
+    private static final String BUCKET_NAME = "moneycol-import";
+    private final String OBJECT_NAME_FORMAT = "colnect/%s-%s-p-%s.json";
 
-    //https://www.baeldung.com/java-google-cloud-storage
     @Override
     public void writeDataBatch(BanknotesDataSet banknotesDataSet) {
         log.info("Writing batch of data into GCS for {}", banknotesDataSet.getCountry());
 
-        // will get creds from GOOGLE_APPLICATION_CREDENTIALS
+        // delete once deployed
         log.info("Value of GCP Creds {}", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
-        Storage storage = StorageOptions.getDefaultInstance().getService();
-        String bucketName = "moneycol-import";
 
+        String jsonData = jsonWriter.asJsonString(banknotesDataSet);
+
+        log.info("About to write banknote batch:\n {}", jsonWriter.prettyPrint(banknotesDataSet));
+
+        String objectName = String.format(OBJECT_NAME_FORMAT,
+                banknotesDataSet.getLanguage(),
+                banknotesDataSet.getCountry(),
+                banknotesDataSet.getPageNumber());
+        writeDataToGcs(objectName, jsonData);
+    }
+
+    @Override
+    public void saveState(CrawlingProcessState crawlingProcessState) {
+        log.info("Saving state {}", crawlingProcessState);
+        String jsonData = jsonWriter.asJsonString(crawlingProcessState);
+        String objectName = "state.json";
+        writeDataToGcs(objectName, jsonData);
+        log.info("Crawling state saved {}", crawlingProcessState);
+    }
+
+    @Override
+    public CrawlingProcessState findState() {
+        return null;
+    }
+
+    private void writeDataToGcs(String objectName, String data) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        createBucketIfNeeded(storage);
+        BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+
+        // use GCS event to fire cloud function
+        storage.create(blobInfo, data.getBytes());
+    }
+
+    private void createBucketIfNeeded(Storage storage) {
         try {
-            storage.create(BucketInfo.of(bucketName));
+            storage.create(BucketInfo.of(BUCKET_NAME));
         } catch (StorageException se) {
-            log.warn("Couldn't create bucket {} -- probably it exists already", bucketName, se);
+            //log.debug("Couldn't create bucket {} -- probably it exists already", BUCKET_NAME, se);
+            log.warn("Couldn't create bucket {} -- probably it exists already", BUCKET_NAME);
         } catch (Exception e) {
             log.error("Couldn't create bucket", e);
         }
-
-        String data = jsonWriter.asJsonString(banknotesDataSet);
-        String objectName = "colnect-" + banknotesDataSet.getCountry() + "-p-" + banknotesDataSet.getPageNumber() + ".json";
-        BlobId blobId = BlobId.of(bucketName, objectName);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-        storage.create(blobInfo, data.getBytes());
     }
 }

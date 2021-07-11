@@ -15,5 +15,6 @@ import java.util.List;
 public class BanknotesDataSet {
     private String country;
     private Integer pageNumber;
+    private String language;
     private List<BanknoteData> banknotes;
 }

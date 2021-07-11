@@ -24,6 +24,16 @@ public class LocalJsonFileDataWriter implements DataWriter {
         writeJsonToFile(banknotesDataSet, country, filePath);
     }
 
+    @Override
+    public void saveState(CrawlingProcessState crawlingProcessState) {
+
+    }
+
+    @Override
+    public CrawlingProcessState findState() {
+        return null;
+    }
+
     private void writeJsonToFile(BanknotesDataSet banknotesDataSet, String country, String filePath) {
         try {
             objectMapper.writeValue(new File(filePath), banknotesDataSet);

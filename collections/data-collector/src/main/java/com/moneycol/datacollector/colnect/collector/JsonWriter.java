@@ -1,5 +1,6 @@
 package com.moneycol.datacollector.colnect.collector;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneycol.datacollector.exceptions.JsonWritingException;
@@ -28,11 +29,22 @@ public class JsonWriter {
     }
 
     public <T> String asJsonString(T object) {
+        setupMapper();
         try {
             return objectMapper.writeValueAsString(object);
         } catch (IOException e) {
             log.error("Error writing json", e);
             throw new JsonWritingException("Error writing json");
+        }
+    }
+
+    public <T> String prettyPrint(T object) {
+        setupMapper();
+        try {
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            log.warn("Error printing json", e);
+            return "";
         }
     }
 }
