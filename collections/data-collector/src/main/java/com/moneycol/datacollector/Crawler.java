@@ -1,9 +1,14 @@
 package com.moneycol.datacollector;
 
+import com.moneycol.datacollector.colnect.ColnectCrawlerClient;
+import com.moneycol.datacollector.colnect.SelenideColnectCrawler;
+import com.moneycol.datacollector.colnect.collector.GcsDataWriter;
 import io.micronaut.configuration.picocli.PicocliRunner;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "my-cli-app", description = "...",
+@CommandLine.Command(
+        name = "crawl",
+        description = "...",
         mixinStandardHelpOptions = true)
 public class Crawler implements Runnable {
 
@@ -12,7 +17,8 @@ public class Crawler implements Runnable {
     }
 
     public void run() {
-        // business logic here
-        System.out.println("Hi!");
+        ColnectCrawlerClient colnectCrawler = new SelenideColnectCrawler(new GcsDataWriter());
+        colnectCrawler.setupCrawler();
+        colnectCrawler.crawl();
     }
 }

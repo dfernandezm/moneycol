@@ -31,6 +31,10 @@ public class CountrySeriesListing {
         this.countryName = countryName;
     }
 
+    public String getCountryName() {
+        return this.countryName;
+    }
+
     public String getUrl() {
         return url;
     }

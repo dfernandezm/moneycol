@@ -9,6 +9,7 @@ import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
 import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
 import com.moneycol.datacollector.colnect.pages.CountrySeriesListing;
+import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -25,6 +26,10 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     public void setupCrawler() {
+//        String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
+//        if (chromeDriverLocation == null) {
+//            System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+//        }
         Configuration.headless = true;
         System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
     }
@@ -54,7 +59,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         // Batches of 3 countries, then wait
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
         countryGroups.forEach(countrySeriesList -> {
-            processCountryGroup(countrySeriesList);
+            processCountryGroup(crawlingProcessState, countrySeriesList);
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
         });
@@ -84,12 +89,12 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         return countrySeriesListings;
     }
 
-    private void processCountryGroup(List<CountrySeriesListing> countrySeriesList) {
+    private void processCountryGroup(CrawlingProcessState crawlingProcessState, List<CountrySeriesListing> countrySeriesList) {
         List<CountryBanknotesListing> countryBanknotesListings = new ArrayList<>();
         countrySeriesList.forEach(countrySeries -> {
             countrySeries.visit();
             sleep(1);
-            processCountryData(countryBanknotesListings, countrySeries);
+            processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
             log.info("Waiting before processing next batch");
             sleep(3);
         });
@@ -97,14 +102,28 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         log.info("Country group finished");
     }
 
-    private void processCountryData(List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {
-        CountryBanknotesListing firstPageOfBanknoteData = countrySeries.visitAllBanknotesListing();
-        String allBanknotesForThisCountryUrl = firstPageOfBanknoteData.getUrl();
-        String countryName = firstPageOfBanknoteData.getCountryName();
+    private void processCountryData(CrawlingProcessState crawlingProcessState, List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {
+        CountryBanknotesListing firstPageOfBanknoteData;
+        String countryName = countrySeries.getCountryName();
+        String banknotesListingUrl = crawlingProcessState.getCurrentUrl();
+
+        if (StringUtils.isNotEmpty(banknotesListingUrl)) {
+            log.info("Found saved listing url -- {}, starting from it", banknotesListingUrl);
+            firstPageOfBanknoteData = CountryBanknotesListing.builder()
+                                        .pageNumber(crawlingProcessState.getPageNumber())
+                                        .countryName(countryName)
+                                        .enclosingLink(banknotesListingUrl)
+                                        .build();
+            firstPageOfBanknoteData.visit();
+        } else {
+            firstPageOfBanknoteData = countrySeries.visitAllBanknotesListing();
+            countryName = firstPageOfBanknoteData.getCountryName();
+            banknotesListingUrl = firstPageOfBanknoteData.getUrl();
+        }
 
         log.info("Traversing data for country {} found", countryName);
         countryBanknotesListings.add(firstPageOfBanknoteData);
-        collectAllCountryBanknotesFrom(countrySeries.getUrl(), allBanknotesForThisCountryUrl, firstPageOfBanknoteData);
+        collectAllCountryBanknotesFrom(countrySeries.getUrl(), banknotesListingUrl, firstPageOfBanknoteData);
     }
 
     private List<BanknoteData> collectAllCountryBanknotesFrom(String countrySeriesUrl, String allBanknotesUrl, CountryBanknotesListing firstListing) {

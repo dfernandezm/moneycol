@@ -80,7 +80,7 @@ dependencies {
 }
 
 jib {
-    from.image = "gcr.io/distroless/java:11-debug"
+    from.image = "eu.gcr.io/moneycol/data-collector-base:0.0.3"
     container.mainClass = "com.moneycol.datacollector.Crawler"
 }
 

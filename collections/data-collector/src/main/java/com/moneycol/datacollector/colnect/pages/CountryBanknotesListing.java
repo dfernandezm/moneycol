@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.open;
 
 /**
  * This represents the Banknotes Listing page for a given country.
@@ -46,10 +47,14 @@ public class CountryBanknotesListing {
         return enclosingLink;
     }
 
+    public void visit() {
+        open(enclosingLink);
+    }
+
     public List<BanknoteData> banknoteDataForCurrentPage() {
         log.info("Total banknotes in page {}", banknotesList.size());
         return banknotesList
-                .parallelStream()
+                .stream()
                 .map(this::parseBanknoteData)
                 .collect(Collectors.toList());
     }
@@ -68,7 +73,7 @@ public class CountryBanknotesListing {
 
     public CountryBanknotesListing visitNextPage() {
         int nextPageNumber = pageNumber + 1;
-        log.info("Going to visit page {} for country {}", pageNumber, countryName);
+        log.info("Going to visit page {} for country {}", nextPageNumber, countryName);
         Optional<SelenideElement> pageLinkElement = nextPageElement(nextPageNumber);
 
         String enclosingLink = "";
