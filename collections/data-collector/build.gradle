@@ -80,7 +80,7 @@ dependencies {
 }
 
 jib {
-    from.image = "eu.gcr.io/moneycol/data-collector-base:0.1.0-1e2a0a5"
+    from.image = "eu.gcr.io/moneycol/data-collector-base:0.0.3"
     container.mainClass = "com.moneycol.datacollector.Crawler"
 }
 
