@@ -2,7 +2,7 @@ substitutions:
   _MODULE_NAME: "data-collector-base"
   _VERSION: "0.1.0"
   _SHORT_SHA: "$SHORT_SHA"
-  _DOCKERFILE_PATH: "."
+  _DOCKERFILE_PATH: "collections/data-collector"
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
