@@ -1,0 +1,52 @@
+substitutions:
+  _GCS_CACHE_BUCKET: gradle-jib-cache
+  _IMAGE_NAME: data-collector
+  _VERSION: 0.1.0
+
+steps:
+
+  # First, loads the cached files from GCS if they exist.
+  - waitFor: ['-']
+    name: gcr.io/cloud-builders/gsutil
+    dir: /root
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        (
+          gsutil cp gs://${_GCS_CACHE_BUCKET}/gradle-cache.tar.gz /tmp/gradle-cache.tar.gz &&
+          tar -xzf /tmp/gradle-cache.tar.gz
+        ) || echo 'Cache not found'
+    volumes:
+      - name: user.home
+        path: /root
+
+  # Runs the Jib build.
+  - id: jib-build
+    name: "adoptopenjdk:11-jdk-hotspot"
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd /workspace
+        cd collections
+        ./gradlew :data-collector:jib --image=eu.gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_VERSION}-${SHORT_SHA}
+    volumes:
+      - name: user.home
+        path: /root
+
+    # Saves the files to the GCS cache.
+  - waitFor:
+      - jib-build
+    name: gcr.io/cloud-builders/gsutil
+    dir: /root
+    entrypoint: bash
+    # Caches the Gradle cache.
+    args:
+      - -c
+      - |
+        tar -czf /tmp/gradle-cache.tar.gz .gradle &&
+        gsutil cp /tmp/gradle-cache.tar.gz gs://${_GCS_CACHE_BUCKET}/gradle-cache.tar.gz
+    volumes:
+      - name: user.home
+        path: /root
