@@ -26,10 +26,10 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     }
 
     public void setupCrawler() {
-//        String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
-//        if (chromeDriverLocation == null) {
-//            System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
-//        }
+        String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
+        if (chromeDriverLocation == null) {
+            System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+        }
         Configuration.headless = true;
         System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
     }
