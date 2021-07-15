@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
-    private static final String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+    private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     private DataWriter dataWriter;
 
     public SelenideColnectCrawler(DataWriter dataWriter) {
@@ -27,11 +27,15 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
     public void setupCrawler() {
         String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
+
         if (chromeDriverLocation == null) {
             System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+        } else {
+            System.setProperty("webdriver.chrome.driver", chromeDriverLocation);
         }
+
         Configuration.headless = true;
-        System.setProperty("chromeoptions.args", "--user-agent=" + userAgent);
+        System.setProperty("chromeoptions.args", "--user-agent=" + USER_AGENT);
     }
 
     private void sleep(int seconds) {
@@ -95,11 +99,19 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             countrySeries.visit();
             sleep(1);
             processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
+            resetState(crawlingProcessState);
             log.info("Waiting before processing next batch");
             sleep(3);
         });
 
         log.info("Country group finished");
+    }
+
+    private void resetState(CrawlingProcessState crawlingProcessState) {
+        log.info("Resetting state urls as series has been completed");
+        crawlingProcessState.setCurrentUrl(null);
+        crawlingProcessState.setSeriesUrl(null);
+        crawlingProcessState.setPageNumber(null);
     }
 
     private void processCountryData(CrawlingProcessState crawlingProcessState, List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {

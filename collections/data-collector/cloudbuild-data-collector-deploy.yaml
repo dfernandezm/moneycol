@@ -17,7 +17,7 @@ steps:
         gsutil cp gs://${_MYIAC_BUCKET}/myiac-${_MYIAC_VERSION}-linux-amd64 /root/myiac
         ls -lrt /root
         chmod +x /root/myiac
-        myiac --help
+        ./myiac --help
     volumes:
       - name: user.home
         path: /root
@@ -31,8 +31,9 @@ steps:
         cd /workspace
         # Needs cloudbuild SA to be GKE admin in moneycol project
         # Needs helm (or the myiac image) around
+        cd /root
         gcloud container clusters get-credentials moneycol-dev --zone europe-west1-b --project moneycol
-        myiac --help
+        ./myiac --help
     volumes:
       - name: user.home
         path: /root
