@@ -30,8 +30,10 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
         if (chromeDriverLocation == null) {
             System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+            log.info("Chrome driver location defaulted to: /usr/bin/chromedriver");
         } else {
             System.setProperty("webdriver.chrome.driver", chromeDriverLocation);
+            log.info("Chrome driver location et to: {}", chromeDriverLocation);
         }
 
         Configuration.headless = true;
