@@ -82,7 +82,7 @@ dependencies {
 jib {
     from.image = "eu.gcr.io/moneycol/data-collector-base:0.1.0-1e2a0a5"
     container.mainClass = "com.moneycol.datacollector.Crawler"
-    container.jvmFlags = ["-Xms200m -Xmx420m"]
+    container.jvmFlags = ["-Xms200m", "-Xmx420m"]
 }
 
 test.classpath += configurations.developmentOnly
