@@ -100,7 +100,7 @@ public class CountryBanknotesListing {
 
         List<SelenideElement> attributeNames = dataBlock.findAll(By.cssSelector("dl > dt"));
         List<SelenideElement> attributeValues = dataBlock.findAll(By.cssSelector("dl > dd"));
-        log.info("Banknote Name {} process - took so far {} ms", banknoteName, stopwatch.elapsed());
+        log.info("Banknote Name {} process - took so far {} ms", banknoteName, stopwatch.elapsed().toMillis());
         Map<String, String> banknoteDataRaw = new HashMap<>();
 
         IntStream.range(0, attributeNames.size()).forEach(i -> {
@@ -123,7 +123,7 @@ public class CountryBanknotesListing {
         faceValue = faceValue != null ? faceValue : banknoteDataRaw.get("Face value:");
         boolean hasVariants = banknoteDataRaw.get("Variants:") != null;
 
-        log.info("Banknote Name {} process - took so far {} ms", banknoteName, stopwatch.elapsed());
+        log.info("Banknote Name {} process - took so far {} ms", banknoteName, stopwatch.elapsed().toMillis());
         return BanknoteData.builder()
                 .catalogCode(catalogCode)
                 .country(countryName)

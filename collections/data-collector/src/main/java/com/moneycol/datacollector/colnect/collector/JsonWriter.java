@@ -3,7 +3,7 @@ package com.moneycol.datacollector.colnect.collector;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moneycol.datacollector.exceptions.JsonWritingException;
+import com.moneycol.datacollector.exceptions.JsonConversionException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -24,7 +24,7 @@ public class JsonWriter {
             objectMapper.writeValue(new File(filePath), object);
         } catch (IOException e) {
             log.error("Error writing json", e);
-            throw new JsonWritingException("Error writing json");
+            throw new JsonConversionException("Error writing json");
         }
     }
 
@@ -34,7 +34,7 @@ public class JsonWriter {
             return objectMapper.writeValueAsString(object);
         } catch (IOException e) {
             log.error("Error writing json", e);
-            throw new JsonWritingException("Error writing json");
+            throw new JsonConversionException("Error writing json");
         }
     }
 
@@ -44,7 +44,7 @@ public class JsonWriter {
             return objectMapper.readValue(jsonString, CrawlingProcessState.class);
         } catch (IOException e) {
             log.error("Error writing json", e);
-            throw new JsonWritingException("Error writing json");
+            throw new JsonConversionException("Error writing json");
         }
     }
 

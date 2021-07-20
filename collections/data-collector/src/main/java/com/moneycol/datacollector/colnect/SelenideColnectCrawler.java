@@ -79,17 +79,12 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
                 .findFirst()
                 .orElse(-1);
 
-
         if (currentSeriesIndex == -1) {
             log.info("Cannot find series url in the list -- assuming all still need to be processed");
             return series;
         }
 
         return series.subList(currentSeriesIndex, series.size());
-
-
-        // Series from the one in state
-        //return countrySeriesListings;
     }
 
     private void processCountryGroup(CrawlingProcessState crawlingProcessState, List<CountrySeriesListing> countrySeriesList) {

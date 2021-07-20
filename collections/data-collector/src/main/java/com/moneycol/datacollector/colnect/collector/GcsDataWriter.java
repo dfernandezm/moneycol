@@ -20,8 +20,6 @@ public class GcsDataWriter implements DataWriter {
     @Override
     public void writeDataBatch(BanknotesDataSet banknotesDataSet) {
         log.info("Writing batch of data into GCS for {}", banknotesDataSet.getCountry());
-
-        // delete once deployed
         log.info("Value of GCP Creds {}", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
 
         String jsonData = jsonWriter.asJsonString(banknotesDataSet);
@@ -71,8 +69,7 @@ public class GcsDataWriter implements DataWriter {
         try {
             storage.create(BucketInfo.of(BUCKET_NAME));
         } catch (StorageException se) {
-            //log.debug("Couldn't create bucket {} -- probably it exists already", BUCKET_NAME, se);
-            log.warn("Couldn't create bucket {} -- probably it exists already", BUCKET_NAME);
+            log.debug("Couldn't create bucket {} -- probably it exists already", BUCKET_NAME);
         } catch (Exception e) {
             log.error("Couldn't create bucket", e);
         }
