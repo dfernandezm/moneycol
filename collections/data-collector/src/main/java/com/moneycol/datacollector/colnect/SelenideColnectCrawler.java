@@ -4,16 +4,17 @@ import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.CrawlingProcessState;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
-import com.moneycol.datacollector.colnect.collector.GcsDataWriter;
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
 import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
 import com.moneycol.datacollector.colnect.pages.CountrySeriesListing;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Slf4j
 public class SelenideColnectCrawler implements ColnectCrawlerClient {
@@ -71,28 +72,24 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         });
     }
 
+    @VisibleForTesting
     public List<CountrySeriesListing> skipUntil(List<CountrySeriesListing> series, String seriesUrl) {
-        List<CountrySeriesListing> countrySeriesListings = new ArrayList<>();
-        int i = 0;
-        boolean found = false;
-        while (i < series.size()) {
-            CountrySeriesListing serie = series.get(i);
-            if (found) {
-                countrySeriesListings.add(serie);
-            } else {
-                found = serie.getUrl().equals(seriesUrl);
-                if (found) {
-                    log.info("Found url in state {}", seriesUrl);
-                    countrySeriesListings.add(serie);
-                } else {
-                    log.info("Url not found yet, skipping {}", serie.getUrl());
-                }
-            }
-            i++;
+        int currentSeriesIndex = IntStream.range(0, series.size())
+                .filter(j -> series.get(j).getUrl().equals(seriesUrl))
+                .findFirst()
+                .orElse(-1);
+
+
+        if (currentSeriesIndex == -1) {
+            log.info("Cannot find series url in the list -- assuming all still need to be processed");
+            return series;
         }
 
+        return series.subList(currentSeriesIndex, series.size());
+
+
         // Series from the one in state
-        return countrySeriesListings;
+        //return countrySeriesListings;
     }
 
     private void processCountryGroup(CrawlingProcessState crawlingProcessState, List<CountrySeriesListing> countrySeriesList) {
@@ -188,11 +185,5 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
                 .pageNumber(pageNumber)
                 .build();
         dataWriter.saveState(crawlingProcessState);
-    }
-
-    public static void main(String args[]) {
-        SelenideColnectCrawler selenideColnectCrawler = new SelenideColnectCrawler(new GcsDataWriter());
-        selenideColnectCrawler.setupCrawler();
-        selenideColnectCrawler.crawl();
     }
 }

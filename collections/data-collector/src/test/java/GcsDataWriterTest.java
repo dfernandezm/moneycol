@@ -32,19 +32,18 @@ public class GcsDataWriterTest {
         assertThat(state.getPageNumber()).isNotNull();
     }
 
-
     @Test
     public void skipsCrawledSeriesTest() {
         SelenideColnectCrawler crawler = new SelenideColnectCrawler(new GcsDataWriter());
-
-        List<CountrySeriesListing> someListings = new ArrayList<>();
         String currentUrl = "url3";
         CountrySeriesListing countrySeriesListing1 = CountrySeriesListing.builder().url("url1").build();
         CountrySeriesListing countrySeriesListing2 = CountrySeriesListing.builder().url("url2").build();
         CountrySeriesListing countrySeriesListing3 = CountrySeriesListing.builder().url("url3").build();
-        someListings.add(countrySeriesListing1);
-        someListings.add(countrySeriesListing2);
-        someListings.add(countrySeriesListing3);
+        List<CountrySeriesListing> someListings = new ArrayList<CountrySeriesListing>() {{
+            add(countrySeriesListing1);
+            add(countrySeriesListing2);
+            add(countrySeriesListing3);
+        }};
 
         List<CountrySeriesListing> toVisit = crawler.skipUntil(someListings, currentUrl);
         assertThat(toVisit).hasSize(1);
@@ -54,19 +53,20 @@ public class GcsDataWriterTest {
     @Test
     public void skipsCrawledSeriesMoreThanOneTest() {
         SelenideColnectCrawler crawler = new SelenideColnectCrawler(new GcsDataWriter());
-
-        List<CountrySeriesListing> someListings = new ArrayList<>();
         String currentUrl = "url3";
         CountrySeriesListing countrySeriesListing1 = CountrySeriesListing.builder().url("url1").build();
         CountrySeriesListing countrySeriesListing2 = CountrySeriesListing.builder().url("url2").build();
         CountrySeriesListing countrySeriesListing3 = CountrySeriesListing.builder().url("url3").build();
         CountrySeriesListing countrySeriesListing4 = CountrySeriesListing.builder().url("url4").build();
         CountrySeriesListing countrySeriesListing5 = CountrySeriesListing.builder().url("url5").build();
-        someListings.add(countrySeriesListing1);
-        someListings.add(countrySeriesListing2);
-        someListings.add(countrySeriesListing3);
-        someListings.add(countrySeriesListing4);
-        someListings.add(countrySeriesListing5);
+
+        List<CountrySeriesListing> someListings = new ArrayList<CountrySeriesListing>() {{
+            add(countrySeriesListing1);
+            add(countrySeriesListing2);
+            add(countrySeriesListing3);
+            add(countrySeriesListing4);
+            add(countrySeriesListing5);
+        }};
 
         List<CountrySeriesListing> toVisit = crawler.skipUntil(someListings, currentUrl);
         assertThat(toVisit).hasSize(3);
