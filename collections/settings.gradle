@@ -2,3 +2,4 @@ rootProject.name = 'collections'
 
 include 'app'
 include 'server'
+include 'data-collector'

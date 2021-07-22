@@ -6,7 +6,7 @@ plugins {
 }
 
 version "0.1.0"
-group "server"
+group "data-collector"
 
 repositories {
     mavenCentral()
@@ -40,14 +40,11 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
     implementation("io.micronaut:micronaut-inject")
-    implementation("io.micronaut:micronaut-validation")
     implementation("io.micronaut:micronaut-runtime")
-    implementation("io.micronaut:micronaut-http-server-netty")
-    implementation("io.micronaut:micronaut-http-client")
-    implementation("io.micronaut.security:micronaut-security-jwt")
     developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
     implementation "org.projectlombok:lombok:$lombokVersion"
 
+    // only need storage sdk from these
     implementation ("com.google.firebase:firebase-admin:$firebaseSdkVersion") {
         exclude group: "com.google.cloud", module: "google-cloud-firestore"
     }
@@ -57,6 +54,9 @@ dependencies {
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("org.assertj:assertj-core:$assertjVersion")
 
+    implementation("info.picocli:picocli")
+    implementation("io.micronaut.picocli:micronaut-picocli:3.3.0")
+
     runtimeOnly("ch.qos.logback:logback-classic")
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testAnnotationProcessor("io.micronaut:micronaut-inject-java")
@@ -64,7 +64,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-    
+
     testImplementation "io.micronaut.test:micronaut-test-junit5:$micronautJunit5Version"
     testImplementation "io.micronaut.test:micronaut-test-core:$micronautJunit5Version"
     testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
@@ -73,19 +73,21 @@ dependencies {
 
     testImplementation "org.testcontainers:testcontainers:1.15.1"
     testImplementation "org.testcontainers:junit-jupiter:1.15.1"
-    testImplementation "org.testcontainers:gcloud:1.15.1"
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
 
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
     implementation 'com.codeborne:selenide:5.22.1'
 }
 
-jib.from.image = 'gcr.io/distroless/java:11-debug'
+jib {
+    from.image = "eu.gcr.io/moneycol/data-collector-base:0.1.0-1e2a0a5"
+    container.mainClass = "com.moneycol.datacollector.Crawler"
+    container.jvmFlags = ["-Xms200m", "-Xmx2900m"]
+}
 
 test.classpath += configurations.developmentOnly
 
-mainClassName = "com.moneycol.collections.server.Application"
+mainClassName = "com.moneycol.datacollector.Crawler"
 
 // use JUnit 5 platform
 // environment variables required to run tests in command line:
@@ -103,14 +105,3 @@ test {
     testLogging.exceptionFormat = 'full'
 
 }
-
-tasks.withType(JavaCompile){
-    options.encoding = "UTF-8"
-}
-
-shadowJar {
-    mergeServiceFiles()
-}
-
-run.classpath += configurations.developmentOnly
-run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')

@@ -1,0 +1,40 @@
+substitutions:
+  _MYIAC_BUCKET: myiac-releases
+  _MYIAC_VERSION: 0.5.0
+  _CHARTS_BUCKET: ""
+  _IMAGE_NAME: data-collector
+  _VERSION: 0.1.1-6bac6e9
+
+steps:
+
+  - waitFor: ['-']
+    id: copy-myiac
+    name: gcr.io/cloud-builders/gsutil
+    dir: /root
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gsutil cp gs://${_MYIAC_BUCKET}/myiac-${_MYIAC_VERSION}-linux-amd64 /root/myiac
+        ls -lrt /root
+        chmod +x /root/myiac
+        ./myiac --help
+    volumes:
+      - name: user.home
+        path: /root
+
+  - id: deploy
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd /workspace
+        # Needs cloudbuild SA to be GKE admin in moneycol project
+        # Needs helm (or the myiac image) around
+        cd /root
+        gcloud container clusters get-credentials moneycol-dev --zone europe-west1-b --project moneycol
+        ./myiac --help
+    volumes:
+      - name: user.home
+        path: /root
