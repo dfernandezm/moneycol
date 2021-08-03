@@ -1,23 +1,28 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.batcher;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.moneycol.indexer.JsonWriter;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
+/**
+ * This function acts as a batcher/ventilator in a fan-out / fan-in
+ * workflow.
+ *
+ * - It lists the target bucket with all the files
+ * - Creates batches of 30 files to process
+ * - Publishes the batches for workers to pick up in moneycol.indexer.banknotes.batches
+ *
+ */
 @Slf4j
 public class IndexerBatcher extends GoogleFunctionInitializer
         implements BackgroundFunction<PubSubMessage> {
@@ -28,14 +33,6 @@ public class IndexerBatcher extends GoogleFunctionInitializer
     @Override
     public void accept(PubSubMessage message, Context context) {
         log.info("Function called with context {}", context);
-
-//        if (message != null && message.getData() != null) {
-//            String data = new String(
-//                    Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
-//                    StandardCharsets.UTF_8);
-//            log.info("Data received {}", data);
-//        }
-
         loggingService.logMessage(message);
         listObjects("moneycol", "moneycol-import");
     }
@@ -70,15 +67,18 @@ public class IndexerBatcher extends GoogleFunctionInitializer
                 i++;
             } else {
                 log.info("Batch is finished, setting size and restarting");
-                int currentBatchSize = i + 1;
+
+                int currentBatchSize = i;
+                i = 0;
                 filesBatch.setBatchSize(currentBatchSize);
                 inventory.addFileBatch(filesBatch);
+
+                // restart
                 filesBatch = FilesBatch.builder()
                         .batchSize(batchSize)
                         .processed(false)
                         .build();
-                // reset counter
-                i = 0;
+
             }
 
             filesBatch.addFile(blob.getName());
@@ -91,49 +91,28 @@ public class IndexerBatcher extends GoogleFunctionInitializer
     }
 
     private void writeToGcs(Inventory inventory) {
-
+        JsonWriter jsonWriter = new JsonWriter();
+        String inventoryJson = jsonWriter.asJsonString(inventory);
+        writeDataToGcs("inventory.json", inventoryJson);
     }
-}
 
-@Builder
-@Setter
-class FilesBatch {
-    private Integer batchSize;
-    private final Boolean processed;
-    private final List<String> filenames = new ArrayList<>();
+    private void writeDataToGcs(String objectName, String data) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        BlobId blobId = BlobId.of("moneycol-import", objectName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
-    public void addFile(String filename) {
-        filenames.add(filename);
+        // use GCS event to fire cloud function
+        storage.create(blobInfo, data.getBytes());
     }
-}
 
-@Builder
-@Setter
-@Getter
-class Inventory {
+    // write to pubsub https://cloud.google.com/functions/docs/calling/pubsub
+    // PubSub
+    // 'dev.colnectBanknotes.batches'
+    private void createTopicIfItDoesNotExist() {}
 
-    private final String rootName;
-    private final List<FilesBatch> filesBatches = new ArrayList<>();
-    public void addFileBatch(FilesBatch filesBatch) {
-        filesBatches.add(filesBatch);
-    }
-}
-
-class PubSubMessage {
-
-    String data;
-    Map<String, String> attributes;
-    String messageId;
-    String publishTime;
-}
-
-@Slf4j
-@Singleton
-class LoggingService {
-
-    void logMessage(PubSubMessage message) {
-        log.info("Received message {}", message);
-    }
+    // PubSub publish batch
+    // Subscriber function picks up
+    private void publishBatch() {}
 }
 
 //byte[] content = blob.getContent();
