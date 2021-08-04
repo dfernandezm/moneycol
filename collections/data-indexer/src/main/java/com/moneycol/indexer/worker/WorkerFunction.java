@@ -31,5 +31,7 @@ public class WorkerFunction implements BackgroundFunction<Message> {
                 StandardCharsets.UTF_8);
         log.info("Received message with batch");
         log.info(messageString);
+
+        log.info("Pending publish to sink topic");
     }
 }
