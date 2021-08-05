@@ -82,7 +82,6 @@ test.classpath += configurations.developmentOnly
 
 shadowJar{
     archiveBaseName.set(functionName)
-    //archiveFileName = "${functionName}-${archiveVersion}-${archiveClassifier}.jar"
 }
 
 mainClassName = mainClass

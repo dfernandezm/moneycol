@@ -3,6 +3,7 @@ package com.moneycol.indexer.worker;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
+import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -11,13 +12,13 @@ import java.util.Base64;
 /**
  * Reads message with batch of files, process them and writes result to sink topic
  *
- * - Subscribes to topic moneycol.
+ * - Subscribes to topic
  * - Extracts files to read
  * - Reads each file to a list of documents
  * - Publishes the list to a sink topic moneycol.indexer.banknotes.sink
  */
 @Slf4j
-public class WorkerFunction implements BackgroundFunction<Message> {
+public class BatchWorker extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
 
     @Override
     public void accept(Message message, Context context) {

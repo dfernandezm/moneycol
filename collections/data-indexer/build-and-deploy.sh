@@ -5,12 +5,12 @@ BATCHER_MAIN_CLASS="com.moneycol.indexer.batcher.IndexerBatcher"
 BATCHER_TRIGGER_TOPIC="dev.crawler.events"
 
 WORKER_FUNCTION_NAME="indexer-worker"
-WORKER_MAIN_CLASS="com.moneycol.indexer.worker.WorkerFunction"
+WORKER_MAIN_CLASS="com.moneycol.indexer.worker.BatchWorker"
 WORKER_TRIGGER_TOPIC="dev.moneycol.indexer.batches"
 
 SERVICE_ACCOUNT="indexer-batcher@moneycol.iam.gserviceaccount.com"
 
-#
+########################## Batcher
 
 cd ..
 echo "Building and deploying function $BATCHER_FUNCTION_NAME with main class $BATCHER_MAIN_CLASS from $PWD"
@@ -22,24 +22,29 @@ cd data-indexer
 cd build/libs
 
 # Indexer batcher - publisher
-echo "Deploying Indexer Batcher function..."
+echo "Deploying Indexer Batcher function from $PWD"
 gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS --runtime java11 \
 --trigger-topic $BATCHER_TRIGGER_TOPIC \
 --service-account $SERVICE_ACCOUNT \
+--memory 2048MB \
 --timeout 540s
 
-# ########### Indexer Worker - subscriber
+########### Indexer Worker - subscriber #############
 cd ../../..
 
 echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
 ./gradlew :data-indexer:clean :data-indexer:shadowJar \
 -PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
 
-gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
+cd data-indexer
+cd build/libs
+
+echo "Deploying Indexer Batcher function from $PWD"
+gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
 --trigger-topic $WORKER_TRIGGER_TOPIC \
+--memory 2048MB \
 --service-account $SERVICE_ACCOUNT \
 --timeout 540s
 
 # Logs: gcloud functions logs read --limit 50
-
 # collect results, fan-in - sink
