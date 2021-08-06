@@ -3,23 +3,17 @@ package com.moneycol.indexer.batcher;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
-import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.google.protobuf.ByteString;
-import com.google.pubsub.v1.ProjectTopicName;
-import com.google.pubsub.v1.PubsubMessage;
 import com.moneycol.indexer.JsonWriter;
+import com.moneycol.indexer.PubSubClient;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
 
 /**
  * This function acts as a batcher/ventilator in a fan-out / fan-in
@@ -36,8 +30,15 @@ public class IndexerBatcher extends GoogleFunctionInitializer
 
     @Inject
     private LoggingService loggingService;
+
+    /**
+     * Topic on which batches of files are pushed
+     */
+    private static final String BATCHES_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batches";
+    private static final String DEFAULT_ENV = "dev";
+
     private final JsonWriter jsonWriter = new JsonWriter();
-    private Publisher publisher;
+    private final PubSubClient pubSubClient = PubSubClient.builder().build();
 
     @Override
     public void accept(PubSubMessage message, Context context) {
@@ -110,33 +111,13 @@ public class IndexerBatcher extends GoogleFunctionInitializer
         Storage storage = StorageOptions.getDefaultInstance().getService();
         BlobId blobId = BlobId.of("moneycol-import", objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-
-        // use GCS event to fire cloud function
         storage.create(blobInfo, data.getBytes());
     }
 
     // https://stackoverflow.com/questions/17374743/how-can-i-get-the-memory-that-my-java-program-uses-via-javas-runtime-api
     private void publishBatch(FilesBatch filesBatch) {
-        String filesBatchJson = jsonWriter.asJsonString(filesBatch);
-
-        // Create the PubsubMessage object
-        ByteString byteStr = ByteString.copyFrom(filesBatchJson, StandardCharsets.UTF_8);
-        PubsubMessage pubsubApiMessage = PubsubMessage
-                                        .newBuilder()
-                                        .setData(byteStr)
-                                        .build();
-        try {
-            if (publisher == null) {
-                publisher = Publisher
-                        .newBuilder(ProjectTopicName.of("moneycol",
-                                "dev.moneycol.indexer.batches"))
-                        .build();
-            }
-
-            publisher.publish(pubsubApiMessage).get();
-        } catch (InterruptedException | ExecutionException | IOException e) {
-            log.error("Error publishing Pub/Sub message: " + e.getMessage(), e);
-        }
+        String batchesTopic = String.format(BATCHES_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
+        pubSubClient.publishMessage(batchesTopic, filesBatch);
     }
 }
 

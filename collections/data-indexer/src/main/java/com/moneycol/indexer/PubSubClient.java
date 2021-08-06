@@ -4,11 +4,13 @@ import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
-import com.moneycol.indexer.batcher.FilesBatch;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -20,59 +22,59 @@ import java.util.concurrent.ExecutionException;
  * </pre>
  */
 @Slf4j
+@Builder
 public class PubSubClient {
 
     private static final String PROJECT_ID = "moneycol";
-    private static final String DEFAULT_ENV = "dev";
 
     /**
      * Topic which triggers the execution of the batcher function
      */
     private static final String TRIGGERING_TOPIC_NAME = "{env}.moneycol.indexer.start";
 
-    /**
-     * Topic on which batches of files are pushed
-     */
-    private static final String BATCHES_TOPIC_NAME = "{env}.moneycol.indexer.batches";
-
-    /**
-     * Topic on which documents to index are pushed
-     */
-    private static final String SINK_TOPIC_NAME = "{env}.moneycol.indexer.sink";
-
+    private final JsonWriter jsonWriter = new JsonWriter();
+    private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();
 
     // Push batches to pubsub topic
     // subscribers read 1 batch, extract filenames, read documents
     // push to another topic (or index directly, depending on time)
-    public void publishBatch(FilesBatch fileBatch) throws IOException {
-        String topicName = BATCHES_TOPIC_NAME;
-        createTopicIfNotExists(topicName);
-        log.info("Publishing message to topic: " + topicName);
+    // https://stackoverflow.com/questions/17374743/how-can-i-get-the-memory-that-my-java-program-uses-via-javas-runtime-api
+    //TODO: send object message
+    public <T> void publishMessage(String topicName, T message) {
 
-        // Create the PubsubMessage object
-        ByteString byteStr = ByteString.copyFrom("data", StandardCharsets.UTF_8);
-        PubsubMessage pubsubApiMessage = PubsubMessage.newBuilder().setData(byteStr).build();
+        String messageJson = jsonWriter.asJsonString(message);
+        PubsubMessage pubsubApiMessage = createPubsubMessage(messageJson);
 
-
-        //TODO: create or update topic
-
-        Publisher publisher = Publisher.newBuilder(
-                ProjectTopicName.of(PROJECT_ID, topicName))
-                .build();
-
-        // Attempt to publish the message
-        String responseMessage;
         try {
+            Publisher publisher = publisherForTopic(topicName);
+
+            // we do .get() to block on the returned Future and ensure the message is sent and avoid
+            // premature termination killing messages being sent
             publisher.publish(pubsubApiMessage).get();
-            responseMessage = "Message published.";
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException | IOException e) {
             log.error("Error publishing Pub/Sub message: " + e.getMessage(), e);
-            responseMessage = "Error publishing Pub/Sub message; see logs for more info.";
         }
     }
 
-    //TODO: do this as part of infra preparation
-    private void createTopicIfNotExists(String topicName) {
-
+    private PubsubMessage createPubsubMessage(String messageJson) {
+        ByteString byteStr = ByteString.copyFrom(messageJson, StandardCharsets.UTF_8);
+        return PubsubMessage
+                .newBuilder()
+                .setData(byteStr)
+                .build();
     }
+
+    private Publisher publisherForTopic(String topicName) throws IOException {
+        Publisher publisher = topicNameToPublishers.get(topicName);
+        if (publisher == null) {
+            publisher = Publisher
+                    .newBuilder(ProjectTopicName.of(PROJECT_ID, topicName))
+                    .build();
+            topicNameToPublishers.put(topicName, publisher);
+        }
+        return publisher;
+    }
+
+    // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
+    // to get them 100 by 100. Needs a single subscription created to the sink topic and 1 subscriber
 }
