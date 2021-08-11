@@ -52,7 +52,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         String sinkTopicName = String.format(SINK_TOPIC_NAME, DEFAULT_ENV);
 
         batch.getFilenames().forEach(filename -> {
-            BanknotesDataSet banknotesDataSet = readJsonFileToDocuments(filename);
+            BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             pubSubClient.publishMessage(sinkTopicName, banknotesDataSet);
             log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
             // could index here in bulk, but it's too concurrent for the basic Elasticsearch
@@ -60,7 +60,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         });
     }
 
-    private BanknotesDataSet readJsonFileToDocuments(String jsonFileName) {
+    private BanknotesDataSet readJsonFileToBanknotesDataSet(String jsonFileName) {
         log.info("Reading contents of {}", jsonFileName);
         String jsonContents = gcsClient.readObjectContents("moneycol-import", jsonFileName);
         return jsonWriter.toObject(jsonContents, BanknotesDataSet.class);
@@ -70,8 +70,6 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
 /**
  * Idea for sink processing:
  *
- * - each batch is pushed, keep count of outstanding messages number in sink topic/sub
- * - when there are 500, publish to trigger topic for the indexer to ES
  * - indexer to ES starts - uses Sync Pull to get 100 messages
  * - bulk inserts into ES
  * - keeps track of time, when it reaches 8 min 30 secs it switches off and publishes

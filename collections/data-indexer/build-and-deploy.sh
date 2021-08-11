@@ -48,3 +48,7 @@ gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS -
 
 # Logs: gcloud functions logs read --limit 50
 # collect results, fan-in - sink
+
+
+
+# gcloud pubsub subscriptions pull dev.moneycol.indexer.sink --auto-ack --limit 1000
