@@ -7,9 +7,11 @@ import com.moneycol.indexer.GcsClient;
 import com.moneycol.indexer.JsonWriter;
 import com.moneycol.indexer.PubSubClient;
 import com.moneycol.indexer.batcher.FilesBatch;
+import com.moneycol.indexer.tracker.FanOutTracker;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -34,6 +36,9 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
     private final GcsClient gcsClient = new GcsClient();
     private final PubSubClient pubSubClient = PubSubClient.builder().build();
 
+    @Inject
+    public FanOutTracker fanOutTracker;
+
     @Override
     public void accept(Message message, Context context) {
         if (message.getData() == null) {
@@ -55,6 +60,9 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             pubSubClient.publishMessage(sinkTopicName, banknotesDataSet);
             log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
+            String taskListId = "";
+            fanOutTracker.incrementCompletedCount(taskListId, 1);
+            fanOutTracker.isDone(taskListId);
             // could index here in bulk, but it's too concurrent for the basic Elasticsearch
             // cluster in GKE at the moment
         });

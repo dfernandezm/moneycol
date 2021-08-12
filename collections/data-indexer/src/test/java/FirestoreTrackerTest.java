@@ -20,6 +20,10 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -69,13 +73,34 @@ public class FirestoreTrackerTest {
 
     @Test
     public void testCreatesTaskListWithoutError() {
-
         FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
         TaskList taskList = TaskList.create(250);
+
         String taskListId = fanOutTracker.createTaskList(taskList);
 
         assertThat(taskListId).isNotNull();
         assertTaskListHasExpectedFields(taskListId);
+    }
+
+    @Test
+    public void concurrentIncrementsOfTasksReportCorrectValues() throws InterruptedException {
+        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        TaskList taskList = TaskList.create(250);
+        String taskListId = fanOutTracker.createTaskList(taskList);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+
+        // 600 iterations
+        IntStream.range(0, 600).forEach(i -> {
+            executorService.submit(() ->
+                    fanOutTracker.incrementCompletedCount(taskListId, 1));
+        });
+
+        executorService.shutdown();
+        executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+        TaskList found = findTaskList(taskListId);
+        assertThat(found.getCompletedTasks()).isEqualTo(600);
     }
 
     private void assertTaskListHasExpectedFields(String id) {
@@ -92,9 +117,19 @@ public class FirestoreTrackerTest {
         } catch(ExecutionException | InterruptedException e) {
             fail(e);
         }
-
-
     }
 
+    private TaskList findTaskList(String taskListId) {
+        CollectionReference taskLists = firestore.collection("taskLists");
+        DocumentReference docRef = taskLists.document(taskListId);
 
+        try {
+            DocumentSnapshot ds = docRef.get().get();
+            assertThat(ds.exists()).isTrue();
+            return ds.toObject(TaskList.class);
+        } catch(ExecutionException | InterruptedException e) {
+            fail(e);
+            return null;
+        }
+    }
 }
