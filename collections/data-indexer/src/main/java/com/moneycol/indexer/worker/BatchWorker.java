@@ -50,6 +50,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
                 Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
                 StandardCharsets.UTF_8);
 
+        //TODO: they are now genericTask<FilesBatch> - unit test it!!
         log.info("De serializing message to files batch...");
         FilesBatch batch = jsonWriter.toObject(messageString, FilesBatch.class);
         log.info("Message contained batch of files {}", batch);
@@ -60,9 +61,15 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             pubSubClient.publishMessage(sinkTopicName, banknotesDataSet);
             log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
+
             String taskListId = "";
             fanOutTracker.incrementCompletedCount(taskListId, 1);
-            fanOutTracker.isDone(taskListId);
+
+            if (fanOutTracker.isDone(taskListId)) {
+                log.info("Completed batching of whole lot of tasks");
+            }
+
+
             // could index here in bulk, but it's too concurrent for the basic Elasticsearch
             // cluster in GKE at the moment
         });

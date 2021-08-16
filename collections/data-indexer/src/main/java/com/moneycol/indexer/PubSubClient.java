@@ -1,6 +1,7 @@
 package com.moneycol.indexer;
 
 import com.google.cloud.pubsub.v1.Publisher;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
@@ -41,11 +42,16 @@ public class PubSubClient {
     // https://stackoverflow.com/questions/17374743/how-can-i-get-the-memory-that-my-java-program-uses-via-javas-runtime-api
     //TODO: send object message
     public <T> void publishMessage(String topicName, T message) {
+        publishMessageWithAttributes(topicName, message, ImmutableMap.of());
+    }
+
+    public <T> void publishMessageWithAttributes(String topicName, T message, Map<String, String> messageAttributes) {
 
         String messageJson = jsonWriter.asJsonString(message);
-        PubsubMessage pubsubApiMessage = createPubsubMessage(messageJson);
+        PubsubMessage pubsubApiMessage = createPubsubMessage(messageJson, messageAttributes);
 
         try {
+
             Publisher publisher = publisherForTopic(topicName);
 
             // we do .get() to block on the returned Future and ensure the message is sent and avoid
@@ -56,11 +62,12 @@ public class PubSubClient {
         }
     }
 
-    private PubsubMessage createPubsubMessage(String messageJson) {
+    private PubsubMessage createPubsubMessage(String messageJson, Map<String, String> attributes) {
         ByteString byteStr = ByteString.copyFrom(messageJson, StandardCharsets.UTF_8);
         return PubsubMessage
                 .newBuilder()
                 .setData(byteStr)
+                .putAllAttributes(attributes)
                 .build();
     }
 

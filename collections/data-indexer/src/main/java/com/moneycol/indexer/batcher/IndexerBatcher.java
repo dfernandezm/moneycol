@@ -10,6 +10,10 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.moneycol.indexer.JsonWriter;
 import com.moneycol.indexer.PubSubClient;
+import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.TaskList;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +34,9 @@ public class IndexerBatcher extends GoogleFunctionInitializer
 
     @Inject
     private LoggingService loggingService;
+
+    @Inject
+    private FanOutTracker fanOutTracker;
 
     /**
      * Topic on which batches of files are pushed
@@ -70,27 +77,27 @@ public class IndexerBatcher extends GoogleFunctionInitializer
                                 .processed(false)
                                 .build();
 
+        log.info("Building batches...");
+
         for (Blob blob : blobs.iterateAll()) {
-            log.info("Found object: {}", blob.getName());
+            log.info("Object: {}", blob.getName());
             if (i < batchSize) {
                 log.info("Adding to existing batch: {}", blob.getName());
                 i++;
             } else {
                 log.info("Batch is finished, setting size and restarting");
 
+                // last batch
                 int currentBatchSize = i;
-                i = 0;
                 filesBatch.setBatchSize(currentBatchSize);
                 inventory.addFileBatch(filesBatch);
-
-                publishBatch(filesBatch);
+                i = 0;
 
                 // restart
                 filesBatch = FilesBatch.builder()
                         .batchSize(batchSize)
                         .processed(false)
                         .build();
-
             }
 
             filesBatch.addFile(blob.getName());
@@ -99,7 +106,29 @@ public class IndexerBatcher extends GoogleFunctionInitializer
         // add last batch
         inventory.addFileBatch(filesBatch);
 
+        // write inventory
         writeToGcs(inventory);
+
+        publishTasks(inventory);
+    }
+
+    private void publishTasks(Inventory inventory) {
+        log.info("Creating taskList for tracking...");
+        TaskList taskList = TaskList.create(inventory.getFilesBatches().size());
+        fanOutTracker.createTaskList(taskList);
+
+        log.info("TaskList created with ID: {} and total tasks: {}", taskList.getId(), taskList.getNumberOfTasks());
+
+        inventory.getFilesBatches().forEach(batch -> {
+            log.info("Saving and publishing task for batch {}", batch.toString());
+            GenericTask<FilesBatch> genericTask = GenericTask.<FilesBatch>builder()
+                    .content(batch)
+                    .taskListId(taskList.getId())
+                    .status(Status.PENDING)
+                    .build();
+            publishBatch(genericTask);
+            log.info("Published batch in tracker with id {} ", taskList.getId());
+        });
     }
 
     private void writeToGcs(Inventory inventory) {
@@ -115,7 +144,7 @@ public class IndexerBatcher extends GoogleFunctionInitializer
     }
 
     // https://stackoverflow.com/questions/17374743/how-can-i-get-the-memory-that-my-java-program-uses-via-javas-runtime-api
-    private void publishBatch(FilesBatch filesBatch) {
+    private void publishBatch(GenericTask<FilesBatch> filesBatch) {
         String batchesTopic = String.format(BATCHES_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
         pubSubClient.publishMessage(batchesTopic, filesBatch);
     }
