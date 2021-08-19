@@ -1,8 +1,11 @@
 package com.moneycol.indexer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneycol.indexer.batcher.FilesBatch;
+import com.moneycol.indexer.tracker.GenericTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -46,6 +49,21 @@ public class JsonWriter {
             throw new JsonConversionException("Error writing json");
         }
     }
+
+    public GenericTask<FilesBatch> toGenericTask(String jsonString) {
+
+        setupMapper();
+        try {
+            return objectMapper.readValue(jsonString, new TypeReference<GenericTask<FilesBatch>>() {
+            });
+        } catch (IOException e) {
+            log.error("Error writing json", e);
+            throw new JsonConversionException("Error writing json");
+        }
+    }
+
+
+
 
     public <T> String prettyPrint(T object) {
         setupMapper();

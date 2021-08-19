@@ -91,9 +91,9 @@ public class IndexerBatcher extends GoogleFunctionInitializer
                 int currentBatchSize = i;
                 filesBatch.setBatchSize(currentBatchSize);
                 inventory.addFileBatch(filesBatch);
-                i = 0;
 
                 // restart
+                i = 0;
                 filesBatch = FilesBatch.builder()
                         .batchSize(batchSize)
                         .processed(false)
@@ -149,11 +149,3 @@ public class IndexerBatcher extends GoogleFunctionInitializer
         pubSubClient.publishMessage(batchesTopic, filesBatch);
     }
 }
-
-//byte[] content = blob.getContent();
-//String json = new String(content);
-
-// this may take a lot of time (>9minutes) so need to consider:
-// - CloudRun via CloudScheduler/PubSub
-// - GKE job via CloudScheduler/Pubsub:
-// https://medium.com/@avish1990/kubernetes-cron-job-with-gcp-pub-sub-cloud-sql-and-batch-jobs-4affca71388c

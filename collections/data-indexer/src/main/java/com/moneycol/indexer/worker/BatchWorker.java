@@ -8,6 +8,7 @@ import com.moneycol.indexer.JsonWriter;
 import com.moneycol.indexer.PubSubClient;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.GenericTask;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,9 +51,10 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
                 Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
                 StandardCharsets.UTF_8);
 
-        //TODO: they are now genericTask<FilesBatch> - unit test it!!
-        log.info("De serializing message to files batch...");
-        FilesBatch batch = jsonWriter.toObject(messageString, FilesBatch.class);
+        log.info("De serializing message...");
+        GenericTask<FilesBatch> genericTask = jsonWriter.toGenericTask(messageString);
+        FilesBatch batch = genericTask.getContent();
+        log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
         log.info("Message contained batch of files {}", batch);
 
         String sinkTopicName = String.format(SINK_TOPIC_NAME, DEFAULT_ENV);
@@ -61,18 +63,23 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             pubSubClient.publishMessage(sinkTopicName, banknotesDataSet);
             log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
-
-            String taskListId = "";
-            fanOutTracker.incrementCompletedCount(taskListId, 1);
-
-            if (fanOutTracker.isDone(taskListId)) {
-                log.info("Completed batching of whole lot of tasks");
-            }
-
-
             // could index here in bulk, but it's too concurrent for the basic Elasticsearch
             // cluster in GKE at the moment
         });
+
+        updateTracking(genericTask);
+    }
+
+    private void updateTracking(GenericTask<FilesBatch> genericTask) {
+        String taskListId = genericTask.getTaskListId();
+        fanOutTracker.incrementCompletedCount(taskListId, 1);
+        log.info("Incrementing task count completion for taskListId {}", taskListId);
+
+        if (fanOutTracker.isDone(taskListId)) {
+            log.info("Completed FULL set of tasks for taskListId {}", taskListId);
+            log.info("Indexing/collecting function can now be invoked");
+            //TODO: Invoke Indexing function
+        }
     }
 
     private BanknotesDataSet readJsonFileToBanknotesDataSet(String jsonFileName) {

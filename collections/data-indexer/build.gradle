@@ -24,7 +24,7 @@ configurations {
 ext {
     logbackVersion = "1.2.3"
     lombokVersion = "1.18.8"
-    junitVersion = "5.6.0"
+    junitVersion = '5.6.0'
     mockitoJunitJupiterVersion = "2.22.0"
     firebaseSdkVersion = "6.12.2"
     micronautJunit5Version = "1.1.5"
