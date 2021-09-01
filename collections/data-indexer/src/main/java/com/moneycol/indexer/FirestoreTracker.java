@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.ExecutionException;
 
@@ -23,6 +24,9 @@ import java.util.concurrent.ExecutionException;
 @NoArgsConstructor
 public class FirestoreTracker implements FanOutTracker {
 
+    //TODO: This shouldn't be needed if constructor injection is used?
+    // testing it
+    @Inject
     private Firestore firestore;
 
     public void createTaskList() {
@@ -38,11 +42,12 @@ public class FirestoreTracker implements FanOutTracker {
     @Override
     public String createTaskList(TaskList taskList) {
         try {
+            //TODO: Nullpointer exception in next line
             DocumentReference cr = firestore.collection("taskLists").document(taskList.getId());
             WriteResult result = cr.create(taskList).get();
             log.info("Created taskList at {} with ID: {}", result.getUpdateTime(), taskList.getId());
             return taskList.getId();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);
         }
@@ -54,10 +59,10 @@ public class FirestoreTracker implements FanOutTracker {
         try {
             DocumentSnapshot doc = taskList.get().get();
             Long completedTasks = doc.getLong("completedTasks");
-            Long totalTasks = doc.getLong("totalTasks");
+            Long numberOfTasks = doc.getLong("numberOfTasks");
             assert completedTasks != null;
-            assert totalTasks != null;
-            return completedTasks < totalTasks;
+            assert numberOfTasks != null;
+            return completedTasks < numberOfTasks;
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);

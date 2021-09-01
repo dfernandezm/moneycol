@@ -103,6 +103,41 @@ public class FirestoreTrackerTest {
         assertThat(found.getCompletedTasks()).isEqualTo(600);
     }
 
+    @Test
+    public void isDoneTest() throws InterruptedException {
+        Integer completedTasks = 50;
+
+        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        TaskList taskList = TaskList.create(completedTasks);
+        String taskListId = fanOutTracker.createTaskList(taskList);
+
+        // concurrently complete tasks, leave last one not completed
+        ExecutorService executorService = Executors.newFixedThreadPool(50);
+
+        IntStream.range(0, completedTasks - 1).peek(i ->  {
+            executorService.submit(() -> {
+                fanOutTracker.incrementCompletedCount(taskListId, 1);
+                sleep(100L);
+                assertThat(fanOutTracker.isDone(taskListId)).isFalse();
+            });
+        });
+
+        executorService.awaitTermination(3, TimeUnit.SECONDS);
+
+        // once more
+        fanOutTracker.incrementCompletedCount(taskListId, 1);
+        assertThat(fanOutTracker.isDone(taskListId)).isTrue();
+
+    }
+
+    private void sleep(Long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void assertTaskListHasExpectedFields(String id) {
         CollectionReference taskLists = firestore.collection("taskLists");
         DocumentReference docRef = taskLists.document(id);
