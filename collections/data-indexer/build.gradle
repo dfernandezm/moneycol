@@ -53,6 +53,7 @@ dependencies {
     implementation "org.projectlombok:lombok:$lombokVersion"
     implementation platform("com.google.cloud:libraries-bom:$gcpLibrariesBomVersion")
     implementation("com.google.cloud:google-cloud-storage")
+    implementation("io.micronaut.gcp:micronaut-gcp-tracing:$micronautVersion")
 
     implementation("io.micronaut.gcp:micronaut-gcp-function")
     implementation("com.google.cloud:google-cloudevent-types:0.3.0")
@@ -87,6 +88,7 @@ test.classpath += configurations.developmentOnly
 
 shadowJar{
     archiveBaseName.set(functionName)
+    mergeServiceFiles()
 }
 
 mainClassName = mainClass

@@ -10,6 +10,7 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.FirestoreTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.TaskList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -97,37 +98,58 @@ public class FirestoreTrackerTest {
         });
 
         executorService.shutdown();
-        executorService.awaitTermination(5, TimeUnit.SECONDS);
+        executorService.awaitTermination(3, TimeUnit.SECONDS);
 
         TaskList found = findTaskList(taskListId);
         assertThat(found.getCompletedTasks()).isEqualTo(600);
     }
 
     @Test
-    public void isDoneTest() throws InterruptedException {
-        Integer completedTasks = 50;
+    public void isDoneTest() throws InterruptedException, ExecutionException {
+        Integer totalTasksToComplete = 150;
 
         FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
-        TaskList taskList = TaskList.create(completedTasks);
+        TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
         // concurrently complete tasks, leave last one not completed
         ExecutorService executorService = Executors.newFixedThreadPool(50);
 
-        IntStream.range(0, completedTasks - 1).peek(i ->  {
+        for (int i = 0; i < totalTasksToComplete - 1; i++) {
             executorService.submit(() -> {
                 fanOutTracker.incrementCompletedCount(taskListId, 1);
                 sleep(100L);
-                assertThat(fanOutTracker.isDone(taskListId)).isFalse();
+                try {
+                    assertThat(fanOutTracker.isDone(taskListId)).isFalse();
+                } catch (AssertionError ae) {
+                    fail(ae);
+                }
+
             });
-        });
+        }
 
         executorService.awaitTermination(3, TimeUnit.SECONDS);
 
         // once more
         fanOutTracker.incrementCompletedCount(taskListId, 1);
         assertThat(fanOutTracker.isDone(taskListId)).isTrue();
+    }
 
+    @Test
+    public void completesWithCorrectStatus() throws InterruptedException, ExecutionException {
+        Integer totalTasksToComplete = 150;
+
+        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        TaskList taskList = TaskList.create(totalTasksToComplete);
+        String taskListId = fanOutTracker.createTaskList(taskList);
+
+        // When
+        fanOutTracker.complete(taskListId);
+
+        // Then
+        taskList = findTaskList(taskListId);
+        assertThat(taskList).isNotNull();
+        assertThat(taskList.getStatus()).isEqualTo(Status.COMPLETED);
     }
 
     private void sleep(Long millis) {

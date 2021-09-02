@@ -10,9 +10,9 @@ public class GcsClient {
     /**
      * Reads the entire content of 'objectPath' in 'bucketName' into a String in memory
      *
-     * @param bucketName
-     * @param objectPath
-     * @return string containing the entire content of 'objectPath'
+     * @param bucketName the GCS bucket to read from
+     * @param objectPath the path of the object within the bucket
+     * @return string containing the entire contents of the object under 'objectPath'
      */
     public String readObjectContents(String bucketName, String objectPath) {
         Storage storage = StorageOptions.getDefaultInstance().getService();

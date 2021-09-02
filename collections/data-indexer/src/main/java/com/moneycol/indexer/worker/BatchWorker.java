@@ -79,6 +79,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
             log.info("Indexing/collecting function can now be invoked");
             //TODO: Invoke Indexing function
+            fanOutTracker.complete(taskListId);
         }
     }
 

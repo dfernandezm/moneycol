@@ -9,4 +9,5 @@ public interface FanOutTracker {
     String createTaskList(TaskList taskList);
     boolean isDone(String taskListId);
     void incrementCompletedCount(String taskListId, Integer quantity);
+    void complete(String taskList);
 }
