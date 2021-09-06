@@ -1,5 +1,6 @@
-package com.moneycol.indexer.tracker;
+package com.moneycol.indexer.tracker.tasklist;
 
+import com.moneycol.indexer.tracker.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -29,13 +30,12 @@ public class TaskList {
         return taskList;
     }
 
-
-    public void incrementCompletedBy(Integer quantity) {
-        completedTasks += quantity;
-    }
-
-
-    public boolean isDone() {
+    public boolean hasCompleted() {
         return numberOfTasks.equals(completedTasks);
     }
+
+    public void complete() {
+        setStatus(Status.COMPLETED);
+    }
+
 }

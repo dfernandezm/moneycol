@@ -12,24 +12,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class GenericTask<T> implements FanOutTask {
+public class GenericTask<T> {
 
     private String taskListId;
     private T content;
     private Status status;
-
-    @Override
-    public String taskListId() {
-        return null;
-    }
-
-    @Override
-    public Status status() {
-        return status;
-    }
-
-    @Override
-    public Boolean isComplete() {
-        return status == Status.COMPLETED;
-    }
 }

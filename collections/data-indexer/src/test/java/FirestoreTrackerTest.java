@@ -11,7 +11,7 @@ import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.FirestoreTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
-import com.moneycol.indexer.tracker.TaskList;
+import com.moneycol.indexer.tracker.tasklist.TaskList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -120,7 +120,7 @@ public class FirestoreTrackerTest {
                 fanOutTracker.incrementCompletedCount(taskListId, 1);
                 sleep(100L);
                 try {
-                    assertThat(fanOutTracker.isDone(taskListId)).isFalse();
+                    assertThat(fanOutTracker.hasCompleted(taskListId)).isFalse();
                 } catch (AssertionError ae) {
                     fail(ae);
                 }
@@ -132,7 +132,7 @@ public class FirestoreTrackerTest {
 
         // once more
         fanOutTracker.incrementCompletedCount(taskListId, 1);
-        assertThat(fanOutTracker.isDone(taskListId)).isTrue();
+        assertThat(fanOutTracker.hasCompleted(taskListId)).isTrue();
     }
 
     @Test

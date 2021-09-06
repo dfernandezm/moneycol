@@ -75,10 +75,10 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         fanOutTracker.incrementCompletedCount(taskListId, 1);
         log.info("Incrementing task count completion for taskListId {}", taskListId);
 
-        if (fanOutTracker.isDone(taskListId)) {
+        if (fanOutTracker.hasCompleted(taskListId)) {
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
             log.info("Indexing/collecting function can now be invoked");
-            //TODO: Invoke Indexing function
+            // Invoke Indexing function
             fanOutTracker.complete(taskListId);
         }
     }

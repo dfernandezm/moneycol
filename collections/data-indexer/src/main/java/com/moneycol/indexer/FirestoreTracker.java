@@ -7,17 +7,16 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
-import com.moneycol.indexer.tracker.TaskList;
+import com.moneycol.indexer.tracker.tasklist.TaskList;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+// Replace with FanoutTracker
 @Slf4j
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,16 +26,6 @@ public class FirestoreTracker implements FanOutTracker {
     // Constructor injection does not seem to work with functions
     @Inject
     private Firestore firestore;
-
-    public void createTaskList() {
-        TaskList taskList = TaskList.create(250);
-        try {
-            DocumentReference cr = firestore.collection("taskLists").document(taskList.getId());
-            cr.create(taskList).get();
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("Error creating collection", e);
-        }
-    }
 
     @Override
     public String createTaskList(TaskList taskList) {
@@ -52,15 +41,16 @@ public class FirestoreTracker implements FanOutTracker {
     }
 
     @Override
-    public boolean isDone(String taskListId) {
+    public boolean hasCompleted(String taskListId) {
         DocumentReference taskList = firestore.collection("taskLists").document(taskListId);
         try {
             DocumentSnapshot doc = taskList.get().get();
-            Long completedTasks = doc.getLong("completedTasks");
-            Long numberOfTasks = doc.getLong("numberOfTasks");
-            assert completedTasks != null;
-            assert numberOfTasks != null;
-            return completedTasks.equals(numberOfTasks);
+            TaskList storedTaskList = doc.toObject(TaskList.class);
+            if  (storedTaskList != null) {
+                return storedTaskList.hasCompleted();
+            } else {
+                throw new RuntimeException("TaskList not found " + taskListId);
+            }
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);
@@ -80,11 +70,16 @@ public class FirestoreTracker implements FanOutTracker {
 
     @Override
     public void complete(String taskListId) {
-        DocumentReference taskList = firestore.collection("taskLists").document(taskListId);
+        DocumentReference taskListDoc = firestore.collection("taskLists").document(taskListId);
         try {
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("status", Status.COMPLETED);
-            taskList.update(updates).get();
+            TaskList storedTaskList = taskListDoc.get().get().toObject(TaskList.class);
+            if (storedTaskList != null) {
+                storedTaskList.setStatus(Status.COMPLETED);
+                WriteResult writeResult = taskListDoc.set(storedTaskList).get();
+                log.info("TaskList with ID {} completed: {}", storedTaskList.getId(),
+                        writeResult.getUpdateTime());
+
+            }
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);

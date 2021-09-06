@@ -13,7 +13,7 @@ import com.moneycol.indexer.PubSubClient;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;
-import com.moneycol.indexer.tracker.TaskList;
+import com.moneycol.indexer.tracker.tasklist.TaskList;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 

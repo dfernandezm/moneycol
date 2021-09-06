@@ -1,5 +1,7 @@
 package com.moneycol.indexer.tracker;
 
+import com.moneycol.indexer.tracker.tasklist.TaskList;
+
 /**
  * Interface of the tracking process for spawned tasks. With this
  * it is possible to check when the overall process has completed fully
@@ -7,7 +9,7 @@ package com.moneycol.indexer.tracker;
  */
 public interface FanOutTracker {
     String createTaskList(TaskList taskList);
-    boolean isDone(String taskListId);
+    boolean hasCompleted(String taskListId);
     void incrementCompletedCount(String taskListId, Integer quantity);
     void complete(String taskList);
 }
