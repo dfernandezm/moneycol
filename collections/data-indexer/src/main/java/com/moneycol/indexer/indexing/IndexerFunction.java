@@ -3,8 +3,14 @@ package com.moneycol.indexer.indexing;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
+import com.moneycol.indexer.JsonWriter;
+import com.moneycol.indexer.PubSubClient;
+import com.moneycol.indexer.tracker.TaskListDoneResult;
+import com.moneycol.indexer.worker.BanknotesDataSet;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
 
 
 /**
@@ -35,10 +41,39 @@ import lombok.extern.slf4j.Slf4j;
 public class IndexerFunction extends GoogleFunctionInitializer
         implements BackgroundFunction<Message> {
 
+    @Inject
+    private PubSubClient pubSubClient;
+
+    @Inject
+    private JsonWriter jsonWriter;
+
+    @Inject
+    private IndexingDataReader indexingDataReader;
+
+    private static final int MESSAGE_BATCH_SIZE = 50;
+
     @Override
     public void accept(Message payload, Context context) throws Exception {
 
+        readMessagePayload(payload);
 
+        // delegate to dedicated service
+        String subscriptionId = PubSubClient.DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
+        pubSubClient.subscribeSync(subscriptionId, MESSAGE_BATCH_SIZE, (pubsubMessage) -> {
+            log.info("Received message in batch of 50: {}", pubsubMessage);
+            BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
+            log.info("Read BanknotesDataSet: {}", banknotesDataSet);
+            log.info("Now proceed to index set");
+        });
+    }
 
+    private void readMessagePayload(Message payload) {
+        String messagePayload = pubSubClient.readMessageFromEventToString(payload);
+        log.info("Received payload to start indexing {}", messagePayload);
+
+        // can validate if it's a valid taskList / discard if not
+        TaskListDoneResult taskListDoneResult =
+                jsonWriter.toObject(messagePayload, TaskListDoneResult.class);
+        log.info("Start indexing after completion of taskList {}", taskListDoneResult);
     }
 }

@@ -8,6 +8,11 @@ WORKER_FUNCTION_NAME="indexer-worker"
 WORKER_MAIN_CLASS="com.moneycol.indexer.worker.BatchWorker"
 WORKER_TRIGGER_TOPIC="dev.moneycol.indexer.batches"
 
+INDEXING_FUNCTION_NAME="indexer-indexing"
+INDEXING_MAIN_CLASS="com.moneycol.indexer.indexing.IndexerFunction"
+
+PROCESSING_DONE_TOPIC="dev.moneycol.indexer.batching.done"
+
 SERVICE_ACCOUNT="indexer-batcher@moneycol.iam.gserviceaccount.com"
 
 ########################## Batcher
@@ -39,16 +44,33 @@ echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WOR
 cd data-indexer
 cd build/libs
 
-echo "Deploying Indexer Batcher function from $PWD"
+echo "Deploying Indexer Worker function from $PWD"
 gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
 --trigger-topic $WORKER_TRIGGER_TOPIC \
 --memory 2048MB \
 --service-account $SERVICE_ACCOUNT \
 --timeout 540s
 
+########### Indexing Function - subscriber #############
+# indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
+# the sink topic
+
+cd ../../..
+
+echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
+./gradlew :data-indexer:clean :data-indexer:shadowJar \
+-PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
+
+cd data-indexer
+cd build/libs
+
+echo "Deploying Indexer Indexing function from $PWD"
+gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
+--trigger-topic $PROCESSING_DONE_TOPIC \
+--memory 2048MB \
+--service-account $SERVICE_ACCOUNT \
+--timeout 540s
+
 # Logs: gcloud functions logs read --limit 50
 # collect results, fan-in - sink
-
-
-
 # gcloud pubsub subscriptions pull dev.moneycol.indexer.sink --auto-ack --limit 1000

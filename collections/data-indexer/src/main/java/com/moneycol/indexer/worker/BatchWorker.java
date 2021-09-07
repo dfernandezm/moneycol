@@ -9,6 +9,8 @@ import com.moneycol.indexer.PubSubClient;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.TaskListDoneResult;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +33,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
      * Topic on which documents to index are pushed
      */
     private static final String SINK_TOPIC_NAME = "%s.moneycol.indexer.sink";
+    private static final String DONE_TOPIC_NAME = "%s.moneycol.indexer.batching.done";
     private static final String DEFAULT_ENV = "dev";
 
     private final JsonWriter jsonWriter = new JsonWriter();
@@ -70,6 +73,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         updateTracking(genericTask);
     }
 
+    // should be in separate service (the fanOutTracker itself)
     private void updateTracking(GenericTask<FilesBatch> genericTask) {
         String taskListId = genericTask.getTaskListId();
         fanOutTracker.incrementCompletedCount(taskListId, 1);
@@ -78,9 +82,19 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         if (fanOutTracker.hasCompleted(taskListId)) {
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
             log.info("Indexing/collecting function can now be invoked");
-            // Invoke Indexing function
             fanOutTracker.complete(taskListId);
+            publishDoneStatus(taskListId);
         }
+    }
+
+    private void publishDoneStatus(String taskListId) {
+        String doneTopicName = String.format(DONE_TOPIC_NAME, DEFAULT_ENV);
+        TaskListDoneResult taskListDoneResult = TaskListDoneResult.builder()
+                                                .taskListId(taskListId)
+                                                .status(Status.COMPLETED)
+                                                .build();
+        log.info("Publishing DONE status to pubsub {}", taskListDoneResult);
+        pubSubClient.publishMessage(doneTopicName, taskListDoneResult);
     }
 
     private BanknotesDataSet readJsonFileToBanknotesDataSet(String jsonFileName) {
