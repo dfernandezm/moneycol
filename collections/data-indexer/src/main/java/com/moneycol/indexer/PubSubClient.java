@@ -14,9 +14,10 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
-import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -35,7 +36,8 @@ import java.util.function.Consumer;
  * </pre>
  */
 @Slf4j
-@Builder
+@NoArgsConstructor
+@Singleton
 public class PubSubClient {
 
     // parameter

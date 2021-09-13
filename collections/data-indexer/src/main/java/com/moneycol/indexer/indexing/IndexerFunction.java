@@ -44,8 +44,8 @@ public class IndexerFunction extends GoogleFunctionInitializer
     @Inject
     private PubSubClient pubSubClient;
 
-    @Inject
-    private JsonWriter jsonWriter;
+    //TODO: Dependency Injection
+    private JsonWriter jsonWriter = new JsonWriter();
 
     @Inject
     private IndexingDataReader indexingDataReader;
@@ -57,7 +57,9 @@ public class IndexerFunction extends GoogleFunctionInitializer
 
         readMessagePayload(payload);
 
+        //TODO: update taskList status to INDEXING and to COMPLETED when done
         // delegate to dedicated service
+        //TODO: extract constant/default
         String subscriptionId = PubSubClient.DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
         pubSubClient.subscribeSync(subscriptionId, MESSAGE_BATCH_SIZE, (pubsubMessage) -> {
             log.info("Received message in batch of 50: {}", pubsubMessage);
@@ -71,7 +73,7 @@ public class IndexerFunction extends GoogleFunctionInitializer
         String messagePayload = pubSubClient.readMessageFromEventToString(payload);
         log.info("Received payload to start indexing {}", messagePayload);
 
-        // can validate if it's a valid taskList / discard if not
+        // should validate if it's a valid taskList / discard if not
         TaskListDoneResult taskListDoneResult =
                 jsonWriter.toObject(messagePayload, TaskListDoneResult.class);
         log.info("Start indexing after completion of taskList {}", taskListDoneResult);

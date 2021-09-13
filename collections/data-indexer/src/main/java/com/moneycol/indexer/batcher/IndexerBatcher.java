@@ -38,6 +38,9 @@ public class IndexerBatcher extends GoogleFunctionInitializer
     @Inject
     private FanOutTracker fanOutTracker;
 
+    @Inject
+    private PubSubClient pubSubClient;
+
     /**
      * Topic on which batches of files are pushed
      */
@@ -45,7 +48,7 @@ public class IndexerBatcher extends GoogleFunctionInitializer
     private static final String DEFAULT_ENV = "dev";
 
     private final JsonWriter jsonWriter = new JsonWriter();
-    private final PubSubClient pubSubClient = PubSubClient.builder().build();
+    // private final PubSubClient pubSubClient = PubSubClient.builder().build();
 
     @Override
     public void accept(PubSubMessage message, Context context) {

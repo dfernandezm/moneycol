@@ -38,7 +38,9 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private final GcsClient gcsClient = new GcsClient();
-    private final PubSubClient pubSubClient = PubSubClient.builder().build();
+
+    @Inject
+    private PubSubClient pubSubClient;
 
     @Inject
     public FanOutTracker fanOutTracker;

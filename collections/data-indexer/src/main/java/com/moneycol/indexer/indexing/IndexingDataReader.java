@@ -13,8 +13,7 @@ import javax.inject.Singleton;
 @Singleton
 public class IndexingDataReader {
 
-    @Inject
-    private JsonWriter jsonWriter;
+    private JsonWriter jsonWriter = new JsonWriter();
 
     @Inject
     private PubSubClient pubSubClient;
