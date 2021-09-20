@@ -1,9 +1,11 @@
-package com.moneycol.indexer.tracker.tasklist;
+package com.moneycol.indexer.infra;
 
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
+import com.moneycol.indexer.tracker.tasklist.TaskList;
+import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

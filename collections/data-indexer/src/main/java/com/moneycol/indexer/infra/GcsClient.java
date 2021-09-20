@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.infra;
 
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;

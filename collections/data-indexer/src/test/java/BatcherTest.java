@@ -1,4 +1,4 @@
-import com.moneycol.indexer.JsonWriter;
+import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;

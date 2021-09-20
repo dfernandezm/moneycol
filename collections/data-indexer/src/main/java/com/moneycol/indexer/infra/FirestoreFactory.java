@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.infra;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;

@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.infra;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

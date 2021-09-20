@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.infra;
 
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;

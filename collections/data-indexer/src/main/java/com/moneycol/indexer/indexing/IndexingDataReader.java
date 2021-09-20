@@ -1,8 +1,8 @@
 package com.moneycol.indexer.indexing;
 
 import com.google.pubsub.v1.PubsubMessage;
-import com.moneycol.indexer.JsonWriter;
-import com.moneycol.indexer.PubSubClient;
+import com.moneycol.indexer.infra.JsonWriter;
+import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.extern.slf4j.Slf4j;
 

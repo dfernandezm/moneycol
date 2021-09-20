@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.infra;
 
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -18,6 +18,7 @@ import javax.inject.Singleton;
 import java.util.concurrent.ExecutionException;
 
 // Replace with DefaultFanOutTracker
+@Deprecated
 @Slf4j
 @AllArgsConstructor
 @NoArgsConstructor
