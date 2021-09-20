@@ -24,7 +24,7 @@ public class TaskList {
     public static TaskList create(Integer totalNumberOfTasks) {
         TaskList taskList = new TaskList();
         taskList.id = UUID.randomUUID().toString();
-        taskList.status = Status.RUNNING;
+        taskList.status = Status.PROCESSING;
         taskList.numberOfTasks = totalNumberOfTasks;
         taskList.completedTasks = 0;
         return taskList;
@@ -35,7 +35,7 @@ public class TaskList {
     }
 
     public void complete() {
-        setStatus(Status.COMPLETED);
+        setStatus(Status.PROCESSING_COMPLETED);
     }
 
 }

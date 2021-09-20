@@ -2,6 +2,8 @@ package com.moneycol.indexer.tracker;
 
 public enum Status {
     PENDING,
-    RUNNING,
-    COMPLETED
+    PROCESSING,
+    PROCESSING_COMPLETED,
+    CONSOLIDATING,
+    CONSOLIDATION_COMPLETED;
 }

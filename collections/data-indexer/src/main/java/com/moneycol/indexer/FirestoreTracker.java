@@ -6,6 +6,7 @@ import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.ExecutionException;
 
-// Replace with FanoutTracker
+// Replace with DefaultFanOutTracker
 @Slf4j
 @AllArgsConstructor
 @NoArgsConstructor
@@ -74,7 +75,7 @@ public class FirestoreTracker implements FanOutTracker {
         try {
             TaskList storedTaskList = taskListDoc.get().get().toObject(TaskList.class);
             if (storedTaskList != null) {
-                storedTaskList.setStatus(Status.COMPLETED);
+                storedTaskList.setStatus(Status.PROCESSING_COMPLETED);
                 WriteResult writeResult = taskListDoc.set(storedTaskList).get();
                 log.info("TaskList with ID {} completed: {}", storedTaskList.getId(),
                         writeResult.getUpdateTime());
@@ -84,5 +85,23 @@ public class FirestoreTracker implements FanOutTracker {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);
         }
+    }
+
+    @Override
+    public void updateTracking(GenericTask<?> genericTask) {
+        String taskListId = genericTask.getTaskListId();
+        incrementCompletedCount(taskListId, 1);
+        log.info("Incrementing task count completion for taskListId {}", taskListId);
+
+        if (hasCompleted(taskListId)) {
+            log.info("Completed FULL set of tasks for taskListId {}", taskListId);
+            log.info("Indexing/collecting function can now be invoked");
+            complete(taskListId);
+            publishDoneStatus(taskListId);
+        }
+    }
+
+    private void publishDoneStatus(String taskListId) {
+
     }
 }

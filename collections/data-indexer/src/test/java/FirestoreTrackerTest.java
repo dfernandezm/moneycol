@@ -149,7 +149,7 @@ public class FirestoreTrackerTest {
         // Then
         taskList = findTaskList(taskListId);
         assertThat(taskList).isNotNull();
-        assertThat(taskList.getStatus()).isEqualTo(Status.COMPLETED);
+        assertThat(taskList.getStatus()).isEqualTo(Status.PROCESSING_COMPLETED);
     }
 
     private void sleep(Long millis) {

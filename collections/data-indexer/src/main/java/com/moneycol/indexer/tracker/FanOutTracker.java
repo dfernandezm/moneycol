@@ -8,8 +8,12 @@ import com.moneycol.indexer.tracker.tasklist.TaskList;
  * and consolidation can happen
  */
 public interface FanOutTracker {
+
+    String DEFAULT_ENV = "dev";
+
     String createTaskList(TaskList taskList);
     boolean hasCompleted(String taskListId);
     void incrementCompletedCount(String taskListId, Integer quantity);
     void complete(String taskList);
+    void updateTracking(GenericTask<?> genericTask);
 }
