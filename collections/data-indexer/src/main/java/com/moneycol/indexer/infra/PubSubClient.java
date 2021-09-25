@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +126,9 @@ public class PubSubClient {
                 messageHandler.accept(message.getMessage());
 
                 // ack 1 by 1
-                acknowledgeMessages(subscriber, subscriptionName, List.of(message.getAckId()));
+                List<String> ackIds = new ArrayList<>();
+                ackIds.add(message.getAckId());
+                acknowledgeMessages(subscriber, subscriptionName, ackIds);
                 //ackIds.add(message.getAckId());
             }
 

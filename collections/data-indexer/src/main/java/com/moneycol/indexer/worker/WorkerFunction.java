@@ -25,7 +25,7 @@ import java.util.Base64;
  * - Publishes the list to a sink topic moneycol.indexer.banknotes.sink
  */
 @Slf4j
-public class BatchWorker extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
+public class WorkerFunction extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
 
     /**
      * Topic on which documents to index are pushed
@@ -51,12 +51,7 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
             return;
         }
 
-        String messageString = new String(
-                Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
-                StandardCharsets.UTF_8);
-
-        log.info("De serializing message...");
-        GenericTask<FilesBatch> genericTask = jsonWriter.toGenericTask(messageString);
+        GenericTask<FilesBatch> genericTask = readTaskMessage(message);
         FilesBatch batch = genericTask.getContent();
         log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
         log.info("Message contained batch of files {}", batch);
@@ -74,7 +69,14 @@ public class BatchWorker extends GoogleFunctionInitializer implements Background
         updateTracking(genericTask);
     }
 
-    // should be in separate service (the fanOutTracker itself)
+    private GenericTask<FilesBatch> readTaskMessage(Message message) {
+       String messageString = new String(
+                    Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
+                    StandardCharsets.UTF_8);
+        log.info("De serializing message...");
+        return jsonWriter.toGenericTask(messageString);
+    }
+
     private void updateTracking(GenericTask<FilesBatch> genericTask) {
         fanOutTracker.updateTracking(genericTask);
     }

@@ -5,7 +5,9 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
+import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,11 @@ public class FirestoreFactory {
 
     @Bean
     public FanOutTracker fanOutTracker() {
-        return new FirestoreTracker(firestore());
+        return new DefaultFanOutTracker();
+    }
+
+    @Bean
+    public TaskListRepository taskListRepository() {
+        return new FirestoreTaskListRepository(firestore());
     }
 }

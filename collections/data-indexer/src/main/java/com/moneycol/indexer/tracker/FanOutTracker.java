@@ -16,4 +16,7 @@ public interface FanOutTracker {
     void incrementCompletedCount(String taskListId, Integer quantity);
     void complete(String taskList);
     void updateTracking(GenericTask<?> genericTask);
+
+    void publishTask(GenericTask<?> genericTask);
+    void publishIntermediateResult();
 }

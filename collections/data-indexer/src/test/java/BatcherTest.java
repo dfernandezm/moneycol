@@ -8,9 +8,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BatcherTest {
 
-    public void testIterateWritesJsonMoreThanOneBatch() {
-    }
-
     @Test
     public void serializesDeserializesToJsonFromGenericType() {
         FilesBatch filesBatch = FilesBatch.builder()

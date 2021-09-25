@@ -8,13 +8,17 @@ import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
-import com.moneycol.indexer.infra.FirestoreTracker;
+import com.moneycol.indexer.infra.FirestoreTaskListRepository;
+import com.moneycol.indexer.infra.PubSubClient;
+import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
+import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.testcontainers.containers.FirestoreEmulatorContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -54,7 +58,7 @@ public class FirestoreTrackerTest {
     }
 
     @Test
-    public void testSimple() throws ExecutionException, InterruptedException {
+    public void firestoreBasicQuery() throws ExecutionException, InterruptedException {
 
         CollectionReference users = firestore.collection("users");
         DocumentReference docRef = users.document("alovelace");
@@ -74,7 +78,7 @@ public class FirestoreTrackerTest {
 
     @Test
     public void testCreatesTaskListWithoutError() {
-        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        FanOutTracker fanOutTracker = prepareFanOutTracker();
         TaskList taskList = TaskList.create(250);
 
         String taskListId = fanOutTracker.createTaskList(taskList);
@@ -85,7 +89,8 @@ public class FirestoreTrackerTest {
 
     @Test
     public void concurrentIncrementsOfTasksReportCorrectValues() throws InterruptedException {
-        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        FanOutTracker fanOutTracker = prepareFanOutTracker();
+
         TaskList taskList = TaskList.create(250);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
@@ -104,11 +109,16 @@ public class FirestoreTrackerTest {
         assertThat(found.getCompletedTasks()).isEqualTo(600);
     }
 
+    private FanOutTracker prepareFanOutTracker() {
+        TaskListRepository taskListRepository = new FirestoreTaskListRepository(firestore);
+        PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
+        return new DefaultFanOutTracker(taskListRepository, pubSubClient);
+    }
+
     @Test
     public void isDoneTest() throws InterruptedException, ExecutionException {
         Integer totalTasksToComplete = 150;
-
-        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        FanOutTracker fanOutTracker = prepareFanOutTracker();
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
@@ -139,7 +149,7 @@ public class FirestoreTrackerTest {
     public void completesWithCorrectStatus() throws InterruptedException, ExecutionException {
         Integer totalTasksToComplete = 150;
 
-        FanOutTracker fanOutTracker = new FirestoreTracker(firestore);
+        FanOutTracker fanOutTracker = prepareFanOutTracker();
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
 

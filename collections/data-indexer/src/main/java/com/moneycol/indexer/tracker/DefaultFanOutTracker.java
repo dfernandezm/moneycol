@@ -16,7 +16,8 @@ import javax.inject.Singleton;
 @Singleton
 public class DefaultFanOutTracker implements FanOutTracker {
 
-    public static final String DONE_TOPIC_NAME = "%s.moneycol.indexer.batching.done";
+    private static final String BATCHES_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batches";
+    public static final String DONE_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batching.done";
 
     // Constructor injection does not seem to work with functions
     @Inject
@@ -51,19 +52,30 @@ public class DefaultFanOutTracker implements FanOutTracker {
     @Override
     public void updateTracking(GenericTask<?> genericTask) {
         String taskListId = genericTask.getTaskListId();
-        incrementCompletedCount(taskListId, 1);
+
         log.info("Incrementing task count completion for taskListId {}", taskListId);
+        incrementCompletedCount(taskListId, 1);
 
         if (hasCompleted(taskListId)) {
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
-            log.info("Indexing/collecting function can now be invoked");
             complete(taskListId);
-            publishDoneStatus(taskListId);
+            publishDone(taskListId);
         }
     }
 
-    private void publishDoneStatus(String taskListId) {
-        String doneTopicName = String.format(DONE_TOPIC_NAME, DEFAULT_ENV);
+    @Override
+    public void publishTask(GenericTask<?> genericTask) {
+        String batchesTopic = String.format(BATCHES_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
+        pubSubClient.publishMessage(batchesTopic, genericTask);
+    }
+
+    @Override
+    public void publishIntermediateResult() {
+
+    }
+
+    private void publishDone(String taskListId) {
+        String doneTopicName = String.format(DONE_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
         TaskListDoneResult taskListDoneResult = TaskListDoneResult.builder()
                 .taskListId(taskListId)
                 .status(Status.PROCESSING_COMPLETED)

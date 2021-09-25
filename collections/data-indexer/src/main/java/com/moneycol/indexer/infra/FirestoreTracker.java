@@ -102,6 +102,16 @@ public class FirestoreTracker implements FanOutTracker {
         }
     }
 
+    @Override
+    public void publishTask(GenericTask<?> genericTask) {
+
+    }
+
+    @Override
+    public void publishIntermediateResult() {
+
+    }
+
     private void publishDoneStatus(String taskListId) {
 
     }

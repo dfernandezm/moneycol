@@ -10,6 +10,13 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a group of files to be processed together, making up an individual 'task', constituent
+ * of the initial fan-out process and delegated to workers.
+ *
+ * In this concrete case this is a group of JSON files to be processed.
+ *
+ */
 @Builder
 @Getter
 @Setter
