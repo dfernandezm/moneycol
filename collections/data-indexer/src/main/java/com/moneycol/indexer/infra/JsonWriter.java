@@ -8,10 +8,12 @@ import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.GenericTask;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 
 @Slf4j
+@Singleton
 public class JsonWriter {
 
     private ObjectMapper objectMapper = new ObjectMapper();

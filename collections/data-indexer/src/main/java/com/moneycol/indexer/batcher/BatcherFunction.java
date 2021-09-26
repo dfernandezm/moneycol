@@ -21,6 +21,7 @@ import javax.inject.Inject;
  * - Publishes the batches for workers to pick up in a topic
  *
  */
+//TODO: test - https://cloud.google.com/functions/docs/testing/test-background
 @Slf4j
 public class BatcherFunction extends GoogleFunctionInitializer
         implements BackgroundFunction<Message> {
@@ -29,17 +30,17 @@ public class BatcherFunction extends GoogleFunctionInitializer
     private FanOutTracker fanOutTracker;
 
     @Inject
-    private FileBatcher bucketBatcher;
+    private FileBatcher fileBatcher;
 
     public BatcherFunction(FanOutTracker fanOutTracker, FileBatcher fileBatcher) {
         this.fanOutTracker = fanOutTracker;
-        this.bucketBatcher = fileBatcher;
+        this.fileBatcher = fileBatcher;
     }
 
     @Override
     public void accept(Message message, Context context) {
         log.info("Function called with context {}", context);
-        Inventory inventory = bucketBatcher.buildAndStoreInventory();
+        Inventory inventory = fileBatcher.buildAndStoreInventory();
         registerFanOutTaskList(inventory);
     }
 

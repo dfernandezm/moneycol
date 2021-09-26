@@ -8,10 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the group of file batches that make up the entire set to be processed.
- * In this case it's the whole GCS bucket content.
- * It is written as a JSON file at the root and used as an 'index' to create the individual
- * tasks of the fan-out process (each batch is a 'task')
+ * Represents the group of file batches ({@link FilesBatch}) that make up all the files to be processed.
+ * In this case it's the whole GCS bucket content, described as multiple JSON files.
+ *
+ * The ({@link Inventory}) itself is written as a single JSON file at the root and used as the reference
+ * to create the individual tasks for the fan-out process (each batch in the inventory is a 'task')
  */
 @Builder
 @Setter

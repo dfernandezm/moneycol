@@ -5,8 +5,6 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
-import com.moneycol.indexer.tracker.DefaultFanOutTracker;
-import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
@@ -35,11 +33,6 @@ public class FirestoreFactory {
             log.error("Error initializing Firestore", e);
             throw new RuntimeException("Error initializing Firestore", e);
         }
-    }
-
-    @Bean
-    public FanOutTracker fanOutTracker() {
-        return new DefaultFanOutTracker();
     }
 
     @Bean

@@ -5,19 +5,16 @@ import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import io.micronaut.context.annotation.Primary;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Slf4j
-@AllArgsConstructor
-@NoArgsConstructor
 @Singleton
+@Primary
 public class DefaultFanOutTracker implements FanOutTracker {
 
     private static final String BATCHES_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batches";
@@ -26,13 +23,16 @@ public class DefaultFanOutTracker implements FanOutTracker {
     private static final String SINK_TOPIC_NAME = String.format(SINK_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
 
     // Constructor injection does not seem to work with functions
-    @Inject
     private TaskListRepository taskListRepo;
-
-    @Inject
     private PubSubClient pubSubClient;
+    private JsonWriter jsonWriter;
 
-    private JsonWriter jsonWriter = new JsonWriter();
+    public DefaultFanOutTracker(TaskListRepository taskListRepository, PubSubClient pubSubClient,
+                                JsonWriter jsonWriter) {
+        this.pubSubClient = pubSubClient;
+        this.taskListRepo = taskListRepository;
+        this.jsonWriter = jsonWriter;
+    }
 
     @Override
     public String createTaskList(TaskList taskList) {

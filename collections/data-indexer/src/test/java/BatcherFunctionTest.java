@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.logging.Logger;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.only;
@@ -28,10 +28,13 @@ import static org.mockito.Mockito.when;
 public class BatcherFunctionTest {
 
     private BatcherFunction batcherFunction;
-    private static final Logger logger = Logger.getLogger(BatcherFunctionTest.class.getName());
 
     FanOutTracker fanOutTracker;
     FileBatcher fileBatcher;
+
+    private static final String SINGLE_FILENAME = "filename-test.json";
+    private static final String INVENTORY_FILENAME = "inventory-test.json";
+
 
     @BeforeEach
     public void setUp() {
@@ -46,13 +49,11 @@ public class BatcherFunctionTest {
     }
 
     @Test
-    public void processInventoryCorrectly() {
+    public void processSimpleInventoryCorrectly() {
 
         // Given
-        when(fileBatcher.buildAndStoreInventory()).thenReturn(fakeInventory());
-        Message message = new Message();
-        message.setData(Base64.getEncoder().encodeToString(
-                "John".getBytes(StandardCharsets.UTF_8)));
+        when(fileBatcher.buildAndStoreInventory()).thenReturn(fakeSingleFileBatchWithSingleFileInventory());
+        Message message = anyMessage();
 
         // When
         batcherFunction.accept(message, null);
@@ -61,19 +62,26 @@ public class BatcherFunctionTest {
         verify(fileBatcher, only()).buildAndStoreInventory();
 
         String taskListId = assertSingleTaskListCreated();
-
-        assertCorrectWorkerTaskPublishedFor(taskListId);
+        assertCorrectWorkerTaskPublishedFor(taskListId, 1, List.of(SINGLE_FILENAME));
     }
 
-    private void assertCorrectWorkerTaskPublishedFor(String taskListId) {
+    private Message anyMessage() {
+        Message message = new Message();
+        message.setData(Base64.getEncoder().encodeToString(
+                "John".getBytes(StandardCharsets.UTF_8)));
+        return message;
+    }
+
+    private void assertCorrectWorkerTaskPublishedFor(String taskListId, int numberOfWorkerTasks,
+                                                     List<String> filenamesInBatch) {
         ArgumentCaptor<GenericTask<FilesBatch>> genericTaskArgumentCaptor = ArgumentCaptor.forClass(GenericTask.class);
-        verify(fanOutTracker, times(1)).publishWorkerTask(genericTaskArgumentCaptor.capture());
+        verify(fanOutTracker, times(numberOfWorkerTasks)).publishWorkerTask(genericTaskArgumentCaptor.capture());
 
         assertThat(genericTaskArgumentCaptor.getValue().getTaskListId()).isEqualTo(taskListId);
         assertThat(genericTaskArgumentCaptor
                 .getValue()
                 .getContent()
-                .getFilenames()).containsOnly("filename-test.json");
+                .getFilenames()).containsAll(filenamesInBatch);
     }
 
     private String assertSingleTaskListCreated() {
@@ -86,13 +94,15 @@ public class BatcherFunctionTest {
         return taskListId;
     }
 
-    private Inventory fakeInventory() {
-        Inventory inventory = Inventory.builder().rootName("inventory-test.json").build();
+    private Inventory fakeSingleFileBatchWithSingleFileInventory() {
+        Inventory inventory = Inventory.builder()
+                .rootName(INVENTORY_FILENAME)
+                .build();
         FilesBatch filesBatch = FilesBatch.builder()
                 .processed(false)
                 .batchSize(30)
                 .build();
-        filesBatch.addFile("filename-test.json");
+        filesBatch.addFile(SINGLE_FILENAME);
         inventory.addFileBatch(filesBatch);
         return inventory;
     }
