@@ -3,9 +3,7 @@ package com.moneycol.indexer.indexing;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
-import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
-import com.moneycol.indexer.tracker.TaskListDoneResult;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +42,6 @@ public class IndexerFunction extends GoogleFunctionInitializer
     @Inject
     private PubSubClient pubSubClient;
 
-    //TODO: Dependency Injection
-    private JsonWriter jsonWriter = new JsonWriter();
-
     @Inject
     private IndexingDataReader indexingDataReader;
 
@@ -55,7 +50,7 @@ public class IndexerFunction extends GoogleFunctionInitializer
     @Override
     public void accept(Message payload, Context context) throws Exception {
 
-        readMessagePayload(payload);
+        indexingDataReader.logTriggeringMessage(payload);
 
         //TODO: update taskList status to INDEXING and to COMPLETED when done
         // delegate to dedicated service
@@ -69,13 +64,5 @@ public class IndexerFunction extends GoogleFunctionInitializer
         });
     }
 
-    private void readMessagePayload(Message payload) {
-        String messagePayload = pubSubClient.readMessageFromEventToString(payload);
-        log.info("Received payload to start indexing {}", messagePayload);
 
-        // should validate if it's a valid taskList / discard if not
-        TaskListDoneResult taskListDoneResult =
-                jsonWriter.toObject(messagePayload, TaskListDoneResult.class);
-        log.info("Start indexing after completion of taskList {}", taskListDoneResult);
-    }
 }

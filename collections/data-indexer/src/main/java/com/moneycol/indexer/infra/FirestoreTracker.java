@@ -5,6 +5,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
+import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;
@@ -96,20 +97,24 @@ public class FirestoreTracker implements FanOutTracker {
 
         if (hasCompleted(taskListId)) {
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
-            log.info("Indexing/collecting function can now be invoked");
             complete(taskListId);
             publishDoneStatus(taskListId);
         }
     }
 
     @Override
-    public void publishTask(GenericTask<?> genericTask) {
+    public void publishWorkerTask(GenericTask<?> genericTask) {
 
     }
 
     @Override
-    public void publishIntermediateResult() {
+    public <T> void publishIntermediateResult(T resultData) {
 
+    }
+
+    @Override
+    public GenericTask<?> readMessageAsTask(Message message) {
+        return null;
     }
 
     private void publishDoneStatus(String taskListId) {

@@ -2,6 +2,7 @@ package com.moneycol.indexer.batcher;
 
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
+import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;
@@ -22,22 +23,26 @@ import javax.inject.Inject;
  */
 @Slf4j
 public class BatcherFunction extends GoogleFunctionInitializer
-        implements BackgroundFunction<PubSubMessage> {
+        implements BackgroundFunction<Message> {
 
     @Inject
     private FanOutTracker fanOutTracker;
 
     @Inject
-    private FileBatcher fileBatcher;
+    private FileBatcher bucketBatcher;
+
+    public BatcherFunction(FanOutTracker fanOutTracker, FileBatcher fileBatcher) {
+        this.fanOutTracker = fanOutTracker;
+        this.bucketBatcher = fileBatcher;
+    }
 
     @Override
-    public void accept(PubSubMessage message, Context context) {
+    public void accept(Message message, Context context) {
         log.info("Function called with context {}", context);
-        Inventory inventory = fileBatcher.buildInventoryBatched("moneycol", "moneycol-import");
+        Inventory inventory = bucketBatcher.buildAndStoreInventory();
         registerFanOutTaskList(inventory);
     }
 
-    //TODO: this should be encapsulated in 1 tasklist
     private void registerFanOutTaskList(Inventory inventory) {
         log.info("Creating taskList for tracking...");
         TaskList taskList = TaskList.create(inventory.getFilesBatches().size());
@@ -47,13 +52,17 @@ public class BatcherFunction extends GoogleFunctionInitializer
 
         inventory.getFilesBatches().forEach(batch -> {
             log.info("Saving and publishing task for batch {}", batch.toString());
-            GenericTask<FilesBatch> genericTask = GenericTask.<FilesBatch>builder()
-                    .content(batch)
-                    .taskListId(taskList.getId())
-                    .status(Status.PENDING)
-                    .build();
-            fanOutTracker.publishTask(genericTask);
+            forkWorkerTaskFor(taskList.getId(), batch);
             log.info("Published batch in tracker with id {} ", taskList.getId());
         });
+    }
+
+    private void forkWorkerTaskFor(String taskListId, FilesBatch batch) {
+        GenericTask<FilesBatch> genericTask = GenericTask.<FilesBatch>builder()
+                .content(batch)
+                .taskListId(taskListId)
+                .status(Status.PENDING)
+                .build();
+        fanOutTracker.publishWorkerTask(genericTask);
     }
 }

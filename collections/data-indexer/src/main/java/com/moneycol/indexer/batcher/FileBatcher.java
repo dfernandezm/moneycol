@@ -14,14 +14,17 @@ import javax.inject.Singleton;
 public class FileBatcher {
 
     private final GcsClient gcsClient;
+    private final String BUCKET_NAME = "moneycol-import";
+    private final String INVENTORY_OBJECT_NAME = "inventory.json";
+    private final String PROJECT_ID = "moneycol";
 
     public FileBatcher(GcsClient gcsClient) {
         this.gcsClient = gcsClient;
     }
 
-    public Inventory buildInventoryBatched(String projectId, String bucketName) {
-        Inventory inventory = buildInventory(projectId, bucketName);
-        gcsClient.writeToGcs("moneycol-import", "inventory.json", inventory);
+    public Inventory buildAndStoreInventory() {
+        Inventory inventory = buildInventory(PROJECT_ID, BUCKET_NAME);
+        gcsClient.writeToGcs(BUCKET_NAME, INVENTORY_OBJECT_NAME, inventory);
         return inventory;
     }
 

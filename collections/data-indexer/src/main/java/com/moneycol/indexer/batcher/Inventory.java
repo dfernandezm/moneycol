@@ -16,6 +16,7 @@ import java.util.List;
 @Builder
 @Setter
 @Getter
+public
 class Inventory {
 
     private final String rootName;

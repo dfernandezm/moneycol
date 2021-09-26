@@ -1,5 +1,6 @@
 package com.moneycol.indexer.tracker;
 
+import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 
 /**
@@ -17,6 +18,7 @@ public interface FanOutTracker {
     void complete(String taskList);
     void updateTracking(GenericTask<?> genericTask);
 
-    void publishTask(GenericTask<?> genericTask);
-    void publishIntermediateResult();
+    void publishWorkerTask(GenericTask<?> genericTask);
+    <T> void publishIntermediateResult(T resultData);
+    GenericTask<?> readMessageAsTask(Message message);
 }

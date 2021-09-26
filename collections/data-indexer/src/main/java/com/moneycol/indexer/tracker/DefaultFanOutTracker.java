@@ -1,5 +1,7 @@
 package com.moneycol.indexer.tracker;
 
+import com.google.events.cloud.pubsub.v1.Message;
+import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
@@ -9,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Slf4j
 @AllArgsConstructor
@@ -18,6 +22,8 @@ public class DefaultFanOutTracker implements FanOutTracker {
 
     private static final String BATCHES_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batches";
     public static final String DONE_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.batching.done";
+    private static final String SINK_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.sink";
+    private static final String SINK_TOPIC_NAME = String.format(SINK_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
 
     // Constructor injection does not seem to work with functions
     @Inject
@@ -25,6 +31,8 @@ public class DefaultFanOutTracker implements FanOutTracker {
 
     @Inject
     private PubSubClient pubSubClient;
+
+    private JsonWriter jsonWriter = new JsonWriter();
 
     @Override
     public String createTaskList(TaskList taskList) {
@@ -64,14 +72,23 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public void publishTask(GenericTask<?> genericTask) {
+    public void publishWorkerTask(GenericTask<?> genericTask) {
         String batchesTopic = String.format(BATCHES_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
         pubSubClient.publishMessage(batchesTopic, genericTask);
     }
 
     @Override
-    public void publishIntermediateResult() {
+    public <T> void publishIntermediateResult(T resultData) {
+        pubSubClient.publishMessage(SINK_TOPIC_NAME, resultData);
+    }
 
+    @Override
+    public GenericTask<?> readMessageAsTask(Message message) {
+        String messageString = new String(
+                Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
+                StandardCharsets.UTF_8);
+        log.info("De serializing message...");
+        return jsonWriter.toGenericTask(messageString);
     }
 
     private void publishDone(String taskListId) {
@@ -83,5 +100,6 @@ public class DefaultFanOutTracker implements FanOutTracker {
         log.info("Publishing DONE status to pubsub {}", taskListDoneResult);
         pubSubClient.publishMessage(doneTopicName, taskListDoneResult);
     }
+
 
 }

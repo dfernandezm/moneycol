@@ -9,6 +9,7 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.infra.FirestoreTaskListRepository;
+import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
@@ -112,7 +113,7 @@ public class FirestoreTrackerTest {
     private FanOutTracker prepareFanOutTracker() {
         TaskListRepository taskListRepository = new FirestoreTaskListRepository(firestore);
         PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
-        return new DefaultFanOutTracker(taskListRepository, pubSubClient);
+        return new DefaultFanOutTracker(taskListRepository, pubSubClient, new JsonWriter());
     }
 
     @Test

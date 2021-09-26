@@ -3,19 +3,17 @@ package com.moneycol.indexer.worker;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
+import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.infra.GcsClient;
 import com.moneycol.indexer.infra.JsonWriter;
-import com.moneycol.indexer.infra.PubSubClient;
-import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
+//TODO: https://cloud.google.com/functions/docs/testing/test-background
 /**
  * Reads message with batch of files, process them and writes result to sink topic
  *
@@ -27,19 +25,8 @@ import java.util.Base64;
 @Slf4j
 public class WorkerFunction extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
 
-    /**
-     * Topic on which documents to index are pushed
-     */
-    private static final String SINK_TOPIC_NAME = "%s.moneycol.indexer.sink";
-
-    //TODO: remove from here
-    private static final String DEFAULT_ENV = "dev";
-
     private final JsonWriter jsonWriter = new JsonWriter();
     private final GcsClient gcsClient = new GcsClient();
-
-    @Inject
-    private PubSubClient pubSubClient;
 
     @Inject
     public FanOutTracker fanOutTracker;
@@ -51,34 +38,25 @@ public class WorkerFunction extends GoogleFunctionInitializer implements Backgro
             return;
         }
 
-        GenericTask<FilesBatch> genericTask = readTaskMessage(message);
-        FilesBatch batch = genericTask.getContent();
+        GenericTask<?> genericTask = fanOutTracker.readMessageAsTask(message);
         log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
-        log.info("Message contained batch of files {}", batch);
 
-        String sinkTopicName = String.format(SINK_TOPIC_NAME, DEFAULT_ENV);
+        FilesBatch batch = (FilesBatch) genericTask.getContent();
+        extractBanknoteDataFromFilesBatch(batch);
+
+        fanOutTracker.updateTracking(genericTask);
+    }
+
+    private void extractBanknoteDataFromFilesBatch(FilesBatch batch) {
+        log.info("Message contained batch of files {}", batch);
 
         batch.getFilenames().forEach(filename -> {
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
-            pubSubClient.publishMessage(sinkTopicName, banknotesDataSet);
+            fanOutTracker.publishIntermediateResult(banknotesDataSet);
             log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
             // could index here in bulk, but it's too concurrent for the basic Elasticsearch
             // cluster in GKE at the moment
         });
-
-        updateTracking(genericTask);
-    }
-
-    private GenericTask<FilesBatch> readTaskMessage(Message message) {
-       String messageString = new String(
-                    Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
-                    StandardCharsets.UTF_8);
-        log.info("De serializing message...");
-        return jsonWriter.toGenericTask(messageString);
-    }
-
-    private void updateTracking(GenericTask<FilesBatch> genericTask) {
-        fanOutTracker.updateTracking(genericTask);
     }
 
     private BanknotesDataSet readJsonFileToBanknotesDataSet(String jsonFileName) {
