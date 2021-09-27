@@ -103,37 +103,44 @@ public class PubSubClient {
     }
 
     // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
-    // to get them 100 by 100. Needs a single subscription created to the sink topic and 1 subscriber
+    // to get them numOfMessages by numOfMessages. Needs a single subscription created to the sink topic and 1 subscriber
     public void subscribeSync(String subscriptionId, Integer numOfMessages,
             Consumer<PubsubMessage> messageHandler) throws IOException {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
 
         try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
+
             String subscriptionName = ProjectSubscriptionName.format(PROJECT_ID, subscriptionId);
-            PullRequest pullRequest =
-                    PullRequest.newBuilder()
-                            .setMaxMessages(numOfMessages)
-                            .setSubscription(subscriptionName)
-                            .build();
+            List<ReceivedMessage> receivedMessages = new ArrayList<>();
 
-            // Use pullCallable().futureCall to asynchronously perform this operation.
-            PullResponse pullResponse = subscriber.pullCallable().call(pullRequest);
+            do {
 
-            //List<String> ackIds = new ArrayList<>();
-            for (ReceivedMessage message : pullResponse.getReceivedMessagesList()) {
-                // Handle received message [blocking]
-                messageHandler.accept(message.getMessage());
+                receivedMessages = pullMessages(numOfMessages, subscriber, subscriptionName);
+                log.info("Pulling {} messages from subscription {}", receivedMessages.size(), subscriptionName);
+                for (ReceivedMessage message : receivedMessages) {
+                    // Handle received message [blocking]
+                    messageHandler.accept(message.getMessage());
 
-                // ack 1 by 1
-                List<String> ackIds = new ArrayList<>();
-                ackIds.add(message.getAckId());
-                acknowledgeMessages(subscriber, subscriptionName, ackIds);
-                //ackIds.add(message.getAckId());
-            }
+                    // ack 1 by 1
+                    List<String> ackIds = new ArrayList<>();
+                    ackIds.add(message.getAckId());
+                    acknowledgeMessages(subscriber, subscriptionName, ackIds);
+                }
 
-            //acknowledgeMessages(subscriber, subscriptionName, ackIds);
+            } while(!receivedMessages.isEmpty());
         }
+    }
+
+    private List<ReceivedMessage> pullMessages(Integer numOfMessages, SubscriberStub subscriber, String subscriptionName) {
+        PullRequest pullRequest =
+                PullRequest.newBuilder()
+                        .setMaxMessages(numOfMessages)
+                        .setSubscription(subscriptionName)
+                        .build();
+
+        PullResponse pullResponse = subscriber.pullCallable().call(pullRequest);
+        return pullResponse.getReceivedMessagesList();
     }
 
     public String readMessageToString(PubsubMessage message) {

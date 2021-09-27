@@ -1,5 +1,5 @@
 import com.google.events.cloud.pubsub.v1.Message;
-import com.moneycol.indexer.batcher.BatcherFunction;
+import com.moneycol.indexer.batcher.BatcherFunctionExecutor;
 import com.moneycol.indexer.batcher.FileBatcher;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.batcher.Inventory;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
  */
 public class BatcherFunctionTest {
 
-    private BatcherFunction batcherFunction;
+    private BatcherFunctionExecutor batcherFunction;
 
     FanOutTracker fanOutTracker;
     FileBatcher fileBatcher;
@@ -40,7 +40,7 @@ public class BatcherFunctionTest {
     public void setUp() {
         fanOutTracker = Mockito.mock(FanOutTracker.class);
         fileBatcher = Mockito.mock(FileBatcher.class);
-        batcherFunction = new BatcherFunction(fanOutTracker, fileBatcher);
+        batcherFunction = new BatcherFunctionExecutor(fanOutTracker, fileBatcher);
     }
 
     @AfterEach
@@ -56,7 +56,7 @@ public class BatcherFunctionTest {
         Message message = anyMessage();
 
         // When
-        batcherFunction.accept(message, null);
+        batcherFunction.execute(message, null);
 
         // Then
         verify(fileBatcher, only()).buildAndStoreInventory();

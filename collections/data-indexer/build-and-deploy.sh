@@ -1,11 +1,11 @@
 #!/bin/bash
 
 BATCHER_FUNCTION_NAME="indexer-batcher"
-BATCHER_MAIN_CLASS="com.moneycol.indexer.batcher.IndexerBatcher"
+BATCHER_MAIN_CLASS="com.moneycol.indexer.batcher.BatcherFunction"
 BATCHER_TRIGGER_TOPIC="dev.crawler.events"
 
 WORKER_FUNCTION_NAME="indexer-worker"
-WORKER_MAIN_CLASS="com.moneycol.indexer.worker.BatchWorker"
+WORKER_MAIN_CLASS="com.moneycol.indexer.worker.WorkerFunction"
 WORKER_TRIGGER_TOPIC="dev.moneycol.indexer.batches"
 
 INDEXING_FUNCTION_NAME="indexer-indexing"
@@ -33,10 +33,10 @@ SERVICE_ACCOUNT="indexer-batcher@moneycol.iam.gserviceaccount.com"
 #--service-account $SERVICE_ACCOUNT \
 #--memory 2048MB \
 #--timeout 540s
-#
+
 ############ Indexer Worker - subscriber #############
-#cd ../../..
-#
+# cd ../../..
+
 #echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
 #./gradlew :data-indexer:clean :data-indexer:shadowJar \
 #-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
