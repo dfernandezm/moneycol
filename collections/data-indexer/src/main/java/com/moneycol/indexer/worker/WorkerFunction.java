@@ -13,14 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 
-//TODO: https://cloud.google.com/functions/docs/testing/test-background
 /**
- * Reads message with batch of files, process them and writes result to sink topic
+ * Reads message with batch of files, process them and writes result to sink destination
  *
- * - Subscribes to topic
+ * - Each batch is a function invocation
  * - Extracts files to read
  * - Reads each file to a list of documents
- * - Publishes the list to a sink topic moneycol.indexer.banknotes.sink
+ * - Publishes the list to a sink topic {env}.indexer.banknotes.sink
+ *
+ * Write tests for functions: https://cloud.google.com/functions/docs/testing/test-background
  */
 @Slf4j
 public class WorkerFunction extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
@@ -33,37 +34,9 @@ public class WorkerFunction extends GoogleFunctionInitializer implements Backgro
 
     @Override
     public void accept(Message message, Context context) {
-        if (message.getData() == null) {
-            log.info("No message provided");
-            return;
-        }
 
-        GenericTask<?> genericTask = fanOutTracker.readMessageAsTask(message);
-        log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
-
-        FilesBatch batch = (FilesBatch) genericTask.getContent();
-        extractBanknoteDataFromFilesBatch(batch);
-
-        fanOutTracker.updateTracking(genericTask);
     }
 
-    private void extractBanknoteDataFromFilesBatch(FilesBatch batch) {
-        log.info("Message contained batch of files {}", batch);
-
-        batch.getFilenames().forEach(filename -> {
-            BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
-            fanOutTracker.publishIntermediateResult(banknotesDataSet);
-            log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
-            // could index here in bulk, but it's too concurrent for the basic Elasticsearch
-            // cluster in GKE at the moment
-        });
-    }
-
-    private BanknotesDataSet readJsonFileToBanknotesDataSet(String jsonFileName) {
-        log.info("Reading contents of {}", jsonFileName);
-        String jsonContents = gcsClient.readObjectContents("moneycol-import", jsonFileName);
-        return jsonWriter.toObject(jsonContents, BanknotesDataSet.class);
-    }
 }
 
 /**

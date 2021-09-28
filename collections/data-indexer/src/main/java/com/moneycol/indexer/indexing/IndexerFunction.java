@@ -3,8 +3,6 @@ package com.moneycol.indexer.indexing;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
-import com.moneycol.indexer.infra.PubSubClient;
-import com.moneycol.indexer.worker.BanknotesDataSet;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,29 +38,10 @@ public class IndexerFunction extends GoogleFunctionInitializer
         implements BackgroundFunction<Message> {
 
     @Inject
-    private PubSubClient pubSubClient;
-
-    @Inject
-    private IndexingDataReader indexingDataReader;
-
-    private static final int MESSAGE_BATCH_SIZE = 50;
+    private IndexerFunctionExecutor indexerFunctionExecutor;
 
     @Override
     public void accept(Message payload, Context context) throws Exception {
-
-        indexingDataReader.logTriggeringMessage(payload);
-
-        //TODO: update taskList status to INDEXING and to COMPLETED when done
-        // delegate to dedicated service
-        //TODO: extract constant/default
-        String subscriptionId = PubSubClient.DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
-        pubSubClient.subscribeSync(subscriptionId, MESSAGE_BATCH_SIZE, (pubsubMessage) -> {
-            log.info("Received message in batch of 50: {}", pubsubMessage);
-            BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
-            log.info("Read BanknotesDataSet: {}", banknotesDataSet);
-            log.info("Now proceed to index set");
-        });
+        indexerFunctionExecutor.execute(payload, context);
     }
-
-
 }

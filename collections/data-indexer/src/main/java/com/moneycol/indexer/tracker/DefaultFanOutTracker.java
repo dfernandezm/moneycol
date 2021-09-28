@@ -93,7 +93,7 @@ public class DefaultFanOutTracker implements FanOutTracker {
 
     private void publishDone(String taskListId) {
         String doneTopicName = String.format(DONE_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
-        TaskListDoneResult taskListDoneResult = TaskListDoneResult.builder()
+        TaskListResult taskListDoneResult = TaskListResult.builder()
                 .taskListId(taskListId)
                 .status(Status.PROCESSING_COMPLETED)
                 .build();
