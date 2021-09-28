@@ -3,11 +3,6 @@ package com.moneycol.indexer.worker;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
-import com.moneycol.indexer.batcher.FilesBatch;
-import com.moneycol.indexer.infra.GcsClient;
-import com.moneycol.indexer.infra.JsonWriter;
-import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.GenericTask;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,17 +21,13 @@ import javax.inject.Inject;
 @Slf4j
 public class WorkerFunction extends GoogleFunctionInitializer implements BackgroundFunction<Message> {
 
-    private final JsonWriter jsonWriter = new JsonWriter();
-    private final GcsClient gcsClient = new GcsClient();
-
     @Inject
-    public FanOutTracker fanOutTracker;
+    private WorkerFunctionExecutor workerFunctionExecutor;
 
     @Override
     public void accept(Message message, Context context) {
-
+        workerFunctionExecutor.execute(message, context);
     }
-
 }
 
 /**

@@ -41,7 +41,7 @@ public class IndexerFunction extends GoogleFunctionInitializer
     private IndexerFunctionExecutor indexerFunctionExecutor;
 
     @Override
-    public void accept(Message payload, Context context) throws Exception {
+    public void accept(Message payload, Context context) {
         indexerFunctionExecutor.execute(payload, context);
     }
 }
