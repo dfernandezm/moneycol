@@ -2,6 +2,7 @@ package com.moneycol.indexer.indexing;
 
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
+import com.moneycol.indexer.infra.FunctionTimeoutChecker;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,8 @@ public class IndexerFunctionExecutor  {
 
     @Inject
     private IndexingDataReader indexingDataReader;
+
+    private FunctionTimeoutChecker timeoutChecker = new FunctionTimeoutChecker();
 
     private static final int MESSAGE_BATCH_SIZE = 50;
 
@@ -34,7 +37,7 @@ public class IndexerFunctionExecutor  {
                 BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
                 log.info("Read BanknotesDataSet: {}", banknotesDataSet);
                 log.info("Now proceed to index set");
-            });
+            }, timeoutChecker);
         } catch (Exception e) {
             // if not done, retrigger this function
             log.error("Error subscribing in indexer", e);

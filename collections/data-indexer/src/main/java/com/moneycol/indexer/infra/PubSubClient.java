@@ -4,10 +4,12 @@ import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStubSettings;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.events.cloud.pubsub.v1.Message;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.AcknowledgeRequest;
+import com.google.pubsub.v1.ModifyAckDeadlineRequest;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Invoke via Http
@@ -47,11 +50,7 @@ public class PubSubClient {
     /**
      * Topic which triggers the execution of the batcher function
      */
-    private static final String TRIGGERING_TOPIC_NAME = "{env}.moneycol.indexer.start";
-    private static final String WORKER_TRIGGER_TOPIC_NAME = "{env}.moneycol.indexer.batches";
-    private static final String PROCESSING_DONE_TOPIC_NAME = "{env}.moneycol.indexer.batching.done";
     public static final String DATA_SINK_SUBSCRIPTION_NAME = "{env}.moneycol.indexer.sink";
-
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();
@@ -105,18 +104,23 @@ public class PubSubClient {
     // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
     // to get them numOfMessages by numOfMessages. Needs a single subscription created to the sink topic and 1 subscriber
     public void subscribeSync(String subscriptionId, Integer numOfMessages,
-            Consumer<PubsubMessage> messageHandler) throws IOException {
+            Consumer<PubsubMessage> messageHandler, FunctionTimeoutChecker timeoutChecker) throws IOException {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
 
         try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
 
             String subscriptionName = ProjectSubscriptionName.format(PROJECT_ID, subscriptionId);
-            List<ReceivedMessage> receivedMessages = new ArrayList<>();
+            List<ReceivedMessage> receivedMessages;
+            boolean stopProcessing = false;
 
             do {
-
                 receivedMessages = pullMessages(numOfMessages, subscriber, subscriptionName);
+
+                List<String> remainderOfAckIds = receivedMessages.stream()
+                        .map(ReceivedMessage::getAckId)
+                        .collect(Collectors.toList());
+
                 log.info("Pulling {} messages from subscription {}", receivedMessages.size(), subscriptionName);
                 for (ReceivedMessage message : receivedMessages) {
                     // Handle received message [blocking]
@@ -126,9 +130,26 @@ public class PubSubClient {
                     List<String> ackIds = new ArrayList<>();
                     ackIds.add(message.getAckId());
                     acknowledgeMessages(subscriber, subscriptionName, ackIds);
+
+                    // remove from ackIDs
+                    remainderOfAckIds.remove(message.getAckId());
+
+                    if (timeoutChecker.isAboutToTimeout()) {
+                        nackMessages(subscriber, subscriptionName, remainderOfAckIds);
+                        stopProcessing = true;
+                        break;
+                    }
                 }
 
-            } while(!receivedMessages.isEmpty());
+            } while(!receivedMessages.isEmpty() && !stopProcessing);
+        }
+    }
+
+    //TODO: separate steps - template method
+    public SubscriberStub getSubscriber() throws IOException {
+        SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
+        try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
+            return subscriber;
         }
     }
 
@@ -164,6 +185,7 @@ public class PubSubClient {
 
     private void acknowledgeMessages(SubscriberStub subscriber, String subscriptionName, List<String> ackIds) {
         // Acknowledge received messages.
+
         AcknowledgeRequest acknowledgeRequest =
                 AcknowledgeRequest.newBuilder()
                         .setSubscription(subscriptionName)
@@ -172,6 +194,20 @@ public class PubSubClient {
 
         // Use acknowledgeCallable().futureCall to asynchronously perform this operation.
         subscriber.acknowledgeCallable().call(acknowledgeRequest);
+    }
+
+    // Puts the ackDeadline to 0 so the messages are nack-ed and redelivered
+    @VisibleForTesting
+    public void nackMessages(SubscriberStub subscriber,
+                              String subscriptionName, List<String> ackIds) {
+        log.warn("About to nack {} messages as this execution is about to timeout", ackIds.size());
+        ModifyAckDeadlineRequest modifyAckDeadlineRequest =
+                ModifyAckDeadlineRequest.newBuilder()
+                        .setSubscription(subscriptionName)
+                        .addAllAckIds(ackIds)
+                        .setAckDeadlineSeconds(0)
+                        .build();
+        subscriber.modifyAckDeadlineCallable().call(modifyAckDeadlineRequest);
     }
 
 

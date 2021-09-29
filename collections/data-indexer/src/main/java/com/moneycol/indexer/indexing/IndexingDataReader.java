@@ -34,4 +34,17 @@ public class IndexingDataReader {
                 jsonWriter.toObject(messagePayload, TaskListResult.class);
         log.info("Start indexing after completion of taskList {}", taskListDoneResult);
     }
+
+    //TODO: in messagePullProcessor (template method?)
+    public void processMessages() {
+
+        // List<Message> messages = receiveBatch(30)
+        // loop:
+        // processMessage(message)
+        // ackMessage(message)
+        // checkTimeout
+        //    nack()
+        //    exit(0)
+        // endloop
+    }
 }
