@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -104,7 +105,7 @@ public class PubSubClient {
     // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
     // to get them numOfMessages by numOfMessages. Needs a single subscription created to the sink topic and 1 subscriber
     public void subscribeSync(String subscriptionId, Integer numOfMessages,
-            Consumer<PubsubMessage> messageHandler, FunctionTimeoutChecker timeoutChecker) throws IOException {
+            Consumer<PubsubMessage> messageHandler, Supplier<Boolean> stopCondition) throws IOException {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
 
@@ -131,10 +132,10 @@ public class PubSubClient {
                     ackIds.add(message.getAckId());
                     acknowledgeMessages(subscriber, subscriptionName, ackIds);
 
-                    // remove from ackIDs
+                    // remove from ackIDs the ack one
                     remainderOfAckIds.remove(message.getAckId());
 
-                    if (timeoutChecker.isAboutToTimeout()) {
+                    if (stopCondition.get()) {
                         nackMessages(subscriber, subscriptionName, remainderOfAckIds);
                         stopProcessing = true;
                         break;
