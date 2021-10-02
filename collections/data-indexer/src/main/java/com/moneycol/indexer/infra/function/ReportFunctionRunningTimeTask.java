@@ -1,21 +1,22 @@
 package com.moneycol.indexer.infra.function;
 
+import com.google.common.base.Stopwatch;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 
-@Singleton
 @Slf4j
-@RequiredArgsConstructor
 @Builder
 public class ReportFunctionRunningTimeTask implements Runnable {
 
-    private final Long elapsedTimeInSeconds;
+    private final Stopwatch stopwatch;
 
     @Override
     public void run() {
-        log.info("Function has been running for {} seconds", elapsedTimeInSeconds);
+        //TODO: this elapsed time is unreliable, runs in different threads
+        // reporting different duration.
+        long runningTime = stopwatch.elapsed(TimeUnit.SECONDS);
+        log.info("Function has been running for {} seconds", runningTime);
     }
 }

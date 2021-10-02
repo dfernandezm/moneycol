@@ -91,7 +91,7 @@ public class DefaultFanOutTracker implements FanOutTracker {
         return jsonWriter.toGenericTask(messageString);
     }
 
-    private void publishDone(String taskListId) {
+    public void publishDone(String taskListId) {
         String doneTopicName = String.format(DONE_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
         TaskListResult taskListDoneResult = TaskListResult.builder()
                 .taskListId(taskListId)

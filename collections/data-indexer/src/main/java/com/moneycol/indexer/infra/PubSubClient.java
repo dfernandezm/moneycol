@@ -136,7 +136,10 @@ public class PubSubClient {
                     remainderOfAckIds.remove(message.getAckId());
 
                     if (stopCondition.get()) {
-                        nackMessages(subscriber, subscriptionName, remainderOfAckIds);
+                        log.info("Getting close to condition for stopping, stopping now");
+                        if (!remainderOfAckIds.isEmpty()) {
+                            nackMessages(subscriber, subscriptionName, remainderOfAckIds);
+                        }
                         stopProcessing = true;
                         break;
                     }
