@@ -11,19 +11,20 @@ import java.time.ZonedDateTime;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@Singleton
 @Slf4j
-public class FunctionTimeoutChecker {
+@Singleton
+public class FunctionTimeoutTracker {
 
     protected final TaskScheduler taskScheduler;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
     private ScheduledFuture<?> reportTimingScheduledFuture;
+    private boolean timedOut = false;
 
-    private final Long FUNCTION_TIMEOUT_SECONDS = 540L;
+    private final Long FUNCTION_TIMEOUT_SECONDS = 180L;
     private final Long TIMEOUT_THRESHOLD_SECONDS = 10L;
     private final Long ELAPSED_TIME_REPORT_FREQUENCY_SECONDS = 30L;
 
-    public FunctionTimeoutChecker(TaskScheduler taskScheduler) {
+    public FunctionTimeoutTracker(TaskScheduler taskScheduler) {
         this.taskScheduler = taskScheduler;
     }
 
@@ -33,7 +34,8 @@ public class FunctionTimeoutChecker {
     }
 
     public void startTimer() {
-        // It may be running via multiple invocations of the function
+        // It may be running as subsequent invocations may reuse global variables
+        // via multiple invocations of the function
         if (stopwatch.isRunning()) {
             log.info("Restart stopWatch as it was running from previous invocation");
             stopwatch.reset();
@@ -51,17 +53,24 @@ public class FunctionTimeoutChecker {
     }
 
     public boolean isCloseToTimeout() {
-        log.info("Check timeout...");
+        log.info("Checking timeout...");
         long runningTime = stopwatch.elapsed(TimeUnit.SECONDS);
         long secondsDiff = FUNCTION_TIMEOUT_SECONDS - runningTime;
 
         if (secondsDiff <= TIMEOUT_THRESHOLD_SECONDS) {
-            log.warn("Function is in less than {} to timeout, has been running for {}" +
+            log.warn("Function is in less than {} seconds to timeout, has been running for {}, " +
                     "execution will terminate soon", TIMEOUT_THRESHOLD_SECONDS, runningTime);
+            stopScheduler();
+            timedOut = true;
             return true;
         }
 
         return false;
     }
+
+    public boolean timedOut() {
+        return timedOut;
+    }
+
 
 }

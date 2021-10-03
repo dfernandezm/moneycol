@@ -8,15 +8,20 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
 
 @Slf4j
 @Factory
 public class FirestoreFactory {
 
-    private final String PROJECT_ID = "moneycol";
+    private final String DEFAULT_PROJECT_ID = "moneycol";
+    private final String projectId;
+
+    public FirestoreFactory(@Value("PROJECT_ID") String projectId) {
+        //TODO: the value is not correctly picked up
+        this.projectId = DEFAULT_PROJECT_ID;
+    }
 
     @Bean
     public Firestore firestore() {
@@ -25,11 +30,11 @@ public class FirestoreFactory {
             credentials = GoogleCredentials.getApplicationDefault();
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(credentials)
-                    .setProjectId(PROJECT_ID)
+                    .setProjectId(projectId)
                     .build();
             FirebaseApp.initializeApp(options);
             return FirestoreClient.getFirestore();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             log.error("Error initializing Firestore", e);
             throw new RuntimeException("Error initializing Firestore", e);
         }

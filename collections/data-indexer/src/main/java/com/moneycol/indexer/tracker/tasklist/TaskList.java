@@ -30,12 +30,15 @@ public class TaskList {
         return taskList;
     }
 
-    public boolean hasCompleted() {
+    public boolean hasProcessingCompleted() {
         return numberOfTasks.equals(completedTasks);
     }
 
-    public void complete() {
+    public void completeProcessing() {
         setStatus(Status.PROCESSING_COMPLETED);
     }
 
+    public boolean hasConsolidationCompleted() {
+        return status == Status.CONSOLIDATION_COMPLETED;
+    }
 }

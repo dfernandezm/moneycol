@@ -38,7 +38,7 @@ public class WorkerFunctionExecutor {
         FilesBatch batch = (FilesBatch) genericTask.getContent();
         extractBanknoteDataFromFilesBatch(batch);
 
-        fanOutTracker.updateTracking(genericTask);
+        fanOutTracker.updateProcessingFor(genericTask);
     }
 
     private void extractBanknoteDataFromFilesBatch(FilesBatch batch) {

@@ -17,7 +17,7 @@ import lombok.ToString;
 @Setter
 @Builder
 @ToString
-public class TaskListResult {
+public class TaskListStatusResult {
 
     private String taskListId;
     private Status status;

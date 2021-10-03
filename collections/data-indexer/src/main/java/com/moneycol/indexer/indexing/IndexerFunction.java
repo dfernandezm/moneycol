@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 /**
  *
- * This function is reponsible for the indexing of data published in the Sink Topic
+ * This function is reponsible for the processing of data published in the Sink Topic
  *
  * - Reads data from sink topic via Synchronous Pull (Pull Request) in groups of 50-100
  * - This generates a bulk insert into ElasticSearch

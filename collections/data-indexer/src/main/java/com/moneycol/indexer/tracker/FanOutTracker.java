@@ -13,12 +13,15 @@ public interface FanOutTracker {
     String DEFAULT_ENV = "dev";
 
     String createTaskList(TaskList taskList);
-    boolean hasCompleted(String taskListId);
+    boolean hasCompletedProcessing(String taskListId);
     void incrementCompletedCount(String taskListId, Integer quantity);
-    void complete(String taskList);
-    void updateTracking(GenericTask<?> genericTask);
-
+    void completeProcessing(String taskList);
+    void updateProcessingFor(GenericTask<?> genericTask);
     void publishWorkerTask(GenericTask<?> genericTask);
     <T> void publishIntermediateResult(T resultData);
+    void publishProcessingDone(String taskListId);
+    void updateTaskListStatus(String taskListId, Status status);
+    boolean hasConsolidationCompleted(String taskListId);
     GenericTask<?> readMessageAsTask(Message message);
+    TaskListStatusResult readMessageAsTaskListStatus(Message message);
 }

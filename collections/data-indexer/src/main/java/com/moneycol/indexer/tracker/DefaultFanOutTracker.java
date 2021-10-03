@@ -22,10 +22,9 @@ public class DefaultFanOutTracker implements FanOutTracker {
     private static final String SINK_TOPIC_NAME_TEMPLATE = "%s.moneycol.indexer.sink";
     private static final String SINK_TOPIC_NAME = String.format(SINK_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
 
-    // Constructor injection does not seem to work with functions
-    private TaskListRepository taskListRepo;
-    private PubSubClient pubSubClient;
-    private JsonWriter jsonWriter;
+    private final TaskListRepository taskListRepo;
+    private final PubSubClient pubSubClient;
+    private final JsonWriter jsonWriter;
 
     public DefaultFanOutTracker(TaskListRepository taskListRepository, PubSubClient pubSubClient,
                                 JsonWriter jsonWriter) {
@@ -40,9 +39,9 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public boolean hasCompleted(String taskListId) {
+    public boolean hasCompletedProcessing(String taskListId) {
         TaskList taskList = taskListRepo.findById(taskListId);
-        return taskList.hasCompleted();
+        return taskList.hasProcessingCompleted();
     }
 
     @Override
@@ -51,23 +50,23 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public void complete(String taskListId) {
+    public void completeProcessing(String taskListId) {
         TaskList taskList = taskListRepo.findById(taskListId);
-        taskList.complete();
+        taskList.completeProcessing();
         taskListRepo.update(taskList);
     }
 
     @Override
-    public void updateTracking(GenericTask<?> genericTask) {
+    public void updateProcessingFor(GenericTask<?> genericTask) {
         String taskListId = genericTask.getTaskListId();
 
         log.info("Incrementing task count completion for taskListId {}", taskListId);
         incrementCompletedCount(taskListId, 1);
 
-        if (hasCompleted(taskListId)) {
+        if (hasCompletedProcessing(taskListId)) {
             log.info("Completed FULL set of tasks for taskListId {}", taskListId);
-            complete(taskListId);
-            publishDone(taskListId);
+            completeProcessing(taskListId);
+            publishProcessingDone(taskListId);
         }
     }
 
@@ -84,22 +83,45 @@ public class DefaultFanOutTracker implements FanOutTracker {
 
     @Override
     public GenericTask<?> readMessageAsTask(Message message) {
-        String messageString = new String(
-                Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
-                StandardCharsets.UTF_8);
+        String messageString = messageToString(message);
         log.info("De serializing message...");
         return jsonWriter.toGenericTask(messageString);
     }
 
-    public void publishDone(String taskListId) {
+    @Override
+    public void publishProcessingDone(String taskListId) {
         String doneTopicName = String.format(DONE_TOPIC_NAME_TEMPLATE, DEFAULT_ENV);
-        TaskListResult taskListDoneResult = TaskListResult.builder()
+        TaskListStatusResult taskListDoneResult = TaskListStatusResult.builder()
                 .taskListId(taskListId)
                 .status(Status.PROCESSING_COMPLETED)
                 .build();
-        log.info("Publishing DONE status to pubsub {}", taskListDoneResult);
+        log.info("Publishing PROCESSING_DONE status to PubSub {}", taskListDoneResult);
         pubSubClient.publishMessage(doneTopicName, taskListDoneResult);
     }
 
+    @Override
+    public TaskListStatusResult readMessageAsTaskListStatus(Message message) {
+        String messageString = messageToString(message);
+        log.info("De serializing message...");
+        return jsonWriter.toObject(messageString, TaskListStatusResult.class);
+    }
 
+    @Override
+    public void updateTaskListStatus(String taskListId, Status status) {
+        TaskList taskList = taskListRepo.findById(taskListId);
+        taskList.setStatus(status);
+        taskListRepo.update(taskList);
+    }
+
+    @Override
+    public boolean hasConsolidationCompleted(String taskListId) {
+        TaskList taskList = taskListRepo.findById(taskListId);
+        return taskList.getStatus() == Status.CONSOLIDATION_COMPLETED;
+    }
+
+    private String messageToString(Message message) {
+        return new String(
+                Base64.getDecoder().decode(message.getData().getBytes(StandardCharsets.UTF_8)),
+                StandardCharsets.UTF_8);
+    }
 }
