@@ -69,7 +69,7 @@ gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLA
 --trigger-topic $PROCESSING_DONE_TOPIC \
 --memory 2048MB \
 --service-account $SERVICE_ACCOUNT \
---timeout 540s
+--timeout 180s
 
 # Logs: gcloud functions logs read --limit 50
 # collect results, fan-in - sink

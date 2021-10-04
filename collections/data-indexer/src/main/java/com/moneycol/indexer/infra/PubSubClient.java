@@ -60,7 +60,6 @@ public class PubSubClient {
     // subscribers read 1 batch, extract filenames, read documents
     // push to another topic (or index directly, depending on time)
     // https://stackoverflow.com/questions/17374743/how-can-i-get-the-memory-that-my-java-program-uses-via-javas-runtime-api
-    //TODO: send object message
     public <T> void publishMessage(String topicName, T message) {
         publishMessageWithAttributes(topicName, message, ImmutableMap.of());
     }
@@ -146,14 +145,6 @@ public class PubSubClient {
                 }
 
             } while(!receivedMessages.isEmpty() && !stopProcessing);
-        }
-    }
-
-    //TODO: separate steps - template method
-    public SubscriberStub getSubscriber() throws IOException {
-        SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
-        try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
-            return subscriber;
         }
     }
 

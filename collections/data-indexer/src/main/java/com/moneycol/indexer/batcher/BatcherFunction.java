@@ -17,7 +17,6 @@ import javax.inject.Inject;
  * - Publishes the batches for workers to pick up in a topic
  *
  */
-//TODO: test - https://cloud.google.com/functions/docs/testing/test-background
 @Slf4j
 public class BatcherFunction extends GoogleFunctionInitializer
         implements BackgroundFunction<Message> {

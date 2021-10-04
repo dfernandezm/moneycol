@@ -14,8 +14,6 @@ public class ReportFunctionRunningTimeTask implements Runnable {
 
     @Override
     public void run() {
-        //TODO: this elapsed time is unreliable, runs in different threads
-        // reporting different duration.
         long runningTime = stopwatch.elapsed(TimeUnit.SECONDS);
         log.info("Function has been running for {} seconds", runningTime);
     }
