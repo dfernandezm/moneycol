@@ -1,3 +1,5 @@
+package com.moneycol.indexer;
+
 import com.google.api.core.ApiFuture;
 import com.google.cloud.NoCredentials;
 import com.google.cloud.firestore.CollectionReference;

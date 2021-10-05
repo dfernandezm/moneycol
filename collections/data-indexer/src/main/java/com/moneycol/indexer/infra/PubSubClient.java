@@ -16,9 +16,11 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,13 +47,8 @@ import java.util.stream.Collectors;
 @Singleton
 public class PubSubClient {
 
-    // parameter
-    private static final String PROJECT_ID = "moneycol";
-
-    /**
-     * Topic which triggers the execution of the batcher function
-     */
-    public static final String DATA_SINK_SUBSCRIPTION_NAME = "{env}.moneycol.indexer.sink";
+    @Inject
+    private FanOutConfigurationProperties fanOutProperties;
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();
@@ -94,7 +91,7 @@ public class PubSubClient {
         Publisher publisher = topicNameToPublishers.get(topicName);
         if (publisher == null) {
             publisher = Publisher
-                    .newBuilder(ProjectTopicName.of(PROJECT_ID, topicName))
+                    .newBuilder(ProjectTopicName.of(fanOutProperties.getGcpProjectId(), topicName))
                     .build();
             topicNameToPublishers.put(topicName, publisher);
         }
@@ -110,7 +107,7 @@ public class PubSubClient {
 
         try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
 
-            String subscriptionName = ProjectSubscriptionName.format(PROJECT_ID, subscriptionId);
+            String subscriptionName = ProjectSubscriptionName.format(fanOutProperties.getGcpProjectId(), subscriptionId);
             List<ReceivedMessage> receivedMessages;
             boolean stopProcessing = false;
 

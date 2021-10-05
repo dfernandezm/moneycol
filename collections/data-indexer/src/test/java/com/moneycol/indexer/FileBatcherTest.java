@@ -1,3 +1,5 @@
+package com.moneycol.indexer;
+
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.tracker.GenericTask;

@@ -18,9 +18,8 @@ public class FirestoreFactory {
     private final String DEFAULT_PROJECT_ID = "moneycol";
     private final String projectId;
 
-    public FirestoreFactory(@Value("PROJECT_ID") String projectId) {
-        //TODO: the value is not correctly picked up
-        this.projectId = DEFAULT_PROJECT_ID;
+    public FirestoreFactory(@Value("${gcp-project-id}") String projectId) {
+        this.projectId = projectId == null ? DEFAULT_PROJECT_ID : projectId;
     }
 
     @Bean

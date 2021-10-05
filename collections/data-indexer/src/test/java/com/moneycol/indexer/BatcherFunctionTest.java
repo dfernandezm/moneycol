@@ -1,3 +1,5 @@
+package com.moneycol.indexer;
+
 import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.batcher.BatcherFunctionExecutor;
 import com.moneycol.indexer.batcher.FileBatcher;

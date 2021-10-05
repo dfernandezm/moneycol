@@ -3,6 +3,7 @@ package com.moneycol.indexer.indexing;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.infra.PubSubClient;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.Status;
@@ -27,7 +28,12 @@ public class IndexerFunctionExecutor  {
     @Inject
     private DefaultFanOutTracker defaultFanOutTracker;
 
+    @Inject
+    private FanOutConfigurationProperties fanOutConfigurationProperties;
+
     private static final int MESSAGE_BATCH_SIZE = 50;
+
+    private static final String DATA_SINK_SUBSCRIPTION_NAME = "{env}.moneycol.indexer.sink";
 
     public void execute(Message message, Context context) {
 
@@ -42,7 +48,7 @@ public class IndexerFunctionExecutor  {
 
         try {
             log.info("Start pulling messages from sink to process...");
-            String subscriptionId = PubSubClient.DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
+            String subscriptionId = DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
             pubSubClient.subscribeSync(subscriptionId, MESSAGE_BATCH_SIZE,
                     (pubsubMessage) -> {
                         log.info("Received message in batch of 50: {}", pubsubMessage);

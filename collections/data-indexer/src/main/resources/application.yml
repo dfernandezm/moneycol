@@ -1,3 +1,10 @@
 tracing:
   zipkin:
     enabled: true
+
+fanout:
+  gcp-project-id: "moneycol"
+  pubsub:
+    trigger-topic-name: ""
+    sink-topic-name: ""
+    done-topic-name: ""
