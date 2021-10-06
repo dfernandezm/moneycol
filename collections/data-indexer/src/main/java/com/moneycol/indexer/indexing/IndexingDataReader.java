@@ -6,19 +6,18 @@ import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.tracker.TaskListStatusResult;
 import com.moneycol.indexer.worker.BanknotesDataSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Slf4j
 @Singleton
+@RequiredArgsConstructor
 public class IndexingDataReader {
 
-    private JsonWriter jsonWriter = new JsonWriter();
-
-    @Inject
-    private PubSubClient pubSubClient;
+    private final JsonWriter jsonWriter;
+    private final PubSubClient pubSubClient;
 
     public BanknotesDataSet readBanknotesDataSet(PubsubMessage pubsubMessage) {
         String banknotesDataSetJson = pubSubClient.readMessageToString(pubsubMessage);

@@ -5,35 +5,25 @@ import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
-import com.moneycol.indexer.tracker.DefaultFanOutTracker;
+import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.TaskListStatusResult;
 import com.moneycol.indexer.worker.BanknotesDataSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
-
 @Slf4j
+@RequiredArgsConstructor
 public class IndexerFunctionExecutor  {
 
-    @Inject
-    private PubSubClient pubSubClient;
-
-    @Inject
-    private IndexingDataReader indexingDataReader;
-
-    @Inject
-    private FunctionTimeoutTracker functionTimeoutChecker;
-
-    @Inject
-    private DefaultFanOutTracker defaultFanOutTracker;
-
-    @Inject
-    private FanOutConfigurationProperties fanOutConfigurationProperties;
+    private final PubSubClient pubSubClient;
+    private final IndexingDataReader indexingDataReader;
+    private final FunctionTimeoutTracker functionTimeoutChecker;
+    private final FanOutTracker fanOutTracker;
+    private final FanOutConfigurationProperties fanOutConfigurationProperties;
 
     private static final int MESSAGE_BATCH_SIZE = 50;
 
-    private static final String DATA_SINK_SUBSCRIPTION_NAME = "{env}.moneycol.indexer.sink";
 
     public void execute(Message message, Context context) {
 
@@ -42,20 +32,20 @@ public class IndexerFunctionExecutor  {
 
         TaskListStatusResult taskListStatusResult = unwrapTaskListFromMessage(message);
         String taskListId = taskListStatusResult.getTaskListId();
-        log.info("Received request into consolidation function for taskList {}, status is {}", taskListId,
-                taskListStatusResult.getStatus());
+        log.info("Received request into consolidation function for taskList {}, " +
+                        "status is {}", taskListId, taskListStatusResult.getStatus());
         updateStatus(taskListId, Status.CONSOLIDATING);
 
         try {
             log.info("Start pulling messages from sink to process...");
-            String subscriptionId = DATA_SINK_SUBSCRIPTION_NAME.replace("{env}", "dev");
-            pubSubClient.subscribeSync(subscriptionId, MESSAGE_BATCH_SIZE,
+            String sinkSubscriptionId = fanOutConfigurationProperties.getPubSub().getSinkTopicName();
+            pubSubClient.subscribeSync(sinkSubscriptionId, MESSAGE_BATCH_SIZE,
                     (pubsubMessage) -> {
                         log.info("Received message in batch of 50: {}", pubsubMessage);
                         BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
                         log.info("Read BanknotesDataSet: {}", banknotesDataSet);
                         indexData(banknotesDataSet);
-                    }, () -> functionTimeoutChecker.isCloseToTimeout());
+                    }, functionTimeoutChecker::isCloseToTimeout);
 
             if (functionTimeoutChecker.timedOut()) {
                 log.info("Function is going to timeout, re-triggering now for taskList {}", taskListId);
@@ -67,11 +57,10 @@ public class IndexerFunctionExecutor  {
 
             log.info("Function execution exiting for taskListId {}", taskListId);
         } catch (Throwable t) {
-
             log.error("Error subscribing in indexer", t);
             functionTimeoutChecker.stopScheduler();
             log.info("Check if recovery is needed after error");
-            if (!defaultFanOutTracker.hasConsolidationCompleted(taskListStatusResult.getTaskListId())) {
+            if (!fanOutTracker.hasConsolidationCompleted(taskListStatusResult.getTaskListId())) {
                 retriggerFunction(taskListStatusResult.getTaskListId());
             }
         }
@@ -87,14 +76,14 @@ public class IndexerFunctionExecutor  {
     }
 
     private TaskListStatusResult unwrapTaskListFromMessage(Message message) {
-        return defaultFanOutTracker.readMessageAsTaskListStatus(message);
+        return fanOutTracker.readMessageAsTaskListStatus(message);
     }
 
     private void updateStatus(String taskListId, Status status) {
-        defaultFanOutTracker.updateTaskListStatus(taskListId, status);
+        fanOutTracker.updateTaskListStatus(taskListId, status);
     }
 
     private void retriggerFunction(String taskListId) {
-        defaultFanOutTracker.publishProcessingDone(taskListId);
+        fanOutTracker.publishProcessingDone(taskListId);
     }
 }

@@ -7,7 +7,6 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
-import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import lombok.extern.slf4j.Slf4j;
@@ -19,19 +18,8 @@ import javax.inject.Singleton;
 @Factory
 public class FirestoreFactory {
 
-    //private final String DEFAULT_PROJECT_ID = "moneycol";
     @Inject
     private FanOutConfigurationProperties fanOutConfigurationProperties;
-
-    @Inject
-    private ApplicationContext applicationContext;
-    //private final String projectId;
-
-    // @Value("${gcp-project-id}") String projectId
-//    public FirestoreFactory(FanOutConfigurationProperties fanOutConfigurationProperties) {
-//        this.fanOutConfigurationProperties = fanOutConfigurationProperties;
-//        //this.projectId = projectId == null ? DEFAULT_PROJECT_ID : projectId;
-//    }
 
     @Bean
     @Singleton

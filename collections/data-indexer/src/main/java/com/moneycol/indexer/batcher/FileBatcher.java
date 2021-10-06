@@ -5,6 +5,7 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.moneycol.indexer.infra.GcsClient;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Singleton;
@@ -14,17 +15,17 @@ import javax.inject.Singleton;
 public class FileBatcher {
 
     private final GcsClient gcsClient;
-    private final String BUCKET_NAME = "moneycol-import";
+    private final FanOutConfigurationProperties fanoutConfig;
     private final String INVENTORY_OBJECT_NAME = "inventory.json";
-    private final String PROJECT_ID = "moneycol";
 
-    public FileBatcher(GcsClient gcsClient) {
+    public FileBatcher(GcsClient gcsClient, FanOutConfigurationProperties fanoutConfig) {
         this.gcsClient = gcsClient;
+        this.fanoutConfig = fanoutConfig;
     }
 
     public Inventory buildAndStoreInventory() {
         Inventory inventory = buildInventory();
-        gcsClient.writeToGcs(BUCKET_NAME, INVENTORY_OBJECT_NAME, inventory);
+        gcsClient.writeToGcs(fanoutConfig.getSourceBucketName(), INVENTORY_OBJECT_NAME, inventory);
         return inventory;
     }
 
@@ -80,12 +81,11 @@ public class FileBatcher {
     private Page<Blob> listBucketBlobs() {
         Storage storage = StorageOptions
                 .newBuilder()
-                .setProjectId(PROJECT_ID)
+                .setProjectId(fanoutConfig.getGcpProjectId())
                 .build()
                 .getService();
 
         Storage.BlobListOption blobListOption = Storage.BlobListOption.pageSize(250);
-        Page<Blob> blobs = storage.list(BUCKET_NAME, blobListOption);
-        return blobs;
+        return storage.list(fanoutConfig.getSourceBucketName(), blobListOption);
     }
 }

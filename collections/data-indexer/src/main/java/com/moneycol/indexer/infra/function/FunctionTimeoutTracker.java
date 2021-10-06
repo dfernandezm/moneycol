@@ -58,8 +58,8 @@ public class FunctionTimeoutTracker {
         long secondsDiff = FUNCTION_TIMEOUT_SECONDS - runningTime;
 
         if (secondsDiff <= TIMEOUT_THRESHOLD_SECONDS) {
-            log.warn("Function is in less than {} seconds to timeout, has been running for {}, " +
-                    "execution will terminate soon", TIMEOUT_THRESHOLD_SECONDS, runningTime);
+            log.warn("Function is in less than {} seconds of its timeout, has been running for {}, " +
+                    "execution will terminate", TIMEOUT_THRESHOLD_SECONDS, runningTime);
             stopScheduler();
             timedOut = true;
             return true;
