@@ -43,7 +43,6 @@ public class GcsDataWriter implements DataWriter {
 
     @Override
     public CrawlingProcessState findState() {
-        //TODO: return null if it does not exist
         String stateJson = readDataFromGcs(STATE_FILE_NAME);
         return jsonWriter.toObject(stateJson);
     }

@@ -5,31 +5,43 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
+import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 @Slf4j
 @Factory
 public class FirestoreFactory {
 
-    private final String DEFAULT_PROJECT_ID = "moneycol";
-    private final String projectId;
+    //private final String DEFAULT_PROJECT_ID = "moneycol";
+    @Inject
+    private FanOutConfigurationProperties fanOutConfigurationProperties;
 
-    public FirestoreFactory(@Value("${gcp-project-id}") String projectId) {
-        this.projectId = projectId == null ? DEFAULT_PROJECT_ID : projectId;
-    }
+    @Inject
+    private ApplicationContext applicationContext;
+    //private final String projectId;
+
+    // @Value("${gcp-project-id}") String projectId
+//    public FirestoreFactory(FanOutConfigurationProperties fanOutConfigurationProperties) {
+//        this.fanOutConfigurationProperties = fanOutConfigurationProperties;
+//        //this.projectId = projectId == null ? DEFAULT_PROJECT_ID : projectId;
+//    }
 
     @Bean
+    @Singleton
     public Firestore firestore() {
         GoogleCredentials credentials;
         try {
             credentials = GoogleCredentials.getApplicationDefault();
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(credentials)
-                    .setProjectId(projectId)
+                    .setProjectId(fanOutConfigurationProperties.getGcpProjectId())
                     .build();
             FirebaseApp.initializeApp(options);
             return FirestoreClient.getFirestore();
@@ -40,6 +52,7 @@ public class FirestoreFactory {
     }
 
     @Bean
+    @Singleton
     public TaskListRepository taskListRepository() {
         return new FirestoreTaskListRepository(firestore());
     }
