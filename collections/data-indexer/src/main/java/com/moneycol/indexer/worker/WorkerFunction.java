@@ -9,12 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 
 /**
- * Reads message with batch of files, process them and writes result to sink destination
+ * This function gets triggered of a result of a PubSub published message containing a batch
+ * of files to process.
+ *
+ * It reads the message with a batch of files, process them and writes result to destination
+ * (sink topic).
  *
  * - Each batch is a function invocation
  * - Extracts files to read
- * - Reads each file to a list of documents
- * - Publishes the list to a sink topic {env}.indexer.banknotes.sink
+ * - Reads each file to a list of documents to process
+ * - Publishes the list to a sink topic
  *
  * Write tests for functions: https://cloud.google.com/functions/docs/testing/test-background
  */
@@ -29,12 +33,3 @@ public class WorkerFunction extends GoogleFunctionInitializer implements Backgro
         workerFunctionExecutor.execute(message, context);
     }
 }
-
-/**
- * Idea for sink processing:
- *
- * - indexer to ES starts - uses Sync Pull to get 100 messages
- * - bulk inserts into ES
- * - keeps track of time, when it reaches 8 min 30 secs it switches off and publishes
- * again to the trigger topic and continue
- */

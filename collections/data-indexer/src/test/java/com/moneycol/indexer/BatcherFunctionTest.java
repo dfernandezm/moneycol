@@ -77,7 +77,7 @@ public class BatcherFunctionTest {
     private void assertCorrectWorkerTaskPublishedFor(String taskListId, int numberOfWorkerTasks,
                                                      List<String> filenamesInBatch) {
         ArgumentCaptor<GenericTask<FilesBatch>> genericTaskArgumentCaptor = ArgumentCaptor.forClass(GenericTask.class);
-        verify(fanOutTracker, times(numberOfWorkerTasks)).publishWorkerTask(genericTaskArgumentCaptor.capture());
+        verify(fanOutTracker, times(numberOfWorkerTasks)).spawnTask(genericTaskArgumentCaptor.capture());
 
         assertThat(genericTaskArgumentCaptor.getValue().getTaskListId()).isEqualTo(taskListId);
         assertThat(genericTaskArgumentCaptor

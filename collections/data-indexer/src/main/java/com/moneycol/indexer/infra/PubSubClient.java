@@ -17,10 +17,9 @@ import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,12 +42,12 @@ import java.util.stream.Collectors;
  * </pre>
  */
 @Slf4j
-@NoArgsConstructor
+//@NoArgsConstructor
+@RequiredArgsConstructor
 @Singleton
 public class PubSubClient {
 
-    @Inject
-    private FanOutConfigurationProperties fanOutProperties;
+    private final FanOutConfigurationProperties fanOutProperties;
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();

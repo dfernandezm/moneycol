@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GcsDataWriterTest {
 
     /**
-     * Requires GOOGLE_APPLICATION_CREDENTIALS
+     * Requires GOOGLE_APPLICATION_CREDENTIALS / connectivity to GCP.
+     * Need to use testcontainers with emulator.
      *
      */
     @Test

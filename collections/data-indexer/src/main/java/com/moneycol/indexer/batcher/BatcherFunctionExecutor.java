@@ -23,6 +23,7 @@ public class BatcherFunctionExecutor {
     }
 
     public void execute(Message message, Context context) {
+        log.info("Invoked batcher function {}, {}", message, context);
         Inventory inventory = fileBatcher.buildAndStoreInventory();
         registerFanOutTaskList(inventory);
     }
@@ -47,6 +48,6 @@ public class BatcherFunctionExecutor {
                 .taskListId(taskListId)
                 .status(Status.PENDING)
                 .build();
-        fanOutTracker.publishWorkerTask(genericTask);
+        fanOutTracker.spawnTask(genericTask);
     }
 }

@@ -2,8 +2,6 @@ package com.moneycol.indexer.batcher;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.moneycol.indexer.infra.GcsClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +15,7 @@ public class FileBatcher {
     private final GcsClient gcsClient;
     private final FanOutConfigurationProperties fanoutConfig;
     private final String INVENTORY_OBJECT_NAME = "inventory.json";
+    private final Integer FILES_BATCH_SIZE = 30;
 
     public FileBatcher(GcsClient gcsClient, FanOutConfigurationProperties fanoutConfig) {
         this.gcsClient = gcsClient;
@@ -29,11 +28,13 @@ public class FileBatcher {
         return inventory;
     }
 
+    // Ideally, we shouldn't need to import Blob / PageBlob here
     private Inventory buildInventory() {
-        Page<Blob> blobs = listBucketBlobs();
+
+        Page<Blob> blobs = gcsClient.listBucketBlobs(fanoutConfig.getSourceBucketName());
 
         int i = 0;
-        int batchSize = 30;
+        int batchSize = FILES_BATCH_SIZE;
 
         Inventory inventory = Inventory.builder()
                 .rootName("inventory")
@@ -45,7 +46,6 @@ public class FileBatcher {
                 .build();
 
         log.info("Building batches...");
-
         int batchNumber = 1;
 
         for (Blob blob : blobs.iterateAll()) {
@@ -69,23 +69,11 @@ public class FileBatcher {
                         .build();
                 batchNumber++;
             }
-
             filesBatch.addFile(blob.getName());
         }
 
         // add last batch
         inventory.addFileBatch(filesBatch);
         return inventory;
-    }
-
-    private Page<Blob> listBucketBlobs() {
-        Storage storage = StorageOptions
-                .newBuilder()
-                .setProjectId(fanoutConfig.getGcpProjectId())
-                .build()
-                .getService();
-
-        Storage.BlobListOption blobListOption = Storage.BlobListOption.pageSize(250);
-        return storage.list(fanoutConfig.getSourceBucketName(), blobListOption);
     }
 }

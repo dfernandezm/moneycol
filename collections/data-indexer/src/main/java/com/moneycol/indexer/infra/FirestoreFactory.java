@@ -9,17 +9,17 @@ import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Slf4j
 @Factory
+@RequiredArgsConstructor
 public class FirestoreFactory {
 
-    @Inject
-    private FanOutConfigurationProperties fanOutConfigurationProperties;
+    private final FanOutConfigurationProperties fanOutConfigurationProperties;
 
     @Bean
     @Singleton

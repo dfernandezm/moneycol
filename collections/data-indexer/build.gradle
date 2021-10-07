@@ -23,7 +23,7 @@ configurations {
 
 ext {
     logbackVersion = "1.2.3"
-    lombokVersion = "1.18.8"
+    lombokVersion = "1.18.20"
     junitVersion = '5.6.0'
     mockitoJunitJupiterVersion = "2.22.0"
     firebaseSdkVersion = "6.12.2"
@@ -40,12 +40,19 @@ ext.mainClass = project.hasProperty("mainClass") ? project.getProperty("mainClas
 
 dependencies {
 
+    // IMPORTANT: lombok annotation processor needs to run before any other annotation
+    // and Micronaut should be the last one to not interfere
+    // https://docs.micronaut.io/latest/guide/index.html#lombok
+    // https://github.com/micronaut-projects/micronaut-core/issues/2559
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
     developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
     annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
     annotationProcessor("io.micronaut:micronaut-inject-java")
     annotationProcessor("io.micronaut:micronaut-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
 
     implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
     implementation("io.micronaut:micronaut-inject")

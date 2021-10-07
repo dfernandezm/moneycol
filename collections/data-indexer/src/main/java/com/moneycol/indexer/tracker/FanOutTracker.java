@@ -10,16 +10,14 @@ import com.moneycol.indexer.tracker.tasklist.TaskList;
  */
 public interface FanOutTracker {
 
-    String DEFAULT_ENV = "dev";
-
     String createTaskList(TaskList taskList);
     boolean hasCompletedProcessing(String taskListId);
     void incrementCompletedCount(String taskListId, Integer quantity);
     void completeProcessing(String taskList);
-    void updateProcessingFor(GenericTask<?> genericTask);
-    void publishWorkerTask(GenericTask<?> genericTask);
+    void updateTaskProgress(GenericTask<?> genericTask);
+    void spawnTask(GenericTask<?> genericTask);
     <T> void publishIntermediateResult(T resultData);
-    void publishProcessingDone(String taskListId);
+    void notifyProcessingDone(String taskListId);
     void updateTaskListStatus(String taskListId, Status status);
     boolean hasConsolidationCompleted(String taskListId);
     GenericTask<?> readMessageAsTask(Message message);

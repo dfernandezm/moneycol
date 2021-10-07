@@ -6,24 +6,23 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.ExecutionException;
 
 
 @Slf4j
-@AllArgsConstructor
-@NoArgsConstructor
+//@AllArgsConstructor
+//@NoArgsConstructor
+@RequiredArgsConstructor
 @Singleton
 public class FirestoreTaskListRepository implements TaskListRepository {
 
     // Constructor injection does not seem to work with functions
-    @Inject
-    private Firestore firestore;
+    //@Inject
+    private final Firestore firestore;
 
     @Override
     public String createTaskList(TaskList taskList) {
@@ -71,15 +70,6 @@ public class FirestoreTaskListRepository implements TaskListRepository {
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error creating taskList", e);
             throw new RuntimeException("Error creating taskList", e);
-        }
-    }
-
-    public void executeWithException(Runnable runnable) {
-        try  {
-            runnable.run();
-        } catch (Exception e) {
-            log.error("Error taskList", e);
-            throw new RuntimeException("Error taskList", e);
         }
     }
 }

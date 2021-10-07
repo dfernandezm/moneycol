@@ -13,6 +13,7 @@ import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.infra.FirestoreTaskListRepository;
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
@@ -94,13 +95,16 @@ public class FanOutTrackerTest {
     public void concurrentIncrementsOfTasksReportCorrectValues() throws InterruptedException {
         FanOutTracker fanOutTracker = prepareFanOutTracker();
 
-        TaskList taskList = TaskList.create(250);
+        Integer numberOfTasks = 600;
+        TaskList taskList = TaskList.create(numberOfTasks);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        // If this concurrency is not enough, the test may fail as in Firestore emulator
+        // the result won't be seen fast enough
+        ExecutorService executorService = Executors.newFixedThreadPool(50);
 
         // 600 iterations
-        IntStream.range(0, 600).forEach(i -> {
+        IntStream.range(0, numberOfTasks).forEach(i -> {
             executorService.submit(() ->
                     fanOutTracker.incrementCompletedCount(taskListId, 1));
         });
@@ -108,14 +112,17 @@ public class FanOutTrackerTest {
         executorService.shutdown();
         executorService.awaitTermination(3, TimeUnit.SECONDS);
 
+        // add a wait to give Firestore emulator time to settle
+        Thread.sleep(2000);
         TaskList found = findTaskList(taskListId);
-        assertThat(found.getCompletedTasks()).isEqualTo(600);
+        assertThat(found.getCompletedTasks()).isEqualTo(numberOfTasks);
     }
 
     private FanOutTracker prepareFanOutTracker() {
         TaskListRepository taskListRepository = new FirestoreTaskListRepository(firestore);
         PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
-        return new DefaultFanOutTracker(taskListRepository, pubSubClient, new JsonWriter());
+        FanOutConfigurationProperties fanoutConfig = Mockito.mock(FanOutConfigurationProperties.class);
+        return new DefaultFanOutTracker(taskListRepository, pubSubClient, new JsonWriter(), fanoutConfig);
     }
 
     @Test

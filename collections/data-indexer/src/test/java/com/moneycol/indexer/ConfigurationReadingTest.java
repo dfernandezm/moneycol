@@ -54,6 +54,4 @@ public class ConfigurationReadingTest {
         assertThat(propertyValue)
                 .isEqualTo(expectedValue);
     }
-
-
 }

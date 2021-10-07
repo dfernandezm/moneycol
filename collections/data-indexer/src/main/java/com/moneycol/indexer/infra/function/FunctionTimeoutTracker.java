@@ -34,10 +34,9 @@ public class FunctionTimeoutTracker {
     }
 
     public void startTimer() {
-        // It may be running as subsequent invocations may reuse global variables
-        // via multiple invocations of the function
+        // It may be running already, as subsequent invocations may reuse global variables
         if (stopwatch.isRunning()) {
-            log.info("Restart stopWatch as it was running from previous invocation");
+            log.info("Restarting stopWatch as it was running from previous invocation");
             stopwatch.reset();
         }
         log.info("Started function timer at {}", ZonedDateTime.now());

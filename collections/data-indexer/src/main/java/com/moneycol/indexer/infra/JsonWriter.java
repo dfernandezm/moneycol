@@ -56,16 +56,13 @@ public class JsonWriter {
 
         setupMapper();
         try {
-            return objectMapper.readValue(jsonString, new TypeReference<GenericTask<FilesBatch>>() {
+            return objectMapper.readValue(jsonString, new TypeReference<>() {
             });
         } catch (IOException e) {
             log.error("Error writing json", e);
             throw new JsonConversionException("Error writing json");
         }
     }
-
-
-
 
     public <T> String prettyPrint(T object) {
         setupMapper();

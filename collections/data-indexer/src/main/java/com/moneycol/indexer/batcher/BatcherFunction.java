@@ -13,8 +13,11 @@ import javax.inject.Inject;
  * workflow.
  *
  * - It lists the target bucket with all the files
- * - Creates batches of 30 files to process
- * - Publishes the batches for workers to pick up in a topic
+ * - Creates batches of files to process
+ * - Publishes the batches for workers to pick up in PubSub
+ *
+ * The trigger of this function is a PubSub topic publish too,
+ * as result of finishing a crawling process / on-demand
  *
  */
 @Slf4j

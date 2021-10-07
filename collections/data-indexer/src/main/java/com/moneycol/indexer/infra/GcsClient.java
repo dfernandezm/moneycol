@@ -1,5 +1,6 @@
 package com.moneycol.indexer.infra;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -27,6 +28,14 @@ public class GcsClient {
         return new String(blob.getContent());
     }
 
+    /**
+     * Converts 'data' do JSON string and writes it to GCS bucket
+     *
+     * @param bucketName
+     * @param objectName
+     * @param data
+     * @param <T>
+     */
     public <T> void  writeToGcs(String bucketName, String objectName, T data) {
         String inventoryJson = jsonWriter.asJsonString(data);
         writeDataToGcs(bucketName, objectName, inventoryJson);
@@ -37,5 +46,12 @@ public class GcsClient {
         BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         storage.create(blobInfo, data.getBytes());
+    }
+
+    public Page<Blob> listBucketBlobs(String bucketName) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+
+        Storage.BlobListOption blobListOption = Storage.BlobListOption.pageSize(250);
+        return storage.list(bucketName, blobListOption);
     }
 }
