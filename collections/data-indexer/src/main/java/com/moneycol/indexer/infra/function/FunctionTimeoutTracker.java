@@ -33,9 +33,11 @@ public class FunctionTimeoutTracker {
 
     public void stopScheduler() {
         log.info("Stopping scheduler");
-        boolean cancel = reportTimingScheduledFuture.cancel(true);
-        if (!cancel) {
-            log.warn("Scheduler could not be terminated gracefully");
+        if (reportTimingScheduledFuture != null) {
+            boolean cancel = reportTimingScheduledFuture.cancel(true);
+            if (!cancel) {
+                log.warn("Scheduler could not be terminated gracefully");
+            }
         }
     }
 

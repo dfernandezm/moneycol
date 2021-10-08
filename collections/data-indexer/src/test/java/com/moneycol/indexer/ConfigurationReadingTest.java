@@ -20,6 +20,7 @@ public class ConfigurationReadingTest {
                 .and("FANOUT_PUB_SUB_TRIGGER_TOPIC_NAME", "test.moneycol.indexer.batches")
                 .and("FANOUT_PUB_SUB_DONE_TOPIC_NAME", "test.moneycol.indexer.batching.done")
                 .and("FANOUT_PUB_SUB_SINK_TOPIC_NAME", "test.moneycol.indexer.sink")
+                //FANOUT_CONSOLIDATION_PROCESS_TIMEOUT_SECONDS
                 .execute(() -> {
 
                     ApplicationContext applicationContext = ApplicationContext.run();
