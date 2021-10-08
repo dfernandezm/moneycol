@@ -12,8 +12,11 @@ import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
+
 @Slf4j
 @RequiredArgsConstructor
+@Singleton
 public class IndexerFunctionExecutor  {
 
     private final PubSubClient pubSubClient;
@@ -33,13 +36,23 @@ public class IndexerFunctionExecutor  {
         TaskListStatusResult taskListStatusResult = unwrapTaskListFromMessage(message);
         String taskListId = taskListStatusResult.getTaskListId();
         log.info("Received request into consolidation function for taskList {}, " +
-                        "status is {}", taskListId, taskListStatusResult.getStatus());
+                        "status received is {}", taskListId, taskListStatusResult.getStatus());
+
+        log.info("Checking status is not already CONSOLIDATION_COMPLETED due to misfire...");
+
+        if (fanOutTracker.hasConsolidationCompleted(taskListId)) {
+            log.warn("This function execution is " +
+                    "for an already completed taskList {} -- exiting now", taskListId);
+            functionTimeoutChecker.stopScheduler();
+            return;
+        }
+
         updateStatus(taskListId, Status.CONSOLIDATING);
 
         try {
             log.info("Start pulling messages from sink to process...");
             String sinkSubscriptionId = fanOutConfigurationProperties.getPubSub().getSinkTopicName();
-            pubSubClient.subscribeSync(sinkSubscriptionId, MESSAGE_BATCH_SIZE,
+            boolean isDone = pubSubClient.subscribeSync(sinkSubscriptionId, MESSAGE_BATCH_SIZE,
                     (pubsubMessage) -> {
                         log.info("Received message in batch of 50: {}", pubsubMessage);
                         BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
@@ -47,15 +60,16 @@ public class IndexerFunctionExecutor  {
                         indexData(banknotesDataSet);
                     }, functionTimeoutChecker::isCloseToTimeout);
 
-            if (functionTimeoutChecker.timedOut()) {
-                log.info("Function is going to timeout, re-triggering now for taskList {}", taskListId);
+            if (functionTimeoutChecker.timedOut() && !isDone) {
+                log.info("Function is going to timeout, and it's not done, re-triggering now for taskList {}", taskListId);
                 retriggerFunction(taskListId);
             } else {
                 log.info("Consolidation completed for taskList {}", taskListStatusResult.getTaskListId());
                 updateStatus(taskListId, Status.CONSOLIDATION_COMPLETED);
             }
 
-            log.info("Function execution exiting for taskListId {}", taskListId);
+            log.info("Function execution exiting for taskListId {}, stopping scheduler before exit", taskListId);
+            functionTimeoutChecker.stopScheduler();
         } catch (Throwable t) {
             log.error("Error subscribing in indexer", t);
             functionTimeoutChecker.stopScheduler();

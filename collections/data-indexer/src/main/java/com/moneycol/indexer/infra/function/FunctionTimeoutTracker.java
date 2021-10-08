@@ -2,6 +2,7 @@ package com.moneycol.indexer.infra.function;
 
 
 import com.google.common.base.Stopwatch;
+import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import io.micronaut.scheduling.TaskScheduler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,22 +16,27 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class FunctionTimeoutTracker {
 
-    protected final TaskScheduler taskScheduler;
+    private final TaskScheduler taskScheduler;
+    private final FanOutConfigurationProperties fanOutConfig;
+
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
     private ScheduledFuture<?> reportTimingScheduledFuture;
     private boolean timedOut = false;
 
-    private final Long FUNCTION_TIMEOUT_SECONDS = 180L;
-    private final Long TIMEOUT_THRESHOLD_SECONDS = 10L;
     private final Long ELAPSED_TIME_REPORT_FREQUENCY_SECONDS = 30L;
 
-    public FunctionTimeoutTracker(TaskScheduler taskScheduler) {
+    public FunctionTimeoutTracker(TaskScheduler taskScheduler,
+                                  FanOutConfigurationProperties fanOutConfigurationProperties) {
         this.taskScheduler = taskScheduler;
+        this.fanOutConfig = fanOutConfigurationProperties;
     }
 
     public void stopScheduler() {
         log.info("Stopping scheduler");
-        reportTimingScheduledFuture.cancel(true);
+        boolean cancel = reportTimingScheduledFuture.cancel(true);
+        if (!cancel) {
+            log.warn("Scheduler could not be terminated gracefully");
+        }
     }
 
     public void startTimer() {
@@ -38,6 +44,8 @@ public class FunctionTimeoutTracker {
         if (stopwatch.isRunning()) {
             log.info("Restarting stopWatch as it was running from previous invocation");
             stopwatch.reset();
+            timedOut = false;
+            stopScheduler();
         }
         log.info("Started function timer at {}", ZonedDateTime.now());
         stopwatch.start();
@@ -54,11 +62,11 @@ public class FunctionTimeoutTracker {
     public boolean isCloseToTimeout() {
         log.info("Checking timeout...");
         long runningTime = stopwatch.elapsed(TimeUnit.SECONDS);
-        long secondsDiff = FUNCTION_TIMEOUT_SECONDS - runningTime;
+        long secondsDiff = fanOutConfig.getConsolidationProcessTimeoutSeconds() - runningTime;
 
-        if (secondsDiff <= TIMEOUT_THRESHOLD_SECONDS) {
+        if (secondsDiff <= fanOutConfig.getConsolidationProcessTimeoutThresholdSeconds()) {
             log.warn("Function is in less than {} seconds of its timeout, has been running for {}, " +
-                    "execution will terminate", TIMEOUT_THRESHOLD_SECONDS, runningTime);
+                    "execution will terminate", fanOutConfig.getConsolidationProcessTimeoutThresholdSeconds(), runningTime);
             stopScheduler();
             timedOut = true;
             return true;
@@ -70,6 +78,4 @@ public class FunctionTimeoutTracker {
     public boolean timedOut() {
         return timedOut;
     }
-
-
 }

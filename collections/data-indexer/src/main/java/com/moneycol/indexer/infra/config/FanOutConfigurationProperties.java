@@ -22,6 +22,19 @@ public class FanOutConfigurationProperties {
 
     private String gcpProjectId;
     private String sourceBucketName;
+
+    // consolidation process timeout checking
+    /**
+     * Total timeout for the consolidation process,
+     * normally the timeout of the Cloud Function (9 minutes) = 540s
+     */
+    private Integer consolidationProcessTimeoutSeconds;
+
+    /**
+     * Time in seconds given before timeout is reached, in order to stop the process (cleanup time)
+     */
+    private Integer consolidationProcessTimeoutThresholdSeconds;
+
     private PubSubConfigurationProperties pubSub = new PubSubConfigurationProperties();
 
     @ConfigurationProperties("pubSub")

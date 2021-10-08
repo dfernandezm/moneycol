@@ -99,7 +99,8 @@ public class PubSubClient {
 
     // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
     // to get them numOfMessages by numOfMessages. Needs a single subscription created to the sink topic and 1 subscriber
-    public void subscribeSync(String subscriptionId, Integer numOfMessages,
+    // returns boolean indicating if its done or not
+    public boolean subscribeSync(String subscriptionId, Integer numOfMessages,
             Consumer<PubsubMessage> messageHandler, Supplier<Boolean> stopCondition) throws IOException {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
@@ -141,6 +142,8 @@ public class PubSubClient {
                 }
 
             } while(!receivedMessages.isEmpty() && !stopProcessing);
+
+            return receivedMessages.isEmpty();
         }
     }
 
