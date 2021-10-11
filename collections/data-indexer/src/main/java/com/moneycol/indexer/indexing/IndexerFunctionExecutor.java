@@ -25,7 +25,7 @@ public class IndexerFunctionExecutor  {
     private final FanOutTracker fanOutTracker;
     private final FanOutConfigurationProperties fanOutConfigurationProperties;
 
-    private static final int MESSAGE_BATCH_SIZE = 50;
+    private static final int MESSAGE_BATCH_SIZE = 250;
 
 
     public void execute(Message message, Context context) {
@@ -54,7 +54,7 @@ public class IndexerFunctionExecutor  {
             String sinkSubscriptionId = fanOutConfigurationProperties.getPubSub().getSinkTopicName();
             boolean isDone = pubSubClient.subscribeSync(sinkSubscriptionId, MESSAGE_BATCH_SIZE,
                     (pubsubMessage) -> {
-                        log.info("Received message in batch of 50: {}", pubsubMessage);
+                        log.info("Received message in batch of 250: {}", pubsubMessage);
                         BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
                         log.info("Read BanknotesDataSet: {}", banknotesDataSet);
                         indexData(banknotesDataSet);
@@ -83,8 +83,9 @@ public class IndexerFunctionExecutor  {
     // Simulate index data - change for real indexing
     private void indexData(BanknotesDataSet banknotesDataSet) {
         try {
-            log.info("Now proceeding to index set {}", banknotesDataSet.getCountry());
-            Thread.sleep(2000);
+            log.info("Now proceeding to index set {} with {} elements", banknotesDataSet.getCountry(),
+                    banknotesDataSet.getBanknotes().size());
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

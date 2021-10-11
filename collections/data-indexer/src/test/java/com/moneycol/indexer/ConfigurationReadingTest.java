@@ -46,6 +46,12 @@ public class ConfigurationReadingTest {
                     assertPropertyHasValue(env, fanoutConfig.getPubSub().getDoneTopicName(),
                             "fanout.pub-sub.done-topic-name",
                             "test.moneycol.indexer.batching.done");
+
+                    assertThat(env.getProperty("fanout.consolidation-process-timeout-seconds", String.class).get())
+                            .isEqualTo("540");
+
+                    assertThat(env.getProperty("fanout.consolidation-process-timeout-threshold-seconds", String.class).get())
+                            .isEqualTo("10");
         });
     }
 
