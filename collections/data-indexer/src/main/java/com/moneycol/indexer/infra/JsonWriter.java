@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
 @Singleton
@@ -50,6 +51,10 @@ public class JsonWriter {
             log.error("Error writing json", e);
             throw new JsonConversionException("Error writing json");
         }
+    }
+
+    public <T> Map<String, String> toMap(T object) {
+        return toObject(prettyPrint(object), Map.class);
     }
 
     public GenericTask<FilesBatch> toGenericTask(String jsonString) {
