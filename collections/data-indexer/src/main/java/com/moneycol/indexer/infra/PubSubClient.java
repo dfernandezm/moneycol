@@ -119,16 +119,20 @@ public class PubSubClient {
                         .collect(Collectors.toList());
 
                 log.info("Pulling {} messages from subscription {}", receivedMessages.size(), subscriptionName);
+
                 for (ReceivedMessage message : receivedMessages) {
+
                     // Handle received message [blocking]
                     messageHandler.accept(message.getMessage());
 
-                    // ack 1 by 1
+                    // ack 1
                     List<String> ackIds = new ArrayList<>();
                     ackIds.add(message.getAckId());
+
+                    // may buffer ack's if we want to buffer message processing
                     acknowledgeMessages(subscriber, subscriptionName, ackIds);
 
-                    // remove from ackIDs the ack one
+                    // remove from ackIDs the ack'd one
                     remainderOfAckIds.remove(message.getAckId());
 
                     if (stopCondition.get()) {

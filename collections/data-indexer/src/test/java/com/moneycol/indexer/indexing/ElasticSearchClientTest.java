@@ -1,9 +1,11 @@
 package com.moneycol.indexer.indexing;
 
 import com.moneycol.indexer.TestHelper;
+import com.moneycol.indexer.indexing.index.ElasticSearchClient;
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.worker.BanknoteData;
 import com.moneycol.indexer.worker.BanknotesDataSet;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
@@ -18,12 +20,15 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +36,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@MicronautTest
 public class ElasticSearchClientTest {
 
     private static TestHelper testHelper = new TestHelper();
@@ -44,11 +50,24 @@ public class ElasticSearchClientTest {
 
     private static RestHighLevelClient elasticClient;
 
+    @Inject
+    private ElasticSearchClient elasticsearchClient;
+
     @BeforeAll
     public static void setup() {
         elasticsearchContainer.start();
+        String elasticHostAddress = elasticsearchContainer.getHttpHostAddress();
+        //String elasticHostAddress = "35.190.210.3:80";
         elasticClient = new RestHighLevelClient(
-                RestClient.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())));
+                RestClient.builder(HttpHost.create(elasticHostAddress)));
+    }
+
+    @Test
+    public void indexTest() {
+        BanknotesDataSet banknoteDataSet =
+                testHelper.readBanknoteDataSetFromJsonFile("testdata/banknotesDataset.json");
+
+        elasticsearchClient.index(banknoteDataSet);
     }
 
     @Test
@@ -69,8 +88,9 @@ public class ElasticSearchClientTest {
                 testHelper.readBanknoteDataFromJsonFile("testdata/single-banknote.json");
         Map<String, Object> jsonMap = testHelper.readBanknoteDataToMap("testdata/single-banknote.json");
 
-        // It only works with jsonMap
+        // It only works with jsonMap, not directly with object
         IndexRequest indexRequest = new IndexRequest("banknotes-test")
+                .type("banknotes")
                 .id(banknoteData.getCatalogCode()).source(jsonMap);
 
         try {
@@ -103,7 +123,12 @@ public class ElasticSearchClientTest {
 
         List<IndexRequest> indexRequestList = banknoteDataSet.getBanknotes().stream()
                 .map(jsonWriter::toMap)
-                .map(jsonMap -> new IndexRequest(indexName).id(jsonMap.get("catalogCode")).source(jsonMap))
+                .map(jsonMap ->
+                        new IndexRequest(indexName)
+                                .id(jsonMap.get("catalogCode"))
+                                // this seems to be required in elasticsearch 6.5
+                                .type("banknotes")
+                                .source(jsonMap))
                 .collect(Collectors.toList());
 
         banknotesDatasetBulk.requests().addAll(indexRequestList);
@@ -126,6 +151,12 @@ public class ElasticSearchClientTest {
                         DeleteResponse deleteResponse = (DeleteResponse) itemResponse;
                 }
             }
+
+            CountRequest countRequest = new CountRequest("banknotes-test");
+            CountResponse countResponse = elasticClient.count(countRequest, RequestOptions.DEFAULT);
+            System.out.println("Size: " + countResponse.getCount());
+            assertThat(countResponse.getCount()).isEqualTo(banknoteDataSet.getBanknotes().size());
+
         } catch (Exception e) {
             fail(e);
         }
