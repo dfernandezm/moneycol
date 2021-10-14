@@ -1,7 +1,9 @@
 package com.moneycol.indexer.indexing;
 
 import com.google.cloud.functions.Context;
+import com.google.common.base.Stopwatch;
 import com.google.events.cloud.pubsub.v1.Message;
+import com.moneycol.indexer.indexing.index.IndexingHandler;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class IndexerFunctionExecutor  {
     private final FunctionTimeoutTracker functionTimeoutChecker;
     private final FanOutTracker fanOutTracker;
     private final FanOutConfigurationProperties fanOutConfigurationProperties;
+    private final IndexingHandler indexingHandler;
 
     private static final int MESSAGE_BATCH_SIZE = 250;
 
@@ -80,15 +84,14 @@ public class IndexerFunctionExecutor  {
         }
     }
 
-    // Simulate index data - change for real indexing
     private void indexData(BanknotesDataSet banknotesDataSet) {
-        try {
-            log.info("Now proceeding to index set {} with {} elements", banknotesDataSet.getCountry(),
-                    banknotesDataSet.getBanknotes().size());
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        log.info("Now proceeding to index set {} with {} elements", banknotesDataSet.getCountry(),
+                banknotesDataSet.getBanknotes().size());
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        indexingHandler.indexData(banknotesDataSet);
+        log.info("Indexing dataset {} took {} ms",
+                banknotesDataSet.getCountry(),
+                stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
 
     private TaskListStatusResult unwrapTaskListFromMessage(Message message) {

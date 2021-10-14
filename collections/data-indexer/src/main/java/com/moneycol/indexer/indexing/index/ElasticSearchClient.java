@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ElasticSearchClient {
 
-    private final ElasticsearchProperties elasticsearchProperties;
+    private final ElasticSearchProperties elasticsearchProperties;
     private final RestHighLevelClient elasticClient;
     private final String BANKNOTES_TYPE = "banknotes";
 
@@ -37,7 +37,7 @@ public class ElasticSearchClient {
                 .map(jsonWriter::toMap)
                 .map(jsonMap ->
                         new IndexRequest(indexName)
-                                .id(jsonMap.get("catalogCode")) // to be generated
+                                .id(jsonMap.get("catalogCode")) //TODO: to be generated
                                 // this seems to be required in elasticsearch 6.5
                                 .type(BANKNOTES_TYPE)
                                 .source(jsonMap))

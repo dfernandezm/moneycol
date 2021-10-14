@@ -13,11 +13,11 @@ import javax.inject.Singleton;
 @RequiredArgsConstructor
 public class ElasticClientFactory {
 
-    private final ElasticsearchProperties elasticsearchProperties;
+    private final ElasticSearchProperties elasticsearchProperties;
 
     @Bean
     @Singleton
-    private ElasticSearchClient elasticSearchClient() {
+    public ElasticSearchClient elasticSearchClient() {
         RestHighLevelClient elasticClient = new RestHighLevelClient(
                 RestClient.builder(HttpHost.create(elasticsearchProperties.getHostAddress())));
         return new ElasticSearchClient(elasticsearchProperties, elasticClient);
