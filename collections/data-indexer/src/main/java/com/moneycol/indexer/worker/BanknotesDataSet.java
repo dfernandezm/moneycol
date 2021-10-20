@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -21,5 +22,8 @@ public class BanknotesDataSet {
     private String country;
     private Integer pageNumber;
     private String language;
-    private List<BanknoteData> banknotes;
+    private String filename;
+
+    @Builder.Default
+    private List<BanknoteData> banknotes = new ArrayList<>();
 }

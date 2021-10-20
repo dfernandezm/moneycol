@@ -8,6 +8,7 @@ import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.TaskListConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,14 +21,9 @@ public class WorkerFunctionExecutor {
 
     private final FanOutTracker fanOutTracker;
     private final GcsClient gcsClient;
+    private final TaskListConverter taskListConverter;
     private final JsonWriter jsonWriter;
     private final FanOutConfigurationProperties fanOutConfigurationProperties;
-
-//    public WorkerFunctionExecutor(FanOutTracker fanOutTracker, GcsClient gcsClient, JsonWriter jsonWriter) {
-//        this.fanOutTracker = fanOutTracker;
-//        this.gcsClient = gcsClient;
-//        this.jsonWriter = jsonWriter;
-//    }
 
     public void execute(Message message, Context context) {
         log.info("Worker function called with context {}", context);
@@ -36,26 +32,28 @@ public class WorkerFunctionExecutor {
             return;
         }
 
-        GenericTask<?> genericTask = fanOutTracker.readMessageAsTask(message);
+        GenericTask<?> genericTask = taskListConverter.readMessageAsTask(message);
         log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
 
         FilesBatch batch = (FilesBatch) genericTask.getContent();
-        extractBanknoteDataFromFilesBatch(batch);
+        processBatchAsBanknoteDataSetIntoTaskList(batch, genericTask.getTaskListId());
 
-        fanOutTracker.updateTaskProgress(genericTask);
+        // This needs to update the status of the overall processing
+        // keep count of spawned tasks to see if all has been completed
+        fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
     }
 
-    private void extractBanknoteDataFromFilesBatch(FilesBatch batch) {
-        log.info("Message contained batch of files {}", batch);
+    private void processBatchAsBanknoteDataSetIntoTaskList(FilesBatch batch, String taskListId) {
+        log.info("Message from taskListId {} contained batch of files {}", taskListId, batch);
 
         batch.getFilenames().forEach(filename -> {
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
+            banknotesDataSet.setFilename(filename);
+            Integer size = banknotesDataSet.getBanknotes().size();
             fanOutTracker.publishIntermediateResult(banknotesDataSet);
-            log.info("Published message with contents of {} as {}", filename, banknotesDataSet);
-
-            // could index here in bulk, but it's too concurrent for the basic Elasticsearch
-            // cluster in GKE at the moment. The result is published to a sink topic, from where
-            // it will be pulled in small batches
+            fanOutTracker.updateValuesToProcessCount(taskListId, size);
+            //TODO: make sure there's no negative numbers after this count
+            log.info("Published message with {} document from contents of {} as {}", size, filename, banknotesDataSet);
         });
     }
 

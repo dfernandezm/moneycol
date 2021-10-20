@@ -11,6 +11,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 // - how to connect to ES in GKE? - via proxy? - VPC Serverless connector only works on VPC-native GKE
@@ -33,32 +34,47 @@ public class ElasticSearchClient {
         BulkRequest banknotesDatasetBulk = new BulkRequest();
         String indexName = elasticsearchProperties.getIndexName();
 
-        List<IndexRequest> indexRequestList = banknotesDataSet.getBanknotes().stream()
-                .map(jsonWriter::toMap)
-                .map(jsonMap ->
-                        new IndexRequest(indexName)
-                                .id(jsonMap.get("catalogCode")) //TODO: to be generated
-                                // this seems to be required in elasticsearch 6.5
-                                .type(BANKNOTES_TYPE)
-                                .source(jsonMap))
-                .collect(Collectors.toList());
+        if (banknotesDataSet.getBanknotes() != null && banknotesDataSet.getBanknotes().size() > 0) {
+            List<IndexRequest> indexRequestList = banknotesDataSet.getBanknotes().stream()
+                    .map(jsonWriter::toMap)
+                    .map(jsonMap -> {
+                            String id = jsonMap.get("catalogCode") == null ?
+                                    UUID.randomUUID().toString() :
+                                    jsonMap.get("catalogCode") + "-" + UUID.randomUUID();
+                            return new IndexRequest(indexName)
+                                    .id(id)
+                                    .setPipeline("add-current-time")
+                                    // this seems to be required in elasticsearch 6.5
+                                    .type(BANKNOTES_TYPE)
+                                    .source(jsonMap);
+                    })
+                    .collect(Collectors.toList());
 
-        banknotesDatasetBulk.requests().addAll(indexRequestList);
+            log.info("Index requests list of size {} for dataset {}", indexRequestList.size(), banknotesDataSet.getCountry());
+            banknotesDatasetBulk.requests().addAll(indexRequestList);
 
-        try {
+            try {
 
-            BulkResponse bulkResponse = elasticClient.bulk(banknotesDatasetBulk, RequestOptions.DEFAULT);
+                BulkResponse bulkResponse = elasticClient.bulk(banknotesDatasetBulk, RequestOptions.DEFAULT);
 
-            if (bulkResponse.hasFailures()) {
-                log.error("There's failures in the bulk operation: {}", bulkResponse.buildFailureMessage());
-            } else {
-                log.info("Successful bulk index for dataset {}", banknotesDataSet.getCountry());
+                if (bulkResponse.hasFailures()) {
+                    log.error("There's failures in the bulk operation: {}", bulkResponse.buildFailureMessage());
+                    //Arrays.stream(bulkResponse.getItems()).forEach(item -> item.getResponse().getResult().toString());
+                } else {
+                    log.info("Successful bulk index for dataset {} original size {}, indexed {}",
+                            banknotesDataSet.getCountry(),
+                            banknotesDataSet.getBanknotes().size(),
+                            bulkResponse.getItems().length);
+                }
+
+            } catch (Throwable t) {
+                log.error("Error occurred in bulk insert -- continue with rest", t);
             }
+        } else {
+            log.warn("Banknotes dataset is empty -- won't be indexed {}", banknotesDataSet);
+        }
 
             // check for errors in each request?
 
-        } catch (Exception e) {
-            log.error("Error occurred in bulk insert -- continue with rest", e);
-        }
     }
 }

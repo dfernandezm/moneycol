@@ -9,6 +9,7 @@ import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.TaskListConverter;
 import com.moneycol.indexer.tracker.TaskListStatusResult;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class IndexerFunctionExecutor  {
 
     private final PubSubClient pubSubClient;
     private final IndexingDataReader indexingDataReader;
+    private final TaskListConverter taskListConverter;
     private final FunctionTimeoutTracker functionTimeoutChecker;
     private final FanOutTracker fanOutTracker;
     private final FanOutConfigurationProperties fanOutConfigurationProperties;
@@ -62,12 +64,18 @@ public class IndexerFunctionExecutor  {
                         BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
                         log.info("Read BanknotesDataSet: {}", banknotesDataSet);
                         indexData(banknotesDataSet);
+                        Integer decrementAmount = banknotesDataSet.getBanknotes().size() == 0 ? 0 :
+                                -1 * banknotesDataSet.getBanknotes().size();
+                        log.info("Decrementing processed size of {} from file {}", decrementAmount,
+                                banknotesDataSet.getFilename());
+                        fanOutTracker.updateValuesToProcessCount(taskListId, decrementAmount);
                     }, functionTimeoutChecker::isCloseToTimeout);
 
             if (functionTimeoutChecker.timedOut() && !isDone) {
                 log.info("Function is going to timeout, and it's not done, re-triggering now for taskList {}", taskListId);
                 retriggerFunction(taskListId);
             } else {
+                //TODO: FIXME: There's 3 executions saying CONSOLIDATION_COMPLETED
                 log.info("Consolidation completed for taskList {}", taskListStatusResult.getTaskListId());
                 updateStatus(taskListId, Status.CONSOLIDATION_COMPLETED);
             }
@@ -85,17 +93,20 @@ public class IndexerFunctionExecutor  {
     }
 
     private void indexData(BanknotesDataSet banknotesDataSet) {
+        Integer size = banknotesDataSet.getBanknotes() == null ? 0 : banknotesDataSet.getBanknotes().size();
         log.info("Now proceeding to index set {} with {} elements", banknotesDataSet.getCountry(),
-                banknotesDataSet.getBanknotes().size());
+                size);
         Stopwatch stopwatch = Stopwatch.createStarted();
         indexingHandler.indexData(banknotesDataSet);
-        log.info("Indexing dataset {} took {} ms",
+        log.info("Indexing dataset {} of {} elements took {} ms - \n {}",
                 banknotesDataSet.getCountry(),
-                stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                banknotesDataSet.getBanknotes().size(),
+                stopwatch.elapsed(TimeUnit.MILLISECONDS),
+                banknotesDataSet);
     }
 
     private TaskListStatusResult unwrapTaskListFromMessage(Message message) {
-        return fanOutTracker.readMessageAsTaskListStatus(message);
+        return taskListConverter.readMessageAsTaskListStatus(message);
     }
 
     private void updateStatus(String taskListId, Status status) {

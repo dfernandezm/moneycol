@@ -20,6 +20,7 @@ public class TaskList {
     private Status status;
     private Integer numberOfTasks;
     private Integer completedTasks;
+    private Integer valuesToProcess;
 
     public static TaskList create(Integer totalNumberOfTasks) {
         TaskList taskList = new TaskList();
@@ -27,14 +28,15 @@ public class TaskList {
         taskList.status = Status.PROCESSING;
         taskList.numberOfTasks = totalNumberOfTasks;
         taskList.completedTasks = 0;
+        taskList.valuesToProcess = 0;
         return taskList;
     }
 
-    public boolean hasProcessingCompleted() {
+    public boolean allSpawnedTasksCompleted() {
         return numberOfTasks.equals(completedTasks);
     }
 
-    public void completeProcessing() {
+    public void completeProcessingStatus() {
         setStatus(Status.PROCESSING_COMPLETED);
     }
 

@@ -11,11 +11,11 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.infra.FirestoreTaskListRepository;
-import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.tracker.GenericTask;
 import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
@@ -35,7 +35,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FanOutTrackerTest {
 
@@ -82,7 +85,8 @@ public class FanOutTrackerTest {
 
     @Test
     public void testCreatesTaskListWithoutError() {
-        FanOutTracker fanOutTracker = prepareFanOutTracker();
+        PubSubClient pubSubClient = mock(PubSubClient.class);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(250);
 
         String taskListId = fanOutTracker.createTaskList(taskList);
@@ -93,7 +97,8 @@ public class FanOutTrackerTest {
 
     @Test
     public void concurrentIncrementsOfTasksReportCorrectValues() throws InterruptedException {
-        FanOutTracker fanOutTracker = prepareFanOutTracker();
+        PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
 
         Integer numberOfTasks = 600;
         TaskList taskList = TaskList.create(numberOfTasks);
@@ -118,17 +123,72 @@ public class FanOutTrackerTest {
         assertThat(found.getCompletedTasks()).isEqualTo(numberOfTasks);
     }
 
-    private FanOutTracker prepareFanOutTracker() {
-        TaskListRepository taskListRepository = new FirestoreTaskListRepository(firestore);
+    //TODO: test for decrement value
+
+    @Test
+    public void updatesStatusConcurrentlyForOneTask() throws InterruptedException {
+
+        // Given 20
+        Integer totalTasksToComplete = 1;
         PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
-        FanOutConfigurationProperties fanoutConfig = Mockito.mock(FanOutConfigurationProperties.class);
-        return new DefaultFanOutTracker(taskListRepository, pubSubClient, new JsonWriter(), fanoutConfig);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
+        TaskList taskList = TaskList.create(totalTasksToComplete);
+        String taskListId = fanOutTracker.createTaskList(taskList);
+        GenericTask<?> genericTask = GenericTask.builder()
+                .taskListId(taskListId)
+                .status(Status.PROCESSING)
+                .build();
+
+
+        fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
+
+        // add a wait to give Firestore emulator time to settle
+        Thread.sleep(1000);
+
+        assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
+        assertEquals(findTaskList(taskListId).getStatus(), Status.PROCESSING_COMPLETED);
+        // verify mock called
+
     }
+
+    //TODO: test for decrement value
+    @Test
+    public void updatesStatusConcurrentlyOnlyOnceForMultipleTasks() throws InterruptedException {
+
+        // Given 20
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        Integer totalTasksToComplete = 2;
+        PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
+        TaskList taskList = TaskList.create(totalTasksToComplete);
+        String taskListId = fanOutTracker.createTaskList(taskList);
+        GenericTask<?> genericTask = GenericTask.builder()
+                .taskListId(taskListId)
+                .status(Status.PROCESSING)
+                .build();
+
+        for (int i = 0; i < totalTasksToComplete; i++) {
+            executorService.submit(() -> {
+                fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
+           });
+         }
+
+        executorService.shutdown();
+        executorService.awaitTermination(3, TimeUnit.SECONDS);
+
+        // add a wait to give Firestore emulator time to settle
+        Thread.sleep(2000);
+
+        assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
+        assertEquals(findTaskList(taskListId).getStatus(), Status.PROCESSING_COMPLETED);
+    }
+
 
     @Test
     public void isDoneTest() throws InterruptedException, ExecutionException {
         Integer totalTasksToComplete = 150;
-        FanOutTracker fanOutTracker = prepareFanOutTracker();
+        PubSubClient pubSubClient = mock(PubSubClient.class);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
@@ -140,7 +200,7 @@ public class FanOutTrackerTest {
                 fanOutTracker.incrementCompletedCount(taskListId, 1);
                 sleep(100L);
                 try {
-                    assertThat(fanOutTracker.hasCompletedProcessing(taskListId)).isFalse();
+                    assertThat(fanOutTracker.allTasksCompleted(taskListId)).isFalse();
                 } catch (AssertionError ae) {
                     fail(ae);
                 }
@@ -152,14 +212,15 @@ public class FanOutTrackerTest {
 
         // once more
         fanOutTracker.incrementCompletedCount(taskListId, 1);
-        assertThat(fanOutTracker.hasCompletedProcessing(taskListId)).isTrue();
+        assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
     }
 
     @Test
     public void completesWithCorrectStatus() throws InterruptedException, ExecutionException {
         Integer totalTasksToComplete = 150;
 
-        FanOutTracker fanOutTracker = prepareFanOutTracker();
+        PubSubClient pubSubClient = mock(PubSubClient.class);
+        FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
 
@@ -208,5 +269,16 @@ public class FanOutTrackerTest {
             fail(e);
             return null;
         }
+    }
+
+    private FanOutTracker prepareFanOutTracker(PubSubClient pubSubClientMock) {
+        TaskListRepository taskListRepository = new FirestoreTaskListRepository(firestore);
+        FanOutConfigurationProperties fanoutConfig = Mockito.mock(FanOutConfigurationProperties.class);
+        FanOutConfigurationProperties.PubSubConfigurationProperties pubsubProps =
+                mock(FanOutConfigurationProperties.PubSubConfigurationProperties.class);
+        when(pubsubProps.getDoneTopicName()).thenReturn("done-test");
+        when(fanoutConfig.getPubSub()).thenReturn(pubsubProps);
+
+        return new DefaultFanOutTracker(taskListRepository, pubSubClientMock, fanoutConfig);
     }
 }
