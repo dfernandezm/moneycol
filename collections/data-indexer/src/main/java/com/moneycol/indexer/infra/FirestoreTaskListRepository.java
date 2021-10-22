@@ -3,7 +3,9 @@ package com.moneycol.indexer.infra;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.TransactionOptions;
 import com.google.cloud.firestore.WriteResult;
+import com.google.common.base.Preconditions;
 import com.moneycol.indexer.tracker.Status;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
@@ -19,9 +21,9 @@ import java.util.function.Consumer;
 @Singleton
 public class FirestoreTaskListRepository implements TaskListRepository {
 
-    // Constructor injection does not seem to work with functions
-    //@Inject
     private final Firestore firestore;
+
+    private static final int MAX_NUMBER_OF_TRANSACTION_RETRIES = 30;
 
     @Override
     public String createTaskList(TaskList taskList) {
@@ -73,7 +75,9 @@ public class FirestoreTaskListRepository implements TaskListRepository {
     }
 
     public void updateTaskListProcessCompletionInTransaction(String taskListId, Consumer<String> doneConsumer) {
-
+        TransactionOptions transactionOptions = TransactionOptions.createReadWriteOptionsBuilder()
+                .setNumberOfAttempts(MAX_NUMBER_OF_TRANSACTION_RETRIES)
+                .build();
         try {
             // idea of the lock: https://medium.com/@codyzus/lock-down-with-cloud-firestore-61a98d1f4647
             firestore.runTransaction(transaction -> {
@@ -82,38 +86,39 @@ public class FirestoreTaskListRepository implements TaskListRepository {
 
                     DocumentReference taskListRef = firestore.collection("taskLists").document(taskListId);
                     TaskList taskList = transaction.get(taskListRef).get().toObject(TaskList.class);
-
+                    Preconditions.checkNotNull(taskList);
                     taskList.setCompletedTasks(taskList.getCompletedTasks() + 1);
-                    log.info("Tasks {}, completed {}", taskList.getNumberOfTasks(), taskList.getCompletedTasks());
+
                     if (taskList.allSpawnedTasksCompleted() && taskList.getStatus() != Status.PROCESSING_COMPLETED) {
                         log.info("All tasks completed for taskList {} -- updating status", taskListId);
-                        transaction.update(taskListRef, "status", "PROCESSING_COMPLETED");
-                        transaction.update(taskListRef, "completedTasks", taskList.getCompletedTasks() + 1);
-
-                        //taskList.setStatus(Status.PROCESSING_COMPLETED);
-                        //transaction.set(taskListRef, taskList);
+                        taskList.setStatus(Status.PROCESSING_COMPLETED);
                         log.info("TaskList {} completed processing now -- executing follow-up", taskListId);
                         log.info("Completed FULL set of tasks for taskListId {}", taskListId);
-                        doneConsumer.accept(taskListId);
-                    } else if (taskList.allSpawnedTasksCompleted()) {
-                        log.info("TaskList {} has already completed processing before -- ignoring", taskListId);
-                        //transaction.set(taskListRef, taskList);
-                        transaction.update(taskListRef, "completedTasks", taskList.getCompletedTasks() + 1);
+                        transaction.set(taskListRef, taskList);
 
+                        // may not execute this here to not hold the transaction and use a lock to execute after the transaction
+                        // given that, a that point, only 1 worker will execute this code
+                        // and others will be ignored
+                        doneConsumer.accept(taskListId);
+                    } else if (taskList.getCompletedTasks() >= taskList.getNumberOfTasks()) {
+                        log.info("TaskList {} has already completed processing -- ignoring",
+                                taskListId);
                     } else {
-                        log.info("Progress updated for taskList {} to {}", taskListId, taskList.getCompletedTasks() + 1);
-                        //transaction.set(taskListRef, taskList);
-                        transaction.update(taskListRef, "completedTasks", taskList.getCompletedTasks() + 1);
+                        log.info("Updating progress for taskList {} to {} from a total of {}",
+                                taskListId,
+                                taskList.getCompletedTasks() + 1,
+                                taskList.getNumberOfTasks());
+                        transaction.set(taskListRef, taskList);
                     }
 
                 } catch (Throwable t) {
                     log.error("Error updating taskList {}, it will retry", taskListId, t);
                 }
 
-                return true;
-            }).get();
+                return 0;
+            }, transactionOptions).get();
         } catch (Throwable t) {
-            log.warn("Error running transaction to update taskListId {}", taskListId, t);
+            log.error("Error running transaction to update taskListId {}", taskListId, t);
         }
     }
 }
