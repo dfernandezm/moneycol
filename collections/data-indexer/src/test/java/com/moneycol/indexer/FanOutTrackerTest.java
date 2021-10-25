@@ -11,7 +11,7 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.infra.FirestoreTaskListRepository;
-import com.moneycol.indexer.infra.PubSubClient;
+import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;

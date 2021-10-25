@@ -1,6 +1,6 @@
 package com.moneycol.indexer.tracker;
 
-import com.moneycol.indexer.infra.PubSubClient;
+import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;

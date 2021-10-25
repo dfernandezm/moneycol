@@ -1,4 +1,4 @@
-package com.moneycol.indexer.infra;
+package com.moneycol.indexer.infra.pubsub;
 
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;
@@ -16,6 +16,7 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
+import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
