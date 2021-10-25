@@ -34,10 +34,10 @@ SERVICE_ACCOUNT="indexer-batcher@moneycol.iam.gserviceaccount.com"
 #--env-vars-file ../../.env.yaml \
 #--memory 2048MB \
 #--timeout 540s
-#
-############# Indexer Worker - subscriber #############
-# cd ../../..
-#
+##
+############## Indexer Worker - subscriber #############
+#cd ../../..
+#cd ..
 #echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
 #./gradlew :data-indexer:clean :data-indexer:shadowJar \
 #-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME

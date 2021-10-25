@@ -33,16 +33,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-/**
- * Invoke via Http
- *
- * <pre>
- *     curl https://GCF_REGION-GCP_PROJECT_ID.cloudfunctions.net/publish -X POST  -d "{\"topic\": \"PUBSUB_TOPIC\", \"message\":\"YOUR_MESSAGE\"}" -H "Content-Type: application/json"
- *     gcloud functions call publish --data '{"topic":"MY_TOPIC","message":"Hello World!"}'
- * </pre>
- */
+
 @Slf4j
-//@NoArgsConstructor
 @RequiredArgsConstructor
 @Singleton
 public class PubSubClient {
@@ -51,6 +43,7 @@ public class PubSubClient {
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();
+    private final static int ACK_DEADLINE_SECONDS = 60 * 10; // 600 yseconds
 
     // Push batches to pubsub topic
     // subscribers read 1 batch, extract filenames, read documents
@@ -105,38 +98,66 @@ public class PubSubClient {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
 
+
         try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
 
-            String subscriptionName = ProjectSubscriptionName.format(fanOutProperties.getGcpProjectId(), subscriptionId);
+            String subscriptionName = ProjectSubscriptionName.format(
+                    fanOutProperties.getGcpProjectId(),
+                    subscriptionId);
             List<ReceivedMessage> receivedMessages;
             boolean stopProcessing = false;
 
             do {
+                // 250 max
                 receivedMessages = pullMessages(numOfMessages, subscriber, subscriptionName);
 
+                if (receivedMessages.size() == 0) {
+                    return true;
+                }
+
+                // 250 ackIDs
                 List<String> remainderOfAckIds = receivedMessages.stream()
                         .map(ReceivedMessage::getAckId)
                         .collect(Collectors.toList());
 
-                log.info("Pulling {} messages from subscription {}", receivedMessages.size(), subscriptionName);
+                log.info("Pulling {} messages from subscription {}",
+                        receivedMessages.size(), subscriptionName);
+                extendAckDeadline(subscriber, subscriptionName, remainderOfAckIds, ACK_DEADLINE_SECONDS);
 
                 for (ReceivedMessage message : receivedMessages) {
 
-                    // Handle received message [blocking]
-                    messageHandler.accept(message.getMessage());
+                    log.info("Received message with id {}, ackId {}",
+                            message.getMessage().getMessageId(),
+                            message.getAckId());
 
-                    // ack 1
+                    try {
+                        // Handle received message [blocking]
+                        messageHandler.accept(message.getMessage());
+                    } catch (Throwable t) {
+                        //TODO: this may produce duplicates in Elasticsearch
+                        // some documents where inserted and others don't
+                        // as id is generated in-place
+                        log.warn("Error processing message with ID {} - skipping and nack",
+                                message.getMessage().getMessageId());
+                        List<String> nackIds = new ArrayList<>();
+                        nackIds.add(message.getAckId());
+                        nackMessages(subscriber, subscriptionName, nackIds);
+                        continue;
+                    }
+
+
+                    // ack the message
+                    String ackId = message.getAckId();
                     List<String> ackIds = new ArrayList<>();
-                    ackIds.add(message.getAckId());
-
-                    // may buffer ack's if we want to buffer message processing
+                    ackIds.add(ackId);
                     acknowledgeMessages(subscriber, subscriptionName, ackIds);
 
-                    // remove from ackIDs the ack'd one
-                    remainderOfAckIds.remove(message.getAckId());
+                    // remove this message from ackIDs
+                    remainderOfAckIds.remove(ackId);
 
+                    // check the stop condition
                     if (stopCondition.get()) {
-                        log.info("Getting close to condition for stopping, stopping now");
+                        log.info("Getting close to condition for stopping, stopping now -- not nacking");
                         if (!remainderOfAckIds.isEmpty()) {
                             nackMessages(subscriber, subscriptionName, remainderOfAckIds);
                         }
@@ -149,6 +170,27 @@ public class PubSubClient {
 
             return receivedMessages.isEmpty();
         }
+    }
+
+    private void extendAckDeadline(SubscriberStub subscriber, String subscriptionName, List<String> remainderOfAckIds, int ackDeadlineSeconds) {
+        // This way we give 600 seconds to process the batch of 250 messages
+        // Modify the ack deadline of each received message from the default 10 seconds to 600s.
+        // This prevents the server from redelivering the message after the default 10 seconds
+        // have passed.
+
+        // The client already extends this in the background, but if it is too short (10s) it may not have
+        // time across executions (one function finishing, another starting). This was happening
+        // with some files, the deadline exceeded due to function finishing and restarting, hence
+        // the server redelivered the message. This was observed as same id twice in logs / same file with same
+        // documents being processed resulting in many more documents indexed in Elastic
+        ModifyAckDeadlineRequest modifyAckDeadlineRequest =
+                ModifyAckDeadlineRequest.newBuilder()
+                        .setSubscription(subscriptionName)
+                        .addAllAckIds(remainderOfAckIds)
+                        .setAckDeadlineSeconds(ackDeadlineSeconds)
+                        .build();
+
+        subscriber.modifyAckDeadlineCallable().call(modifyAckDeadlineRequest);
     }
 
     private List<ReceivedMessage> pullMessages(Integer numOfMessages, SubscriberStub subscriber, String subscriptionName) {
@@ -194,7 +236,7 @@ public class PubSubClient {
         subscriber.acknowledgeCallable().call(acknowledgeRequest);
     }
 
-    // Puts the ackDeadline to 0 so the messages are nack-ed and redelivered
+    // Puts the ackDeadline to 0 so the messages are nack-ed and redelivered (sync)
     @VisibleForTesting
     public void nackMessages(SubscriberStub subscriber,
                               String subscriptionName, List<String> ackIds) {

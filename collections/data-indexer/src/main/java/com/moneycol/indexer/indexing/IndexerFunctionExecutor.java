@@ -3,6 +3,7 @@ package com.moneycol.indexer.indexing;
 import com.google.cloud.functions.Context;
 import com.google.common.base.Stopwatch;
 import com.google.events.cloud.pubsub.v1.Message;
+import com.google.pubsub.v1.PubsubMessage;
 import com.moneycol.indexer.indexing.index.IndexingHandler;
 import com.moneycol.indexer.infra.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
@@ -59,23 +60,13 @@ public class IndexerFunctionExecutor  {
             log.info("Start pulling messages from sink to process...");
             String sinkSubscriptionId = fanOutConfigurationProperties.getPubSub().getSinkTopicName();
             boolean isDone = pubSubClient.subscribeSync(sinkSubscriptionId, MESSAGE_BATCH_SIZE,
-                    (pubsubMessage) -> {
-                        log.info("Received message in batch of 250: {}", pubsubMessage);
-                        BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
-                        log.info("Read BanknotesDataSet: {}", banknotesDataSet);
-                        indexData(banknotesDataSet);
-                        Integer decrementAmount = banknotesDataSet.getBanknotes().size() == 0 ? 0 :
-                                -1 * banknotesDataSet.getBanknotes().size();
-                        log.info("Decrementing processed size of {} from file {}", decrementAmount,
-                                banknotesDataSet.getFilename());
-                        fanOutTracker.updateValuesToProcessCount(taskListId, decrementAmount);
-                    }, functionTimeoutChecker::isCloseToTimeout);
+                    (pubsubMessage) -> processMessage(taskListId, pubsubMessage),
+                    functionTimeoutChecker::isCloseToTimeout);
 
             if (functionTimeoutChecker.timedOut() && !isDone) {
                 log.info("Function is going to timeout, and it's not done, re-triggering now for taskList {}", taskListId);
                 retriggerFunction(taskListId);
             } else {
-                //TODO: FIXME: There's 3 executions saying CONSOLIDATION_COMPLETED
                 log.info("Consolidation completed for taskList {}", taskListStatusResult.getTaskListId());
                 updateStatus(taskListId, Status.CONSOLIDATION_COMPLETED);
             }
@@ -90,6 +81,18 @@ public class IndexerFunctionExecutor  {
                 retriggerFunction(taskListStatusResult.getTaskListId());
             }
         }
+    }
+
+    private void processMessage(String taskListId, PubsubMessage pubsubMessage) {
+        log.info("Received message in batch of 250: {}", pubsubMessage);
+        BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
+        log.info("Filename in message is: {}", banknotesDataSet.getFilename());
+        indexData(banknotesDataSet);
+        Integer decrementAmount = banknotesDataSet.getBanknotes().size() == 0 ? 0 :
+                -1 * banknotesDataSet.getBanknotes().size();
+        log.info("Decrementing processed size of {} from file {}", decrementAmount,
+                banknotesDataSet.getFilename());
+        fanOutTracker.updateValuesToProcessCount(taskListId, decrementAmount);
     }
 
     private void indexData(BanknotesDataSet banknotesDataSet) {

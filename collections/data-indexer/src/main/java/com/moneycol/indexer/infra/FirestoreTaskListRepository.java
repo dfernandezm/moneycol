@@ -69,8 +69,8 @@ public class FirestoreTaskListRepository implements TaskListRepository {
         try {
             taskList.update(fieldName, FieldValue.increment(quantity)).get();
         } catch (ExecutionException | InterruptedException e) {
-            log.error("Error creating taskList", e);
-            throw new RuntimeException("Error creating taskList", e);
+            log.error("Error in taskList", e);
+            throw new RuntimeException("Error in taskList", e);
         }
     }
 

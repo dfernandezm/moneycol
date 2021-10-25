@@ -52,6 +52,7 @@ public class WorkerFunctionExecutor {
             Integer size = banknotesDataSet.getBanknotes().size();
             fanOutTracker.publishIntermediateResult(banknotesDataSet);
             fanOutTracker.updateValuesToProcessCount(taskListId, size);
+
             //TODO: make sure there's no negative numbers after this count
             log.info("Published message with {} document from contents of {} as {}", size, filename, banknotesDataSet);
         });
