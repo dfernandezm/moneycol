@@ -94,6 +94,7 @@ dependencies {
     testImplementation "org.testcontainers:gcloud:1.15.1"
     testImplementation "com.github.stefanbirkner:system-lambda:1.2.0"
     testImplementation "org.testcontainers:elasticsearch:1.16.0"
+    testImplementation "io.specto:hoverfly-java:0.14.0"
 
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
@@ -108,14 +109,14 @@ shadowJar{
 mainClassName = mainClass
 
 // use JUnit 5 platform
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    // Uncomment these lines to get full logging output when running
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = 'full'
-}
+//test {
+//    useJUnitPlatform()
+//
+//    testLogging {
+//        events "passed", "skipped", "failed"
+//    }
+//
+//    // Uncomment these lines to get full logging output when running
+//    testLogging.showStandardStreams = true
+//    testLogging.exceptionFormat = 'full'
+//}
