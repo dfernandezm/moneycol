@@ -2,15 +2,26 @@ import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
 import * as gcp from "@pulumi/gcp";
 
-const name = "helloworld";
+const name = "cluster-dev2";
+const nodePoolName = "elasticsearch-pool";
+const location = "europe-west1-b";
+const projectId = "moneycol";
 
 // Create a GKE cluster
 const engineVersion = gcp.container.getEngineVersions().then(v => v.latestMasterVersion);
+
 const cluster = new gcp.container.Cluster(name, {
-    initialNodeCount: 2,
+    name: name,
+    location: location,
+    initialNodeCount: 1,
     minMasterVersion: engineVersion,
-    nodeVersion: engineVersion,
+    removeDefaultNodePool: true,
+    workloadIdentityConfig: { identityNamespace: `${projectId}.svc.id.goog` },
+    addonsConfig: {
+      configConnectorConfig: { enabled: true }
+    },
     nodeConfig: {
+        preemptible: true,
         machineType: "n1-standard-1",
         oauthScopes: [
             "https://www.googleapis.com/auth/compute",
@@ -19,6 +30,23 @@ const cluster = new gcp.container.Cluster(name, {
             "https://www.googleapis.com/auth/monitoring"
         ],
     },
+});
+
+const preemptibleNodes = new gcp.container.NodePool(nodePoolName, {
+  name: nodePoolName,
+  location: location,
+  cluster: cluster.name,
+  nodeCount: 1,
+  nodeConfig: {
+      preemptible: true,
+      machineType: "n1-standard-1",
+      oauthScopes: [
+        "https://www.googleapis.com/auth/compute",
+        "https://www.googleapis.com/auth/devstorage.read_only",
+        "https://www.googleapis.com/auth/logging.write",
+        "https://www.googleapis.com/auth/monitoring"
+    ],
+  },
 });
 
 // Export the Cluster name
