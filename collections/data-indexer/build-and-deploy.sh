@@ -17,48 +17,47 @@ SERVICE_ACCOUNT="indexer-batcher@moneycol.iam.gserviceaccount.com"
 
 ########################## Batcher ##########################
 
-#cd ..
-#echo "Building and deploying function $BATCHER_FUNCTION_NAME with main class $BATCHER_MAIN_CLASS from $PWD"
-#./gradlew :data-indexer:clean :data-indexer:shadowJar \
-#-PfunctionName=$BATCHER_FUNCTION_NAME \
-#-PmainClass=$BATCHER_MAIN_CLASS
-#
-#cd data-indexer
-#cd build/libs
-#
-## Indexer batcher - publisher
-#echo "Deploying Indexer Batcher function from $PWD"
-#gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS --runtime java11 \
-#--trigger-topic $BATCHER_TRIGGER_TOPIC \
-#--service-account $SERVICE_ACCOUNT \
-#--env-vars-file ../../.env.yaml \
-#--memory 2048MB \
-#--timeout 540s
-##
-############## Indexer Worker - subscriber #############
-#cd ../../..
-#cd ..
-#echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
-#./gradlew :data-indexer:clean :data-indexer:shadowJar \
-#-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
-#
-#cd data-indexer
-#cd build/libs
-#
-#echo "Deploying Indexer Worker function from $PWD"
-#gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
-#--trigger-topic $WORKER_TRIGGER_TOPIC \
-#--memory 2048MB \
-#--service-account $SERVICE_ACCOUNT \
-#--env-vars-file ../../.env.yaml \
-#--timeout 540s
+cd ..
+echo "Building and deploying function $BATCHER_FUNCTION_NAME with main class $BATCHER_MAIN_CLASS from $PWD"
+./gradlew :data-indexer:clean :data-indexer:shadowJar \
+-PfunctionName=$BATCHER_FUNCTION_NAME \
+-PmainClass=$BATCHER_MAIN_CLASS
+
+cd data-indexer
+cd build/libs
+
+# Indexer batcher - publisher
+echo "Deploying Indexer Batcher function from $PWD"
+gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS --runtime java11 \
+--trigger-topic $BATCHER_TRIGGER_TOPIC \
+--service-account $SERVICE_ACCOUNT \
+--memory 2048MB \
+--timeout 540s
+
+############ Indexer Worker - subscriber #############
+cd ../../..
+
+echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
+./gradlew :data-indexer:clean :data-indexer:shadowJar \
+-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
+
+cd data-indexer
+cd build/libs
+
+echo "Deploying Indexer Worker function from $PWD"
+gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
+--trigger-topic $WORKER_TRIGGER_TOPIC \
+--memory 2048MB \
+--service-account $SERVICE_ACCOUNT \
+--timeout 540s
 
 ########### Indexing Function - subscriber #############
+
 # indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
 # the sink topic
 
-#cd ../../..
-cd ..
+cd ../../..
+#cd ..
 echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
 ./gradlew :data-indexer:clean :data-indexer:shadowJar \
 -PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
