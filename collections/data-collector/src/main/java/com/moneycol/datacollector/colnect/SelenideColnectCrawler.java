@@ -10,7 +10,6 @@ import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
 import com.moneycol.datacollector.colnect.pages.CountrySeriesListing;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +71,6 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         //TODO: publish to the trigger topic
     }
 
-    @VisibleForTesting
     public List<CountrySeriesListing> skipUntil(List<CountrySeriesListing> series, String seriesUrl) {
         int currentSeriesIndex = IntStream.range(0, series.size())
                 .filter(j -> series.get(j).getUrl().equals(seriesUrl))

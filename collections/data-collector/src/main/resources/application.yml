@@ -1,0 +1,2 @@
+crawling:
+  crawler-events-topic-name: "dev.crawler.test"
