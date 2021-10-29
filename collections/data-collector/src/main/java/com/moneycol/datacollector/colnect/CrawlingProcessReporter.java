@@ -4,6 +4,7 @@ package com.moneycol.datacollector.colnect;
 import io.micronaut.gcp.pubsub.annotation.PubSubClient;
 import io.micronaut.gcp.pubsub.annotation.Topic;
 
+// This needs at least Micronaut 2.1.3 to work inside a test
 @PubSubClient
 public interface CrawlingProcessReporter {
 

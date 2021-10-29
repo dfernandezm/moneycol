@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 
+// Since 2.1.3 this has changed to be the Junit5
 @MicronautTest
 public class CrawlingProcessNotifierTest {
 
