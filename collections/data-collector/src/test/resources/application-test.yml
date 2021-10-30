@@ -1,2 +1,2 @@
 crawling:
-  crawler-events-topic-name: "dev.crawler.test"
+  done-topic-name: "dev.crawler.test"

@@ -1,11 +1,14 @@
 package com.moneycol.datacollector;
 
-import com.moneycol.datacollector.colnect.CrawlerNotifier;
+import com.moneycol.datacollector.colnect.ColnectCrawlerClient;
 import io.micronaut.configuration.picocli.PicocliRunner;
+import io.micronaut.context.env.Environment;
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Command;
 
 import javax.inject.Inject;
 
+@Slf4j
 @Command(
         name = "crawl",
         description = "...",
@@ -13,20 +16,23 @@ import javax.inject.Inject;
 public class Crawler implements Runnable {
 
     @Inject
-    private CrawlerNotifier crawlerNotifier;
+    private ColnectCrawlerClient crawlerClient;
 
-    public static void main(String[] args) throws Exception {
+    @Inject
+    private Environment environment;
+
+    public static void main(String[] args) {
         PicocliRunner.run(Crawler.class, args);
     }
 
     public void run() {
-//        ColnectCrawlerClient colnectCrawler = new SelenideColnectCrawler(new GcsDataWriter());
-//        colnectCrawler.setupCrawler();
-//        colnectCrawler.crawl();
+        log.info("Starting crawler for Colnect site");
+        log.info("PubSub done topic from environment var CRAWLING_DONE_TOPIC_NAME: {}",
+                System.getenv("CRAWLING_DONE_TOPIC_NAME"));
+        log.info("PubSub done topic from environment prop crawling.done-topic-name: {}",
+                environment.get("crawling.done-topic-name", String.class).orElse("dev.crawler.test"));
 
-
-        crawlerNotifier.notifyDone();
-
-        String a = "";
+        crawlerClient.setupCrawler();
+        crawlerClient.crawl();
     }
 }

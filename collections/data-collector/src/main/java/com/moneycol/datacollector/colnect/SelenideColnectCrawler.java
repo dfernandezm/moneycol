@@ -4,26 +4,34 @@ import com.codeborne.selenide.Configuration;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.CrawlingProcessState;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
+import com.moneycol.datacollector.colnect.model.BanknotesDataSet;
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
 import com.moneycol.datacollector.colnect.pages.CountryBanknotesListing;
 import com.moneycol.datacollector.colnect.pages.CountrySeriesListing;
+import com.moneycol.datacollector.crawling.CrawlerNotifier;
 import io.micronaut.core.util.StringUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 @Slf4j
+@Singleton
+@RequiredArgsConstructor
 public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
-    private DataWriter dataWriter;
 
-    public SelenideColnectCrawler(DataWriter dataWriter) {
-        this.dataWriter = dataWriter;
-    }
+    private final DataWriter dataWriter;
+    private final CrawlerNotifier crawlerNotifier;
+
+//    public SelenideColnectCrawler(DataWriter dataWriter) {
+//        this.dataWriter = dataWriter;
+//    }
 
     public void setupCrawler() {
         String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
@@ -43,7 +51,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     private void sleep(int seconds) {
         log.info("Waiting for {} seconds before continuing", seconds);
         try {
-            Thread.sleep(seconds * 1000);
+            Thread.sleep(seconds * 1000L);
         } catch (InterruptedException ignored) {
         }
     }
@@ -58,9 +66,9 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         // find state file, skip series listings
         log.info("Checking for state file");
         CrawlingProcessState crawlingProcessState = dataWriter.findState();
-        countrySeriesListings = skipUntil(countrySeriesListings, crawlingProcessState.getSeriesUrl());
+        countrySeriesListings = skipUntilUrl(countrySeriesListings, crawlingProcessState.getSeriesUrl());
 
-        // Batches of 3 countries, then wait
+        // Batches of 3 countries, then wait 5 seconds
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
         countryGroups.forEach(countrySeriesList -> {
             processCountryGroup(crawlingProcessState, countrySeriesList);
@@ -68,10 +76,11 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             sleep(5);
         });
 
-        //TODO: publish to the trigger topic
+        log.info("All country series processed -- publishing done status");
+        crawlerNotifier.notifyDone();
     }
 
-    public List<CountrySeriesListing> skipUntil(List<CountrySeriesListing> series, String seriesUrl) {
+    public List<CountrySeriesListing> skipUntilUrl(List<CountrySeriesListing> series, String seriesUrl) {
         int currentSeriesIndex = IntStream.range(0, series.size())
                 .filter(j -> series.get(j).getUrl().equals(seriesUrl))
                 .findFirst()
@@ -82,6 +91,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             return series;
         }
 
+        // return only the sublist of the remaining series urls to process
         return series.subList(currentSeriesIndex, series.size());
     }
 
@@ -92,7 +102,7 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             sleep(1);
             processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
             resetState(crawlingProcessState);
-            log.info("Waiting before processing next batch");
+            log.info("Waiting before processing next batch...");
             sleep(3);
         });
 

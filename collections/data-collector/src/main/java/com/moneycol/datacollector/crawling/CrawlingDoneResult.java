@@ -1,4 +1,4 @@
-package com.moneycol.datacollector.colnect;
+package com.moneycol.datacollector.crawling;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
