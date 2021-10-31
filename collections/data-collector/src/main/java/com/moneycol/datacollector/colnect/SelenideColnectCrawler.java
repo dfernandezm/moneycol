@@ -1,6 +1,7 @@
 package com.moneycol.datacollector.colnect;
 
 import com.codeborne.selenide.Configuration;
+import com.google.cloud.storage.StorageException;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.CrawlingProcessState;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
@@ -65,16 +66,26 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
         // find state file, skip series listings
         log.info("Checking for state file");
-        CrawlingProcessState crawlingProcessState = dataWriter.findState();
+        CrawlingProcessState crawlingProcessState = new CrawlingProcessState();
+        try {
+            crawlingProcessState = dataWriter.findState();
+        } catch(StorageException se) {
+            log.info("Assume this is due to state not present first time -- setting empty", se);
+            crawlingProcessState =  new CrawlingProcessState();
+            crawlingProcessState.setCurrentUrl("");
+            crawlingProcessState.setPageNumber(0);
+            crawlingProcessState.setSeriesUrl("");
+        }
+
         countrySeriesListings = skipUntilUrl(countrySeriesListings, crawlingProcessState.getSeriesUrl());
 
         // Batches of 3 countries, then wait 5 seconds
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
-        countryGroups.forEach(countrySeriesList -> {
+        for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
             processCountryGroup(crawlingProcessState, countrySeriesList);
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
-        });
+        }
 
         log.info("All country series processed -- publishing done status");
         crawlerNotifier.notifyDone();

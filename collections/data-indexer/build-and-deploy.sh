@@ -31,6 +31,7 @@ echo "Deploying Indexer Batcher function from $PWD"
 gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS --runtime java11 \
 --trigger-topic $BATCHER_TRIGGER_TOPIC \
 --service-account $SERVICE_ACCOUNT \
+--region europe-west1 \
 --env-vars-file ../../.env.yaml \
 --memory 2048MB \
 --timeout 540s
