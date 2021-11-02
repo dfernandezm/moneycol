@@ -5,6 +5,7 @@ import com.google.cloud.storage.StorageException;
 import com.google.common.collect.Lists;
 import com.moneycol.datacollector.colnect.collector.CrawlingProcessState;
 import com.moneycol.datacollector.colnect.collector.DataWriter;
+import com.moneycol.datacollector.colnect.collector.DateUtil;
 import com.moneycol.datacollector.colnect.model.BanknotesDataSet;
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import com.moneycol.datacollector.colnect.pages.ColnectLandingPage;
@@ -29,10 +30,6 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
     private final DataWriter dataWriter;
     private final CrawlerNotifier crawlerNotifier;
-
-//    public SelenideColnectCrawler(DataWriter dataWriter) {
-//        this.dataWriter = dataWriter;
-//    }
 
     public void setupCrawler() {
         String chromeDriverLocation = System.getenv("CHROME_DRIVER_LOCATION");
@@ -80,15 +77,17 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         countrySeriesListings = skipUntilUrl(countrySeriesListings, crawlingProcessState.getSeriesUrl());
 
         // Batches of 3 countries, then wait 5 seconds
-        List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, 3);
+        int listGroupSize = 3;
+        List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, listGroupSize);
         for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
             processCountryGroup(crawlingProcessState, countrySeriesList);
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
         }
 
-        log.info("All country series processed -- publishing done status");
-        crawlerNotifier.notifyDone();
+        String dataUri = "colnect/" + DateUtil.dateOfToday();
+        log.info("All country series processed -- publishing done status for URI {}", dataUri);
+        crawlerNotifier.notifyDone(dataUri);
     }
 
     public List<CountrySeriesListing> skipUntilUrl(List<CountrySeriesListing> series, String seriesUrl) {

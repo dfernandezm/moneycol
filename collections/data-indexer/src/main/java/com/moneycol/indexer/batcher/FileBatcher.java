@@ -22,15 +22,17 @@ public class FileBatcher {
         this.fanoutConfig = fanoutConfig;
     }
 
-    public Inventory buildAndStoreInventory() {
+    public Inventory buildAndStoreInventory(DataUri dataUri) {
         Inventory inventory = buildInventory();
-        gcsClient.writeToGcs(fanoutConfig.getSourceBucketName(), INVENTORY_OBJECT_NAME, inventory);
+        String inventoryObjectName = dataUri.getDataUri() + "/" + INVENTORY_OBJECT_NAME;
+        gcsClient.writeToGcs(fanoutConfig.getSourceBucketName(), inventoryObjectName, inventory);
         return inventory;
     }
 
     // Ideally, we shouldn't need to import Blob / PageBlob here
     private Inventory buildInventory() {
 
+        //TODO: this is not going to read the date?
         Page<Blob> blobs = gcsClient.listBucketBlobs(fanoutConfig.getSourceBucketName());
 
         int i = 0;

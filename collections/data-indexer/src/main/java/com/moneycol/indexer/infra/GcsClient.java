@@ -50,7 +50,6 @@ public class GcsClient {
 
     public Page<Blob> listBucketBlobs(String bucketName) {
         Storage storage = StorageOptions.getDefaultInstance().getService();
-
         Storage.BlobListOption blobListOption = Storage.BlobListOption.pageSize(250);
         return storage.list(bucketName, blobListOption);
     }
