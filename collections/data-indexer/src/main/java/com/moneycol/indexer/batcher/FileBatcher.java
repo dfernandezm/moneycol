@@ -23,17 +23,16 @@ public class FileBatcher {
     }
 
     public Inventory buildAndStoreInventory(DataUri dataUri) {
-        Inventory inventory = buildInventory();
+        Inventory inventory = buildInventory(fanoutConfig.getSourceBucketName(), dataUri.getDataUri());
         String inventoryObjectName = dataUri.getDataUri() + "/" + INVENTORY_OBJECT_NAME;
         gcsClient.writeToGcs(fanoutConfig.getSourceBucketName(), inventoryObjectName, inventory);
         return inventory;
     }
 
     // Ideally, we shouldn't need to import Blob / PageBlob here
-    private Inventory buildInventory() {
+    private Inventory buildInventory(String bucketName, String dataUri) {
 
-        //TODO: this is not going to read the date?
-        Page<Blob> blobs = gcsClient.listBucketBlobs(fanoutConfig.getSourceBucketName());
+        Page<Blob> blobs = gcsClient.listBucketBlobs(bucketName, dataUri);
 
         int i = 0;
         int batchSize = FILES_BATCH_SIZE;

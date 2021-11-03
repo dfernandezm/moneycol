@@ -81,14 +81,14 @@ public class BatcherFunctionTest {
 
         Page<Blob> pages = new PageImpl<>(null, "", new ArrayList<>());
         GcsClient mockGcsClient = mock(GcsClient.class);
-        when(mockGcsClient.listBucketBlobs(any())).thenReturn(pages);
+        when(mockGcsClient.listBucketBlobs(any(), any())).thenReturn(pages);
 
         FileBatcher fileBatcher = new FileBatcher(mockGcsClient, fanOutConfigurationProperties);
         batcherFunction = new BatcherFunctionExecutor(fanOutTracker, fileBatcher);
         batcherFunction.execute(m, null);
 
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(mockGcsClient).listBucketBlobs(captor.capture());
+        verify(mockGcsClient).listBucketBlobs(captor.capture(), any());
         assertThat(captor.getValue()).isEqualTo("moneycol-import");
     }
 
@@ -171,7 +171,7 @@ public class BatcherFunctionTest {
 
     private void mockBlobsResult(GcsClient mockGcsClient) {
         Page<Blob> pages = new PageImpl<>(null, "", new ArrayList<>());
-        when(mockGcsClient.listBucketBlobs(any())).thenReturn(pages);
+        when(mockGcsClient.listBucketBlobs(any(), any())).thenReturn(pages);
     }
 
     private void mockBlobsResultWithValues(GcsClient mockGcsClient, String bucketName,
@@ -185,7 +185,7 @@ public class BatcherFunctionTest {
 
         List<Blob> blobs = List.of(blob);
         Page<Blob> pages = new PageImpl<>(null, "", blobs);
-        when(mockGcsClient.listBucketBlobs(any())).thenReturn(pages);
+        when(mockGcsClient.listBucketBlobs(any(), any())).thenReturn(pages);
     }
 
     private Message anyJsonMessage() {

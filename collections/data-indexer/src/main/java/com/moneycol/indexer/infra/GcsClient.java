@@ -48,9 +48,9 @@ public class GcsClient {
         storage.create(blobInfo, data.getBytes());
     }
 
-    public Page<Blob> listBucketBlobs(String bucketName) {
+    public Page<Blob> listBucketBlobs(String bucketName, String objectPath) {
         Storage storage = StorageOptions.getDefaultInstance().getService();
-        Storage.BlobListOption blobListOption = Storage.BlobListOption.pageSize(250);
-        return storage.list(bucketName, blobListOption);
+        return storage.list(bucketName, Storage.BlobListOption.pageSize(250),
+                Storage.BlobListOption.prefix(objectPath));
     }
 }
