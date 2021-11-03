@@ -6,4 +6,5 @@ public interface DataWriter {
     void writeDataBatch(BanknotesDataSet banknotesDataSet);
     void saveState(CrawlingProcessState crawlingProcessState);
     CrawlingProcessState findState();
+    void deleteState();
 }

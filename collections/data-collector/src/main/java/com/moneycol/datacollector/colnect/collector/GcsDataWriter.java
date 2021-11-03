@@ -55,11 +55,22 @@ public class GcsDataWriter implements DataWriter {
         return jsonWriter.toObject(stateJson);
     }
 
+    @Override
+    public void deleteState() {
+        delete(STATE_FILE_NAME);
+    }
+
     public String readDataFromGcs(String objectName) {
         Storage storage = StorageOptions.getDefaultInstance().getService();
         BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
         byte[] bytes = storage.readAllBytes(blobId);
         return new String(bytes);
+    }
+
+    public void delete(String objectName) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
+        storage.delete(blobId);
     }
 
     private void writeDataToGcs(String objectName, String data) {

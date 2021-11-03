@@ -77,15 +77,18 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         countrySeriesListings = skipUntilUrl(countrySeriesListings, crawlingProcessState.getSeriesUrl());
 
         // Batches of 3 countries, then wait 5 seconds
-        int listGroupSize = 3;
+        int listGroupSize = 1;
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, listGroupSize);
-        for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
+        List<CountrySeriesListing> countrySeriesList = countryGroups.get(0);
+       // for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
             processCountryGroup(crawlingProcessState, countrySeriesList);
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
-        }
+        //}
 
         String dataUri = "colnect/" + DateUtil.dateOfToday();
+        log.info("Cleaning state after finishing processing");
+        dataWriter.deleteState();
         log.info("All country series processed -- publishing done status for URI {}", dataUri);
         crawlerNotifier.notifyDone(dataUri);
     }
@@ -107,15 +110,24 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
 
     private void processCountryGroup(CrawlingProcessState crawlingProcessState, List<CountrySeriesListing> countrySeriesList) {
         List<CountryBanknotesListing> countryBanknotesListings = new ArrayList<>();
-        countrySeriesList.forEach(countrySeries -> {
-            countrySeries.visit();
-            sleep(1);
-            processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
-            resetState(crawlingProcessState);
-            log.info("Waiting before processing next batch...");
-            sleep(3);
-        });
 
+//        countrySeriesList.forEach(countrySeries -> {
+//            countrySeries.visit();
+//            sleep(1);
+//            processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
+//            resetState(crawlingProcessState);
+//            log.info("Waiting before processing next batch...");
+//            sleep(3);
+//        });
+
+        // 1 of the series url
+        CountrySeriesListing countrySeries = countrySeriesList.get(0);
+        countrySeries.visit();
+        sleep(1);
+        processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
+        resetState(crawlingProcessState);
+        log.info("Waiting before processing next batch...");
+        sleep(3);
         log.info("Country group finished");
     }
 
@@ -126,7 +138,9 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         crawlingProcessState.setPageNumber(null);
     }
 
-    private void processCountryData(CrawlingProcessState crawlingProcessState, List<CountryBanknotesListing> countryBanknotesListings, CountrySeriesListing countrySeries) {
+    private void processCountryData(CrawlingProcessState crawlingProcessState,
+                                    List<CountryBanknotesListing> countryBanknotesListings,
+                                    CountrySeriesListing countrySeries) {
         CountryBanknotesListing firstPageOfBanknoteData;
         String countryName = countrySeries.getCountryName();
         String banknotesListingUrl = crawlingProcessState.getCurrentUrl();
@@ -157,13 +171,13 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         List<BanknoteData> banknotesDataForCountry = processBanknotesInListing(currentListing, pageNumber);
         saveState(countrySeriesUrl, allBanknotesUrl, pageNumber);
 
-        while (currentListing.hasMorePages()) {
+        //while (currentListing.hasMorePages()) {
             sleep(1);
             currentListing = currentListing.visitNextPage();
             pageNumber = currentListing.getPageNumber();
             processBanknotesInListing(currentListing, pageNumber);
             saveState(countrySeriesUrl, currentListing.getUrl(), pageNumber);
-        }
+        //}
 
         return banknotesDataForCountry;
     }
