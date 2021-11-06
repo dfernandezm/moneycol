@@ -49,8 +49,6 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         }
     }
 
-
-    // https://github.com/Zenika/alpine-chrome
     @Override
     public void crawl() {
         ColnectLandingPage colnectLandingPage = ColnectLandingPage.builder().build();
@@ -70,6 +68,8 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
         });
+
+        //TODO: publish to the trigger topic
     }
 
     @VisibleForTesting

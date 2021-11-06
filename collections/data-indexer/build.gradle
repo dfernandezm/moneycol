@@ -1,0 +1,121 @@
+plugins {
+    id "java"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "application"
+    id 'com.google.cloud.tools.jib' version '3.0.0'
+}
+
+version "0.1.0"
+group "data-indexer"
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+configurations {
+    // for dependencies that are needed for development only
+    developmentOnly
+}
+
+ext {
+    logbackVersion = "1.2.3"
+    lombokVersion = "1.18.20"
+    junitVersion = '5.6.0'
+    mockitoJunitJupiterVersion = "2.22.0"
+    firebaseSdkVersion = "6.12.2"
+    micronautJunit5Version = "1.1.5"
+    hamcrestVersion = "1.3"
+    micronautVersion = "2.3.0"
+    guavaVersion = "30.0-jre"
+    assertjVersion = "3.18.1"
+    gcpLibrariesBomVersion = "20.8.0"
+    elasticsearchVersion = "6.8.19"
+}
+
+ext.functionName = project.hasProperty("functionName") ? project.getProperty("functionName") : "data-indexer"
+ext.mainClass = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "com.moneycol.indexer.batcher.IndexerBatcher"
+
+dependencies {
+
+    // IMPORTANT: lombok annotation processor needs to run before any other annotation
+    // and Micronaut should be the last one to not interfere
+    // https://docs.micronaut.io/latest/guide/index.html#lombok
+    // https://github.com/micronaut-projects/micronaut-core/issues/2559
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
+    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    annotationProcessor("io.micronaut:micronaut-inject-java")
+    annotationProcessor("io.micronaut:micronaut-validation")
+    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
+
+
+    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    implementation("io.micronaut:micronaut-inject")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation "org.projectlombok:lombok:$lombokVersion"
+    implementation platform("com.google.cloud:libraries-bom:$gcpLibrariesBomVersion")
+    implementation("com.google.cloud:google-cloud-storage")
+    implementation("io.micronaut.gcp:micronaut-gcp-tracing:$micronautVersion")
+
+    implementation("io.micronaut.gcp:micronaut-gcp-function")
+    implementation("com.google.cloud:google-cloudevent-types:0.3.0")
+    implementation("com.google.cloud.functions:functions-framework-api:1.0.4")
+    implementation("com.google.cloud:google-cloud-pubsub")
+    implementation("com.google.firebase:firebase-admin:8.0.0")
+    implementation("com.google.guava:guava:$guavaVersion")
+
+    implementation("org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchVersion")
+
+    runtimeOnly("ch.qos.logback:logback-classic")
+
+    testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
+    testImplementation("org.assertj:assertj-core:$assertjVersion")
+    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+
+    testImplementation("io.micronaut.test:micronaut-test-junit5")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    testImplementation "io.micronaut.test:micronaut-test-junit5:$micronautVersion"
+    testImplementation "io.micronaut.test:micronaut-test-core:$micronautVersion"
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+
+    testImplementation "org.testcontainers:testcontainers:1.15.1"
+    testImplementation "org.testcontainers:junit-jupiter:1.15.1"
+    testImplementation "org.testcontainers:gcloud:1.15.1"
+    testImplementation "com.github.stefanbirkner:system-lambda:1.2.0"
+    testImplementation "org.testcontainers:elasticsearch:1.16.0"
+
+    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+}
+
+test.classpath += configurations.developmentOnly
+
+shadowJar{
+    archiveBaseName.set(functionName)
+    mergeServiceFiles()
+}
+
+mainClassName = mainClass
+
+// use JUnit 5 platform
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+
+    // Uncomment these lines to get full logging output when running
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+}
