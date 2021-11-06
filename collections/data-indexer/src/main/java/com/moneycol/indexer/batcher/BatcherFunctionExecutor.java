@@ -3,8 +3,8 @@ package com.moneycol.indexer.batcher;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
 import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.GenericTask;
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.IntermediateTask;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,11 +43,11 @@ public class BatcherFunctionExecutor {
     }
 
     private void forkWorkerTaskFor(String taskListId, FilesBatch batch) {
-        GenericTask<FilesBatch> genericTask = GenericTask.<FilesBatch>builder()
+        IntermediateTask<FilesBatch> intermediateTask = IntermediateTask.<FilesBatch>builder()
                 .content(batch)
                 .taskListId(taskListId)
-                .status(Status.PENDING)
+                .status(FanOutProcessStatus.PENDING)
                 .build();
-        fanOutTracker.spawnTask(genericTask);
+        fanOutTracker.spawnTask(intermediateTask);
     }
 }

@@ -9,9 +9,9 @@ import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import com.moneycol.indexer.tracker.TaskListConverter;
-import com.moneycol.indexer.tracker.TaskListStatusResult;
+import com.moneycol.indexer.tracker.TaskListStatusReport;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,27 +34,25 @@ public class IndexerFunctionExecutor  {
 
     private static final int MESSAGE_BATCH_SIZE = 250;
 
-
     public void execute(Message message, Context context) {
 
         functionTimeoutChecker.startTimer();
         indexingDataReader.logTriggeringMessage(message);
 
-        TaskListStatusResult taskListStatusResult = unwrapTaskListFromMessage(message);
+        TaskListStatusReport taskListStatusResult = unwrapTaskListFromMessage(message);
         String taskListId = taskListStatusResult.getTaskListId();
         log.info("Received request into consolidation function for taskList {}, " +
                         "status received is {}", taskListId, taskListStatusResult.getStatus());
-
         log.info("Checking status is not already CONSOLIDATION_COMPLETED due to misfire...");
 
-        if (fanOutTracker.hasConsolidationCompleted(taskListId)) {
+        if (fanOutTracker.isConsolidationCompleted(taskListId)) {
             log.warn("This function execution is " +
                     "for an already completed taskList {} -- exiting now", taskListId);
             functionTimeoutChecker.stopScheduler();
             return;
         }
 
-        updateStatus(taskListId, Status.CONSOLIDATING);
+        updateStatus(taskListId, FanOutProcessStatus.CONSOLIDATING);
 
         try {
             log.info("Start pulling messages from sink to process...");
@@ -68,7 +66,7 @@ public class IndexerFunctionExecutor  {
                 retriggerFunction(taskListId);
             } else {
                 log.info("Consolidation completed for taskList {}", taskListStatusResult.getTaskListId());
-                updateStatus(taskListId, Status.CONSOLIDATION_COMPLETED);
+                updateStatus(taskListId, FanOutProcessStatus.CONSOLIDATION_COMPLETED);
             }
 
             log.info("Function execution exiting for taskListId {}, stopping scheduler before exit", taskListId);
@@ -77,14 +75,14 @@ public class IndexerFunctionExecutor  {
             log.error("Error subscribing in indexer", t);
             functionTimeoutChecker.stopScheduler();
             log.info("Check if recovery is needed after error");
-            if (!fanOutTracker.hasConsolidationCompleted(taskListStatusResult.getTaskListId())) {
+            if (!fanOutTracker.isConsolidationCompleted(taskListStatusResult.getTaskListId())) {
                 retriggerFunction(taskListStatusResult.getTaskListId());
             }
         }
     }
 
     private void processMessage(String taskListId, PubsubMessage pubsubMessage) {
-        log.info("Received message in batch of 250: {}", pubsubMessage);
+        log.info("Received message in batch: {}", pubsubMessage);
         BanknotesDataSet banknotesDataSet = indexingDataReader.readBanknotesDataSet(pubsubMessage);
         log.info("Filename in message is: {}", banknotesDataSet.getFilename());
         indexData(banknotesDataSet);
@@ -92,7 +90,7 @@ public class IndexerFunctionExecutor  {
                 -1 * banknotesDataSet.getBanknotes().size();
         log.info("Decrementing processed size of {} from file {}", decrementAmount,
                 banknotesDataSet.getFilename());
-        fanOutTracker.updateValuesToProcessCount(taskListId, decrementAmount);
+        fanOutTracker.updatePendingItemsToProcessCount(taskListId, decrementAmount);
     }
 
     private void indexData(BanknotesDataSet banknotesDataSet) {
@@ -108,15 +106,16 @@ public class IndexerFunctionExecutor  {
                 banknotesDataSet);
     }
 
-    private TaskListStatusResult unwrapTaskListFromMessage(Message message) {
+    private TaskListStatusReport unwrapTaskListFromMessage(Message message) {
         return taskListConverter.readMessageAsTaskListStatus(message);
     }
 
-    private void updateStatus(String taskListId, Status status) {
+    private void updateStatus(String taskListId, FanOutProcessStatus status) {
         fanOutTracker.updateTaskListStatus(taskListId, status);
     }
 
     private void retriggerFunction(String taskListId) {
-        fanOutTracker.notifyProcessingDone(taskListId);
+        // This is the way to indicate that indexing can start
+        fanOutTracker.notifyProcessingCompleted(taskListId);
     }
 }

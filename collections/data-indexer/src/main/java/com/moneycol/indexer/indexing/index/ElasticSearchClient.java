@@ -30,7 +30,7 @@ public class ElasticSearchClient {
 
     public void index(BanknotesDataSet banknotesDataSet) {
 
-        JsonWriter jsonWriter = new JsonWriter();
+        JsonWriter jsonWriter = JsonWriter.builder().build();
         BulkRequest banknotesDatasetBulk = new BulkRequest();
         String indexName = elasticsearchProperties.getIndexName();
 

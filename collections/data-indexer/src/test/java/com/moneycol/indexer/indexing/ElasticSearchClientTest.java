@@ -16,8 +16,6 @@ import javax.inject.Inject;
 import java.util.Map;
 
 @MicronautTest
-//@Property(name = "elasticsearch.index-name", value = "banknotes-test")
-//@Property(name = "elasticsearch.host-address", value = "35.190.210.3:80")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElasticSearchClientTest implements TestPropertyProvider  {
 
@@ -38,18 +36,10 @@ public class ElasticSearchClientTest implements TestPropertyProvider  {
 
     private static String hostAddress;
 
-//    @BeforeAll
-//    private static void setup(){
-//        //String elasticHostAddress = "35.190.210.3:80";
-//        elasticsearchContainer.start();
-//        hostAddress = elasticsearchContainer.getHttpHostAddress();
-//    }
-
     @Test
     public void indexDataset() {
         BanknotesDataSet banknoteDataSet =
                 testHelper.readBanknoteDataSetFromJsonFile("testdata/banknotesDataset.json");
-
         elasticsearchClient.index(banknoteDataSet);
     }
 

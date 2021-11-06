@@ -4,7 +4,7 @@ import com.google.events.cloud.pubsub.v1.Message;
 import com.google.pubsub.v1.PubsubMessage;
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.pubsub.PubSubClient;
-import com.moneycol.indexer.tracker.TaskListStatusResult;
+import com.moneycol.indexer.tracker.TaskListStatusReport;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +29,8 @@ public class IndexingDataReader {
         log.info("Received payload to start indexing {}", messagePayload);
 
         // should validate if it's a valid taskList / discard if not
-        TaskListStatusResult taskListDoneResult =
-                jsonWriter.toObject(messagePayload, TaskListStatusResult.class);
+        TaskListStatusReport taskListDoneResult =
+                jsonWriter.toObject(messagePayload, TaskListStatusReport.class);
         log.info("Start indexing after completion of taskList {}", taskListDoneResult);
     }
 }

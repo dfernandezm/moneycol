@@ -26,7 +26,7 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public boolean allTasksCompleted(String taskListId) {
+    public boolean areAllTasksCompleted(String taskListId) {
         TaskList taskList = taskListRepo.findById(taskListId);
         return taskList.allSpawnedTasksCompleted();
     }
@@ -45,13 +45,12 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public void updateOverallTaskProgressAtomically(GenericTask<?> genericTask) {
-        String taskListId = genericTask.getTaskListId();
-        taskListRepo.updateTaskListProcessCompletionInTransaction(taskListId, this::notifyProcessingDone);
+    public void updateOverallTaskProgressAtomically(String taskListId) {
+        taskListRepo.executeTaskListUpdateInTransaction(taskListId, this::notifyProcessingCompleted);
     }
 
     @Override
-    public void spawnTask(GenericTask<?> genericTask) {
+    public void spawnTask(IntermediateTask<?> genericTask) {
         String batchesTopic = fanOutConfigurationProperties.getPubSub().getTriggerTopicName();
         pubSubClient.publishMessage(batchesTopic, genericTask);
     }
@@ -63,31 +62,31 @@ public class DefaultFanOutTracker implements FanOutTracker {
     }
 
     @Override
-    public void notifyProcessingDone(String taskListId) {
+    public void notifyProcessingCompleted(String taskListId) {
         String doneTopicName = fanOutConfigurationProperties.getPubSub().getDoneTopicName();
-        TaskListStatusResult taskListDoneResult = TaskListStatusResult.builder()
+        TaskListStatusReport taskListDoneResult = TaskListStatusReport.builder()
                 .taskListId(taskListId)
-                .status(Status.PROCESSING_COMPLETED)
+                .status(FanOutProcessStatus.PROCESSING_COMPLETED)
                 .build();
-        log.info("Publishing PROCESSING_COMPLETED status to PubSub {}", taskListDoneResult);
+        log.info("Notifying PROCESSING_COMPLETED status {}", taskListDoneResult);
         pubSubClient.publishMessage(doneTopicName, taskListDoneResult);
     }
 
     @Override
-    public void updateTaskListStatus(String taskListId, Status status) {
+    public void updateTaskListStatus(String taskListId, FanOutProcessStatus status) {
         TaskList taskList = taskListRepo.findById(taskListId);
         taskList.setStatus(status);
         taskListRepo.update(taskList);
     }
 
     @Override
-    public void updateValuesToProcessCount(String taskListId, Integer count) {
+    public void updatePendingItemsToProcessCount(String taskListId, Integer count) {
         taskListRepo.updateFieldAtomically(taskListId, "valuesToProcess", count);
     }
 
     @Override
-    public boolean hasConsolidationCompleted(String taskListId) {
+    public boolean isConsolidationCompleted(String taskListId) {
         TaskList taskList = taskListRepo.findById(taskListId);
-        return taskList.getStatus() == Status.CONSOLIDATION_COMPLETED;
+        return taskList.getStatus() == FanOutProcessStatus.CONSOLIDATION_COMPLETED;
     }
 }

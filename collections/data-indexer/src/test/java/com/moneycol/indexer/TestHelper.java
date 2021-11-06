@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestHelper {
 
-    private JsonWriter jsonWriter = new JsonWriter();
+    private final JsonWriter jsonWriter = JsonWriter.builder().build();
 
     public File readFile(String testFile) {
         ClassLoader classLoader = this.getClass().getClassLoader();

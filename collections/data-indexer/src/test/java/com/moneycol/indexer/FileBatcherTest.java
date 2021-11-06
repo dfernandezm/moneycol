@@ -2,8 +2,8 @@ package com.moneycol.indexer;
 
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.batcher.FilesBatch;
-import com.moneycol.indexer.tracker.GenericTask;
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.IntermediateTask;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,19 +18,19 @@ public class FileBatcherTest {
                 .build();
         filesBatch.addFile("example1.json");
         filesBatch.addFile("example2.json");
-        GenericTask<FilesBatch> genericTask = GenericTask.<FilesBatch>builder()
+        IntermediateTask<FilesBatch> intermediateTask = IntermediateTask.<FilesBatch>builder()
                                             .taskListId("aTaskId")
-                                            .status(Status.PENDING)
+                                            .status(FanOutProcessStatus.PENDING)
                                             .content(filesBatch)
                                             .build();
 
-        JsonWriter jsonWriter = new JsonWriter();
+        JsonWriter jsonWriter = JsonWriter.builder().build();
 
-        String genericTaskJson = jsonWriter.asJsonString(genericTask);
-        GenericTask<FilesBatch> deserializedTask = jsonWriter.toGenericTask(genericTaskJson);
+        String genericTaskJson = jsonWriter.asJsonString(intermediateTask);
+        IntermediateTask<FilesBatch> deserializedTask = jsonWriter.toGenericTask(genericTaskJson);
 
         assertThat(deserializedTask).isNotNull();
-        assertThat(deserializedTask).hasFieldOrPropertyWithValue("status", Status.PENDING);
+        assertThat(deserializedTask).hasFieldOrPropertyWithValue("status", FanOutProcessStatus.PENDING);
         assertThat(deserializedTask.getContent()).isNotNull();
         assertThat(deserializedTask.getContent().getFilenames()).contains("example1.json", "example2.json");
     }

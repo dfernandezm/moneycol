@@ -11,12 +11,11 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.moneycol.indexer.infra.FirestoreTaskListRepository;
-import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
+import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.tracker.DefaultFanOutTracker;
 import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.GenericTask;
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import org.junit.jupiter.api.AfterAll;
@@ -134,24 +133,15 @@ public class FanOutTrackerTest {
         FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
-        GenericTask<?> genericTask = GenericTask.builder()
-                .taskListId(taskListId)
-                .status(Status.PROCESSING)
-                .build();
 
-
-        fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
+        fanOutTracker.updateOverallTaskProgressAtomically(taskListId);
 
         // add a wait to give Firestore emulator time to settle
         Thread.sleep(1000);
 
-        assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
-        assertEquals(findTaskList(taskListId).getStatus(), Status.PROCESSING_COMPLETED);
-        // verify mock called
-
+        assertThat(fanOutTracker.areAllTasksCompleted(taskListId)).isTrue();
+        assertEquals(findTaskList(taskListId).getStatus(), FanOutProcessStatus.PROCESSING_COMPLETED);
     }
-
-    //TODO: test for decrement value
 
     @Test
     public void updatesValuesToProcessUpAndDown() {
@@ -161,12 +151,12 @@ public class FanOutTrackerTest {
         String taskListId = fanOutTracker.createTaskList(taskList);
 
 
-        fanOutTracker.updateValuesToProcessCount(taskListId, 10);
-        fanOutTracker.updateValuesToProcessCount(taskListId, 10);
+        fanOutTracker.updatePendingItemsToProcessCount(taskListId, 10);
+        fanOutTracker.updatePendingItemsToProcessCount(taskListId, 10);
 
         Integer decr = -1 * 10;
-        fanOutTracker.updateValuesToProcessCount(taskListId, decr);
-        fanOutTracker.updateValuesToProcessCount(taskListId, decr);
+        fanOutTracker.updatePendingItemsToProcessCount(taskListId, decr);
+        fanOutTracker.updatePendingItemsToProcessCount(taskListId, decr);
 
         TaskList finalTaskList = findTaskList(taskListId);
         assertEquals(0, finalTaskList.getValuesToProcess());
@@ -185,14 +175,10 @@ public class FanOutTrackerTest {
         FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(totalTasksToComplete);
         String taskListId = fanOutTracker.createTaskList(taskList);
-        GenericTask<?> genericTask = GenericTask.builder()
-                .taskListId(taskListId)
-                .status(Status.PROCESSING)
-                .build();
 
         for (int i = 0; i < totalTasksToComplete; i++) {
             executorService.submit(() -> {
-                fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
+                fanOutTracker.updateOverallTaskProgressAtomically(taskListId);
            });
          }
 
@@ -203,13 +189,13 @@ public class FanOutTrackerTest {
         Thread.sleep(2000);
 
        // assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
-        assertEquals(Status.PROCESSING_COMPLETED, findTaskList(taskListId).getStatus());
+        assertEquals(FanOutProcessStatus.PROCESSING_COMPLETED, findTaskList(taskListId).getStatus());
     }
 
 
     @Test
     public void isDoneTest() throws InterruptedException, ExecutionException {
-        Integer totalTasksToComplete = 150;
+        int totalTasksToComplete = 150;
         PubSubClient pubSubClient = mock(PubSubClient.class);
         FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
         TaskList taskList = TaskList.create(totalTasksToComplete);
@@ -223,7 +209,7 @@ public class FanOutTrackerTest {
                 fanOutTracker.incrementCompletedCount(taskListId, 1);
                 sleep(100L);
                 try {
-                    assertThat(fanOutTracker.allTasksCompleted(taskListId)).isFalse();
+                    assertThat(fanOutTracker.areAllTasksCompleted(taskListId)).isFalse();
                 } catch (AssertionError ae) {
                     fail(ae);
                 }
@@ -235,7 +221,7 @@ public class FanOutTrackerTest {
 
         // once more
         fanOutTracker.incrementCompletedCount(taskListId, 1);
-        assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
+        assertThat(fanOutTracker.areAllTasksCompleted(taskListId)).isTrue();
     }
 
     @Test
@@ -253,7 +239,7 @@ public class FanOutTrackerTest {
         // Then
         taskList = findTaskList(taskListId);
         assertThat(taskList).isNotNull();
-        assertThat(taskList.getStatus()).isEqualTo(Status.PROCESSING_COMPLETED);
+        assertThat(taskList.getStatus()).isEqualTo(FanOutProcessStatus.PROCESSING_COMPLETED);
     }
 
     private void sleep(Long millis) {

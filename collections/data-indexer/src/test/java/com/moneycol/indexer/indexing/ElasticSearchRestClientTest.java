@@ -107,7 +107,7 @@ public class ElasticSearchRestClientTest {
         BanknotesDataSet banknoteDataSet =
                 testHelper.readBanknoteDataSetFromJsonFile("testdata/banknotesDataset.json");
 
-        JsonWriter jsonWriter = new JsonWriter();
+        JsonWriter jsonWriter = JsonWriter.builder().build();
         BulkRequest banknotesDatasetBulk = new BulkRequest();
         String indexName = "banknotes-test";
 

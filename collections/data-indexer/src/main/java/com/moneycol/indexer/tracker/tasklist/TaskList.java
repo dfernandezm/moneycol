@@ -1,6 +1,6 @@
 package com.moneycol.indexer.tracker.tasklist;
 
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -17,7 +17,7 @@ import java.util.UUID;
 public class TaskList {
 
     private String id;
-    private Status status;
+    private FanOutProcessStatus status;
     private Integer numberOfTasks;
     private Integer completedTasks;
     private Integer valuesToProcess;
@@ -25,7 +25,7 @@ public class TaskList {
     public static TaskList create(Integer totalNumberOfTasks) {
         TaskList taskList = new TaskList();
         taskList.id = UUID.randomUUID().toString();
-        taskList.status = Status.PROCESSING;
+        taskList.status = FanOutProcessStatus.PROCESSING;
         taskList.numberOfTasks = totalNumberOfTasks;
         taskList.completedTasks = 0;
         taskList.valuesToProcess = 0;
@@ -37,10 +37,10 @@ public class TaskList {
     }
 
     public void completeProcessingStatus() {
-        setStatus(Status.PROCESSING_COMPLETED);
+        setStatus(FanOutProcessStatus.PROCESSING_COMPLETED);
     }
 
     public boolean hasConsolidationCompleted() {
-        return status == Status.CONSOLIDATION_COMPLETED;
+        return status == FanOutProcessStatus.CONSOLIDATION_COMPLETED;
     }
 }

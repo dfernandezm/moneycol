@@ -12,7 +12,7 @@ import javax.inject.Singleton;
 @Singleton
 public class GcsClient {
 
-    private final JsonWriter jsonWriter = new JsonWriter();
+    private final JsonWriter jsonWriter = JsonWriter.builder().build();
 
     /**
      * Reads the entire content of 'objectPath' in 'bucketName' into a String in memory

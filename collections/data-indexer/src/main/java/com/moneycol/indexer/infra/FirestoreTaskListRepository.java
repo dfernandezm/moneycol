@@ -6,7 +6,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.TransactionOptions;
 import com.google.cloud.firestore.WriteResult;
 import com.google.common.base.Preconditions;
-import com.moneycol.indexer.tracker.Status;
+import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class FirestoreTaskListRepository implements TaskListRepository {
         }
     }
 
-    public void updateTaskListProcessCompletionInTransaction(String taskListId, Consumer<String> doneConsumer) {
+    public void executeTaskListUpdateInTransaction(String taskListId, Consumer<String> doneConsumer) {
         TransactionOptions transactionOptions = TransactionOptions.createReadWriteOptionsBuilder()
                 .setNumberOfAttempts(MAX_NUMBER_OF_TRANSACTION_RETRIES)
                 .build();
@@ -89,9 +89,9 @@ public class FirestoreTaskListRepository implements TaskListRepository {
                     Preconditions.checkNotNull(taskList);
                     taskList.setCompletedTasks(taskList.getCompletedTasks() + 1);
 
-                    if (taskList.allSpawnedTasksCompleted() && taskList.getStatus() != Status.PROCESSING_COMPLETED) {
+                    if (taskList.allSpawnedTasksCompleted() && taskList.getStatus() != FanOutProcessStatus.PROCESSING_COMPLETED) {
                         log.info("All tasks completed for taskList {} -- updating status", taskListId);
-                        taskList.setStatus(Status.PROCESSING_COMPLETED);
+                        taskList.setStatus(FanOutProcessStatus.PROCESSING_COMPLETED);
                         log.info("TaskList {} completed processing now -- executing follow-up", taskListId);
                         log.info("Completed FULL set of tasks for taskListId {}", taskListId);
                         transaction.set(taskListRef, taskList);

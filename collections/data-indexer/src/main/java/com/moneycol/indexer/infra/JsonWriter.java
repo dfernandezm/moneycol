@@ -5,32 +5,26 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneycol.indexer.batcher.FilesBatch;
-import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.IntermediateTask;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Singleton;
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
 @Singleton
+@Builder
+@NoArgsConstructor
 public class JsonWriter {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private void setupMapper() {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
-    }
-
-    public <T> void asJsonFile(String filePath, T object) {
-        try {
-            objectMapper.writeValue(new File(filePath), object);
-        } catch (IOException e) {
-            log.error("Error writing json", e);
-            throw new JsonConversionException("Error writing json");
-        }
     }
 
     public <T> String asJsonString(T object) {
@@ -57,12 +51,10 @@ public class JsonWriter {
         return toObject(prettyPrint(object), Map.class);
     }
 
-    public GenericTask<FilesBatch> toGenericTask(String jsonString) {
-
+    public IntermediateTask<FilesBatch> toGenericTask(String jsonString) {
         setupMapper();
         try {
-            return objectMapper.readValue(jsonString, new TypeReference<>() {
-            });
+            return objectMapper.readValue(jsonString, new TypeReference<>() { });
         } catch (IOException e) {
             log.error("Error writing json", e);
             throw new JsonConversionException("Error writing json");

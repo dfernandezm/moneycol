@@ -16,13 +16,13 @@ public class TaskListConverter {
 
     private final JsonWriter jsonWriter;
 
-    public TaskListStatusResult readMessageAsTaskListStatus(Message message) {
+    public TaskListStatusReport readMessageAsTaskListStatus(Message message) {
         String messageString = messageToString(message);
         log.info("De serializing message...");
-        return jsonWriter.toObject(messageString, TaskListStatusResult.class);
+        return jsonWriter.toObject(messageString, TaskListStatusReport.class);
     }
 
-    public GenericTask<?> readMessageAsTask(Message message) {
+    public IntermediateTask<?> readMessageAsTask(Message message) {
         String messageString = messageToString(message);
         log.info("De serializing message...");
         return jsonWriter.toGenericTask(messageString);

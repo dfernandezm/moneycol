@@ -6,7 +6,7 @@ import com.moneycol.indexer.batcher.FileBatcher;
 import com.moneycol.indexer.batcher.FilesBatch;
 import com.moneycol.indexer.batcher.Inventory;
 import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.IntermediateTask;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for main.java.com.example.functions.helloworld.HelloPubSub.
- */
 public class BatcherFunctionTest {
 
     private BatcherFunctionExecutor batcherFunction;
@@ -76,7 +73,7 @@ public class BatcherFunctionTest {
 
     private void assertCorrectWorkerTaskPublishedFor(String taskListId, int numberOfWorkerTasks,
                                                      List<String> filenamesInBatch) {
-        ArgumentCaptor<GenericTask<FilesBatch>> genericTaskArgumentCaptor = ArgumentCaptor.forClass(GenericTask.class);
+        ArgumentCaptor<IntermediateTask<FilesBatch>> genericTaskArgumentCaptor = ArgumentCaptor.forClass(IntermediateTask.class);
         verify(fanOutTracker, times(numberOfWorkerTasks)).spawnTask(genericTaskArgumentCaptor.capture());
 
         assertThat(genericTaskArgumentCaptor.getValue().getTaskListId()).isEqualTo(taskListId);

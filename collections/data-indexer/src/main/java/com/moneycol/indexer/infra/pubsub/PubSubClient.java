@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 public class PubSubClient {
 
     private final FanOutConfigurationProperties fanOutProperties;
+    private final JsonWriter jsonWriter;
 
-    private final JsonWriter jsonWriter = new JsonWriter();
     private final Map<String, Publisher> topicNameToPublishers = new HashMap<>();
     private final static int ACK_DEADLINE_SECONDS = 60 * 10; // 600 yseconds
 
@@ -91,14 +91,27 @@ public class PubSubClient {
         return publisher;
     }
 
-    // sink topic, use synchronous pull https://cloud.google.com/pubsub/docs/pull#synchronous_pull
+    // sink topic, use synchronous pull
     // to get them numOfMessages by numOfMessages. Needs a single subscription created to the sink topic and 1 subscriber
     // returns boolean indicating if its done or not
+
+    /**
+     * Use synchronous pull {@see https://cloud.google.com/pubsub/docs/pull#synchronous_pull} to
+     * pull on-demand <pre>numOfMessages</pre> to process. This process is composed of only 1 subscription to
+     * the target topic with one subscriber, pulling the messages in the desired batch. This way, this subscriber
+     * controls the exact pace of messages arriving.
+     *
+     * @param subscriptionId the subscription to subscribe to
+     * @param numOfMessages batch of messages to pull at once
+     * @param messageHandler the message processor, invoked for each pulled message
+     * @param stopCondition a predicated indicating the pull process should stop and rest of messages should be redelivered
+     * @return
+     * @throws IOException
+     */
     public boolean subscribeSync(String subscriptionId, Integer numOfMessages,
             Consumer<PubsubMessage> messageHandler, Supplier<Boolean> stopCondition) throws IOException {
 
         SubscriberStubSettings subscriberStubSettings = setupSubscriberStub();
-
 
         try (SubscriberStub subscriber = GrpcSubscriberStub.create(subscriberStubSettings)) {
 
@@ -109,35 +122,27 @@ public class PubSubClient {
             boolean stopProcessing = false;
 
             do {
-                // 250 max
+                // Pull the batch of numOfMessages
                 receivedMessages = pullMessages(numOfMessages, subscriber, subscriptionName);
 
                 if (receivedMessages.size() == 0) {
                     return true;
                 }
 
-                // 250 ackIDs
+                // Collect all ackIds from the batch
                 List<String> remainderOfAckIds = receivedMessages.stream()
                         .map(ReceivedMessage::getAckId)
                         .collect(Collectors.toList());
 
-                log.info("Pulling {} messages from subscription {}",
-                        receivedMessages.size(), subscriptionName);
+                log.info("Pulling {} messages from subscription {}", receivedMessages.size(), subscriptionName);
                 extendAckDeadline(subscriber, subscriptionName, remainderOfAckIds, ACK_DEADLINE_SECONDS);
 
                 for (ReceivedMessage message : receivedMessages) {
-
-                    log.info("Received message with id {}, ackId {}",
-                            message.getMessage().getMessageId(),
-                            message.getAckId());
 
                     try {
                         // Handle received message [blocking]
                         messageHandler.accept(message.getMessage());
                     } catch (Throwable t) {
-                        //TODO: this may produce duplicates in Elasticsearch
-                        // some documents where inserted and others don't
-                        // as id is generated in-place
                         log.warn("Error processing message with ID {} - skipping and nack",
                                 message.getMessage().getMessageId());
                         List<String> nackIds = new ArrayList<>();
@@ -145,7 +150,6 @@ public class PubSubClient {
                         nackMessages(subscriber, subscriptionName, nackIds);
                         continue;
                     }
-
 
                     // ack the message
                     String ackId = message.getAckId();
@@ -158,7 +162,7 @@ public class PubSubClient {
 
                     // check the stop condition
                     if (stopCondition.get()) {
-                        log.info("Getting close to condition for stopping, stopping now -- not nacking");
+                        log.info("Getting close to condition for stopping, stopping now -- nack remainder of batch");
                         if (!remainderOfAckIds.isEmpty()) {
                             nackMessages(subscriber, subscriptionName, remainderOfAckIds);
                         }
@@ -174,16 +178,16 @@ public class PubSubClient {
     }
 
     private void extendAckDeadline(SubscriberStub subscriber, String subscriptionName, List<String> remainderOfAckIds, int ackDeadlineSeconds) {
-        // This way we give 600 seconds to process the batch of 250 messages
+
         // Modify the ack deadline of each received message from the default 10 seconds to 600s.
         // This prevents the server from redelivering the message after the default 10 seconds
         // have passed.
 
-        // The client already extends this in the background, but if it is too short (10s) it may not have
+        // This client already extends this in the background, but if it is too short (10s) it may not have
         // time across executions (one function finishing, another starting). This was happening
         // with some files, the deadline exceeded due to function finishing and restarting, hence
-        // the server redelivered the message. This was observed as same id twice in logs / same file with same
-        // documents being processed resulting in many more documents indexed in Elastic
+        // the server redelivered the message. This was observed as same id twice in logs for the same file
+        // with same documents being processed, resulting in many more documents indexed in the final result
         ModifyAckDeadlineRequest modifyAckDeadlineRequest =
                 ModifyAckDeadlineRequest.newBuilder()
                         .setSubscription(subscriptionName)

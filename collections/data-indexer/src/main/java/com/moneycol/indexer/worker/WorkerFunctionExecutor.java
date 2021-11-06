@@ -7,7 +7,7 @@ import com.moneycol.indexer.infra.GcsClient;
 import com.moneycol.indexer.infra.JsonWriter;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.FanOutTracker;
-import com.moneycol.indexer.tracker.GenericTask;
+import com.moneycol.indexer.tracker.IntermediateTask;
 import com.moneycol.indexer.tracker.TaskListConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class WorkerFunctionExecutor {
             return;
         }
 
-        GenericTask<?> genericTask = taskListConverter.readMessageAsTask(message);
+        IntermediateTask<?> genericTask = taskListConverter.readMessageAsTask(message);
         log.info("Found tasks for taskListId {}", genericTask.getTaskListId());
 
         FilesBatch batch = (FilesBatch) genericTask.getContent();
@@ -40,7 +40,7 @@ public class WorkerFunctionExecutor {
 
         // This needs to update the status of the overall processing
         // keep count of spawned tasks to see if all has been completed
-        fanOutTracker.updateOverallTaskProgressAtomically(genericTask);
+        fanOutTracker.updateOverallTaskProgressAtomically(genericTask.getTaskListId());
     }
 
     private void processBatchAsBanknoteDataSetIntoTaskList(FilesBatch batch, String taskListId) {
@@ -49,12 +49,11 @@ public class WorkerFunctionExecutor {
         batch.getFilenames().forEach(filename -> {
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             banknotesDataSet.setFilename(filename);
-            Integer size = banknotesDataSet.getBanknotes().size();
+            Integer banknotesAmount = banknotesDataSet.getBanknotes().size();
             fanOutTracker.publishIntermediateResult(banknotesDataSet);
-            fanOutTracker.updateValuesToProcessCount(taskListId, size);
+            fanOutTracker.updatePendingItemsToProcessCount(taskListId, banknotesAmount);
 
-            //TODO: make sure there's no negative numbers after this count
-            log.info("Published message with {} document from contents of {} as {}", size, filename, banknotesDataSet);
+            log.info("Published message with {} document from contents of {} as {}", banknotesAmount, filename, banknotesDataSet);
         });
     }
 
