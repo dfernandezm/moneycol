@@ -1,4 +1,4 @@
-package com.moneycol.datacollector.colnect;
+package com.moneycol.datacollector.colnect.model;
 
 import com.moneycol.datacollector.colnect.pages.BanknoteData;
 import lombok.Builder;

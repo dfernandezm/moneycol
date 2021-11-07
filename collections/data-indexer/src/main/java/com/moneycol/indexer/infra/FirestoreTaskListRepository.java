@@ -74,7 +74,8 @@ public class FirestoreTaskListRepository implements TaskListRepository {
         }
     }
 
-    public void executeTaskListUpdateInTransaction(String taskListId, Consumer<String> doneConsumer) {
+    @Override
+    public void updateTaskListProcessCompletionInTransaction(String taskListId, Consumer<String> doneConsumer) {
         TransactionOptions transactionOptions = TransactionOptions.createReadWriteOptionsBuilder()
                 .setNumberOfAttempts(MAX_NUMBER_OF_TRANSACTION_RETRIES)
                 .build();

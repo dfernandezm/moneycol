@@ -1,0 +1,111 @@
+{
+  "data" : {
+    "pairs" : [ {
+      "request" : {
+        "path" : [ {
+          "matcher" : "exact",
+          "value" : "/token"
+        } ],
+        "method" : [ {
+          "matcher" : "exact",
+          "value" : "POST"
+        } ],
+        "destination" : [ {
+          "matcher" : "exact",
+          "value" : "oauth2.googleapis.com"
+        } ],
+        "scheme" : [ {
+          "matcher" : "exact",
+          "value" : "https"
+        } ],
+        "body" : [ {
+          "matcher" : "exact",
+          "value" : "client_id=764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com&client_secret=d-FL95Q19q7MQmFpd7hHD0Ty&refresh_token=1%2F%2F03QPWklWGLJlrCgYIARAAGAMSNwF-L9Ir-xFPXogTe3W5uFwqNuP4s4vYzwOVcQbub6uflK1CqP8pArnjuZsGJrlZkUVSiwVr0jc&grant_type=refresh_token"
+        } ]
+      },
+      "response" : {
+        "status" : 200,
+        "body" : "H4sIAAAAAAAC/71RuZajSBD05yv6tb1Sc0piPMQtKAQIcTl6qChxNPchRO3bf18xY4y53lr1MrMyIjLi7x8fH58xhGgYbmPzjerPnx+fS0xx25jgnT6JwUYVRCvse5LICbtDtXfog8tz8UXJdHzRj2oDDWos6MG+rPvDDXIdYyfSqEC2BezlBiMjnxcvcWKdgGevKO8muehwarCUPsLTfTJ22RLME837cXoejRp3ZdpRfRkdfEY3iIDJuhrZ9jXpNPfse7Q4ddaSI+vw+deqHb3avEfDLV+V0yzH/eoOsGnReko2ju3w8+trnudt2jRpieI2H7awqb7iacy+YNlMyaYt4/HR9NXHe6vOk4//2poG1Of1o9miKs7L30J+uXcbl9+8RxT3qP89yZM/1qLllN0VmJ/z0+WKNdLMtUGrxjYStJ1WaHSI4WIWEhuJPAuwl4Hiew6x/QqxWQFRmoEb0sAFjFmkZFQkpemC3BBOBAr4FVP3SDt/2Ns3TQtpsLaaRHVmiJunQclFSHHkvXawUSXPO5UM0YUt7hSxQmSoXiE02izs+SyGs+lKjOnyo1nLi6nyVEQfW7PKpnePgqrNRH5LQjfFkfKNTVFukkCbwuA4w4Wt7xRX3xWPhJS3vDmnRPGmRPjDlfj2/8WFE19buV5A1GaA+cXEYAHF28oC4ndNvN/1X3n35fa+xlCRT1h5E6pkPqLILPbn6Y07avmcR/5avx5J5S2xH7XRekftLIl/fccoEwGVZZBKV99bUNtE6MkYeQfWJbkMkOXuGlznsJKdFSv2ZUIrmpdZAAoUNj6L13nVgdR3DoVEARwupggJ0z1y2wink0o8Fs25RmpnXvQjsRFrlaHo1ucfFtg7QcyMO2z6AafKcgeE5KmTT5K+PHRatwPdtaLVjHOeQCZIT8e2Y18431DOlN+sW1xY++6Rds6mMK4WBJEpDVd0461K5KXSlqZeiC6TwsyxPFueuTtfx7adGHyUCWSAJ7rlzw3JK5xRlpLCg50r7NSLEl6sam7PMNFtSgq5Q3976pANJTrsGSDx/d5vSrftQ64f79MjsLmKOXZtTgmqGB9ig/q2Ve9EiRGoMGSD2vcrQXNS6pIJUa967k6cDs2ub/0rOui7QwcH1lKfUGFOFCEL3F61FbmmEZ2d+SdTqDdcpHvFRx4aGJIOzwdt/vzxz7+905/NAQUAAA==",
+        "encodedBody" : true,
+        "templated" : false,
+        "headers" : {
+          "Alt-Svc" : [ "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\"" ],
+          "Cache-Control" : [ "no-cache, no-store, max-age=0, must-revalidate" ],
+          "Content-Encoding" : [ "gzip" ],
+          "Content-Type" : [ "application/json; charset=utf-8" ],
+          "Date" : [ "Sun, 07 Nov 2021 00:10:50 GMT" ],
+          "Expires" : [ "Mon, 01 Jan 1990 00:00:00 GMT" ],
+          "Hoverfly" : [ "Was-Here" ],
+          "Pragma" : [ "no-cache" ],
+          "Server" : [ "scaffolding on HTTPServer2" ],
+          "Vary" : [ "Origin", "X-Origin", "Referer" ],
+          "X-Content-Type-Options" : [ "nosniff" ],
+          "X-Frame-Options" : [ "SAMEORIGIN" ],
+          "X-Xss-Protection" : [ "0" ]
+        }
+      }
+    }, {
+      "request" : {
+        "path" : [ {
+          "matcher" : "exact",
+          "value" : "/download/storage/v1/b/moneycol-import/o/colnect%2F04-11-2021%2Finventory.json"
+        } ],
+        "method" : [ {
+          "matcher" : "exact",
+          "value" : "GET"
+        } ],
+        "destination" : [ {
+          "matcher" : "exact",
+          "value" : "www.googleapis.com"
+        } ],
+        "scheme" : [ {
+          "matcher" : "exact",
+          "value" : "https"
+        } ],
+        "query" : {
+          "alt" : [ {
+            "matcher" : "exact",
+            "value" : "media"
+          } ]
+        },
+        "body" : [ {
+          "matcher" : "exact",
+          "value" : ""
+        } ]
+      },
+      "response" : {
+        "status" : 200,
+        "body" : "{\"rootName\":\"inventory\",\"filesBatches\":[{\"batchSize\":30,\"processed\":false,\"filenames\":[\"colnect/04-11-2021/en-Abkhazia-p-1.json\",\"colnect/04-11-2021/en-Abkhazia-p-2.json\"]}]}",
+        "encodedBody" : false,
+        "templated" : false,
+        "headers" : {
+          "Alt-Svc" : [ "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\"" ],
+          "Cache-Control" : [ "no-cache, no-store, max-age=0, must-revalidate" ],
+          "Content-Disposition" : [ "attachment" ],
+          "Content-Length" : [ "174" ],
+          "Content-Type" : [ "application/octet-stream" ],
+          "Date" : [ "Sun, 07 Nov 2021 00:10:50 GMT" ],
+          "Etag" : [ "CLLQ4Pmd/vMCEAE=" ],
+          "Expires" : [ "Mon, 01 Jan 1990 00:00:00 GMT" ],
+          "Hoverfly" : [ "Was-Here" ],
+          "Pragma" : [ "no-cache" ],
+          "Server" : [ "UploadServer" ],
+          "Vary" : [ "Origin", "X-Origin" ],
+          "X-Goog-Generation" : [ "1636012622620722" ],
+          "X-Goog-Hash" : [ "crc32c=5a6oNw==,md5=qtiQxnYrBa0r4CAr3Lbqvw==" ],
+          "X-Goog-Metageneration" : [ "1" ],
+          "X-Goog-Storage-Class" : [ "STANDARD" ],
+          "X-Guploader-Uploadid" : [ "ADPycdtCR6NPH3CosdkoJjfmWaX4DZVKWQJJyYQ3ThgiOUo3Y7w76Zk24rjhwV4vOk-rfjYGjQrG5LMeXmqCAVAdMtWPY2QuUQ" ]
+        }
+      }
+    } ],
+    "globalActions" : {
+      "delays" : [ ]
+    }
+  },
+  "meta" : {
+    "schemaVersion" : "v5.1",
+    "hoverflyVersion" : "v1.3.1",
+    "timeExported" : "2021-11-07T00:10:51Z"
+  }
+}

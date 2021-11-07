@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-//TODO: adapt lombok to Jackson read/write ways
-
 @ToString
 @Getter
 @Setter

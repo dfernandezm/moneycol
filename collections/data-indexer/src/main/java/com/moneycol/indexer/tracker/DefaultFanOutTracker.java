@@ -46,7 +46,7 @@ public class DefaultFanOutTracker implements FanOutTracker {
 
     @Override
     public void updateOverallTaskProgressAtomically(String taskListId) {
-        taskListRepo.executeTaskListUpdateInTransaction(taskListId, this::notifyProcessingCompleted);
+        taskListRepo.updateTaskListProcessCompletionInTransaction(taskListId, this::notifyProcessingCompleted);
     }
 
     @Override

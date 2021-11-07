@@ -49,6 +49,7 @@ public class WorkerFunctionExecutor {
         batch.getFilenames().forEach(filename -> {
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             banknotesDataSet.setFilename(filename);
+
             Integer banknotesAmount = banknotesDataSet.getBanknotes().size();
             fanOutTracker.publishIntermediateResult(banknotesDataSet);
             fanOutTracker.updatePendingItemsToProcessCount(taskListId, banknotesAmount);

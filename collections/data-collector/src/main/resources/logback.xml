@@ -9,3 +9,13 @@
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
+
+
+<!--<configuration>-->
+<!--&lt;!&ndash; Uncomment the next line to enable ANSI color code interpretation &ndash;&gt;-->
+<!--&lt;!&ndash; <property name="STDOUT_WITH_JANSI" value="true" /> &ndash;&gt;-->
+<!--<include resource="io/micronaut/gcp/logging/logback-json-appender.xml" />-->
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="${google_cloud_logging}" />-->
+<!--    </root>-->
+<!--</configuration>-->

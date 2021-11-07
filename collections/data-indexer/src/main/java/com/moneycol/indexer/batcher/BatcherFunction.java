@@ -29,7 +29,7 @@ public class BatcherFunction extends GoogleFunctionInitializer
 
     @Override
     public void accept(Message message, Context context) {
-        log.info("Function called with context {}", context);
+        log.info("Function called with context {}, {}", message, context);
         batcherFunctionExecutor.execute(message, context);
     }
 }

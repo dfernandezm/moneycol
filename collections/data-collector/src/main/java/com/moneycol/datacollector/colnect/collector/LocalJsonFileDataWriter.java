@@ -2,7 +2,7 @@ package com.moneycol.datacollector.colnect.collector;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moneycol.datacollector.colnect.BanknotesDataSet;
+import com.moneycol.datacollector.colnect.model.BanknotesDataSet;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -32,6 +32,11 @@ public class LocalJsonFileDataWriter implements DataWriter {
     @Override
     public CrawlingProcessState findState() {
         return null;
+    }
+
+    @Override
+    public void deleteState() {
+
     }
 
     private void writeJsonToFile(BanknotesDataSet banknotesDataSet, String country, String filePath) {

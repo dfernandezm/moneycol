@@ -6,15 +6,20 @@ import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 import com.google.cloud.storage.StorageOptions;
-import com.moneycol.datacollector.colnect.BanknotesDataSet;
+import com.moneycol.datacollector.colnect.model.BanknotesDataSet;
+import io.micronaut.context.annotation.Primary;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
+
 @Slf4j
+@Singleton
+@Primary
 public class GcsDataWriter implements DataWriter {
 
     private final JsonWriter jsonWriter = new JsonWriter();
     private static final String BUCKET_NAME = "moneycol-import";
-    private final String OBJECT_NAME_FORMAT = "colnect/%s-%s-p-%s.json";
+    private final String OBJECT_NAME_FORMAT = "colnect/%s/%s-%s-p-%s.json";
     private final String STATE_FILE_NAME = "state.json";
 
     @Override
@@ -25,8 +30,11 @@ public class GcsDataWriter implements DataWriter {
         String jsonData = jsonWriter.asJsonString(banknotesDataSet);
 
         log.info("About to write banknote batch:\n {}", jsonWriter.prettyPrint(banknotesDataSet));
+        String dateOfToday = DateUtil.dateOfToday();
 
+        // filename will become 'colnect/31-10-2021/en-Spain-p-1.json'
         String objectName = String.format(OBJECT_NAME_FORMAT,
+                dateOfToday,
                 banknotesDataSet.getLanguage(),
                 banknotesDataSet.getCountry(),
                 banknotesDataSet.getPageNumber());
@@ -47,11 +55,22 @@ public class GcsDataWriter implements DataWriter {
         return jsonWriter.toObject(stateJson);
     }
 
+    @Override
+    public void deleteState() {
+        delete(STATE_FILE_NAME);
+    }
+
     public String readDataFromGcs(String objectName) {
         Storage storage = StorageOptions.getDefaultInstance().getService();
         BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
         byte[] bytes = storage.readAllBytes(blobId);
         return new String(bytes);
+    }
+
+    public void delete(String objectName) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
+        storage.delete(blobId);
     }
 
     private void writeDataToGcs(String objectName, String data) {

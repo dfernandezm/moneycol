@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.codeborne.selenide.Selenide.$$;
@@ -16,7 +14,6 @@ import static com.codeborne.selenide.Selenide.open;
 public class ColnectLandingPage {
 
     private final static String BANKNOTES_BY_COUNTRY_ENG_URL = "https://colnect.com/en/banknotes/countries";
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     private final List<SelenideElement> countriesLinks = $$("#pl_350 > a");
     private final String url;
