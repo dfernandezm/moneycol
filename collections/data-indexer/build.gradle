@@ -95,6 +95,10 @@ dependencies {
     testImplementation "com.github.stefanbirkner:system-lambda:1.2.0"
     testImplementation "org.testcontainers:elasticsearch:1.16.0"
 
+    testImplementation("io.specto:hoverfly-java-junit5:0.14.0")
+    testRuntime("org.junit.platform:junit-platform-launcher:1.0.1")
+    testRuntime("org.junit.vintage:junit-vintage-engine:4.12.1")
+
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 

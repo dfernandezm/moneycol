@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 public class FanOutTrackerTest {
 
-    private static FirestoreEmulatorContainer emulator = new FirestoreEmulatorContainer(
+    private final static FirestoreEmulatorContainer emulator = new FirestoreEmulatorContainer(
             DockerImageName.parse("gcr.io/google.com/cloudsdktool/cloud-sdk:316.0.0-emulators")
     );
 
@@ -127,7 +127,7 @@ public class FanOutTrackerTest {
     @Test
     public void updatesStatusConcurrentlyForOneTask() throws InterruptedException {
 
-        // Given 20
+        // Given
         Integer totalTasksToComplete = 1;
         PubSubClient pubSubClient = Mockito.mock(PubSubClient.class);
         FanOutTracker fanOutTracker = prepareFanOutTracker(pubSubClient);
@@ -188,7 +188,6 @@ public class FanOutTrackerTest {
         // add a wait to give Firestore emulator time to settle
         Thread.sleep(2000);
 
-       // assertThat(fanOutTracker.allTasksCompleted(taskListId)).isTrue();
         assertEquals(FanOutProcessStatus.PROCESSING_COMPLETED, findTaskList(taskListId).getStatus());
     }
 
