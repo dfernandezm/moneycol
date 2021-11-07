@@ -77,14 +77,13 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         countrySeriesListings = skipUntilUrl(countrySeriesListings, crawlingProcessState.getSeriesUrl());
 
         // Batches of 3 countries, then wait 5 seconds
-        int listGroupSize = 1;
+        int listGroupSize = 3;
         List<List<CountrySeriesListing>> countryGroups = Lists.partition(countrySeriesListings, listGroupSize);
-        List<CountrySeriesListing> countrySeriesList = countryGroups.get(0);
-       // for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
+        for (List<CountrySeriesListing> countrySeriesList: countryGroups) {
             processCountryGroup(crawlingProcessState, countrySeriesList);
             log.info("Waiting 5 seconds before proceeding with next group");
             sleep(5);
-        //}
+        }
 
         String dataUri = "colnect/" + DateUtil.dateOfToday();
         log.info("Cleaning state after finishing processing");
@@ -111,14 +110,14 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
     private void processCountryGroup(CrawlingProcessState crawlingProcessState, List<CountrySeriesListing> countrySeriesList) {
         List<CountryBanknotesListing> countryBanknotesListings = new ArrayList<>();
 
-//        countrySeriesList.forEach(countrySeries -> {
-//            countrySeries.visit();
-//            sleep(1);
-//            processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
-//            resetState(crawlingProcessState);
-//            log.info("Waiting before processing next batch...");
-//            sleep(3);
-//        });
+        countrySeriesList.forEach(countrySeries -> {
+            countrySeries.visit();
+            sleep(1);
+            processCountryData(crawlingProcessState, countryBanknotesListings, countrySeries);
+            resetState(crawlingProcessState);
+            log.info("Waiting before processing next batch...");
+            sleep(3);
+        });
 
         // 1 of the series url
         CountrySeriesListing countrySeries = countrySeriesList.get(0);
@@ -171,13 +170,13 @@ public class SelenideColnectCrawler implements ColnectCrawlerClient {
         List<BanknoteData> banknotesDataForCountry = processBanknotesInListing(currentListing, pageNumber);
         saveState(countrySeriesUrl, allBanknotesUrl, pageNumber);
 
-        //while (currentListing.hasMorePages()) {
+        while (currentListing.hasMorePages()) {
             sleep(1);
             currentListing = currentListing.visitNextPage();
             pageNumber = currentListing.getPageNumber();
             processBanknotesInListing(currentListing, pageNumber);
             saveState(countrySeriesUrl, currentListing.getUrl(), pageNumber);
-        //}
+        }
 
         return banknotesDataForCountry;
     }
