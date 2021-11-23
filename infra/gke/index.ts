@@ -8,6 +8,10 @@ const nodePoolName = "elasticsearch-pool";
 const location = "europe-west1-b";
 const projectId = "moneycol";
 
+const serverlessVpcCidr = "10.21.0.0/28";
+const serverlessVpcNetwork = "default";
+const serverlessVpcConnectorMachineType = "f1-micro";
+
 // Create a GKE cluster
 const engineVersion = gcp.container.getEngineVersions({project: projectId, location: location}).then(v => v.latestMasterVersion);
 const cluster = new gcp.container.Cluster(name, {
@@ -21,17 +25,6 @@ const cluster = new gcp.container.Cluster(name, {
     addonsConfig: {
       configConnectorConfig: { enabled: true }
     },
-});
-
-// IAM Policy (may not be required, need to test removing this block in separate project to avoid lock-out)
-// How to add to current IAMpolicy
-// See: https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster
-// and TF here: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account_iam#google_service_account_iam_binding  
-const currentProjectPolicy = new gcp.projects.IAMPolicy("moneycol_project", {
-  policyData: "{\"bindings\":[{\"members\":[\"serviceAccount:461081581931@cloudbuild.gserviceaccount.com\"],\"role\":\"roles/cloudbuild.builds.builder\"},{\"members\":[\"serviceAccount:service-461081581931@gcp-sa-cloudbuild.iam.gserviceaccount.com\"],\"role\":\"roles/cloudbuild.serviceAgent\"},{\"members\":[\"serviceAccount:service-461081581931@gcf-admin-robot.iam.gserviceaccount.com\"],\"role\":\"roles/cloudfunctions.serviceAgent\"},{\"members\":[\"serviceAccount:service-461081581931@gcp-sa-cloudscheduler.iam.gserviceaccount.com\"],\"role\":\"roles/cloudscheduler.serviceAgent\"},{\"members\":[\"serviceAccount:service-461081581931@compute-system.iam.gserviceaccount.com\"],\"role\":\"roles/compute.serviceAgent\"},{\"members\":[\"serviceAccount:461081581931@cloudbuild.gserviceaccount.com\",\"serviceAccount:gke-resizer@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/container.admin\"},{\"members\":[\"serviceAccount:service-461081581931@container-engine-robot.iam.gserviceaccount.com\"],\"role\":\"roles/container.serviceAgent\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/datastore.user\"},{\"members\":[\"serviceAccount:461081581931-compute@developer.gserviceaccount.com\",\"serviceAccount:461081581931@cloudservices.gserviceaccount.com\",\"serviceAccount:moneycol@appspot.gserviceaccount.com\",\"serviceAccount:service-461081581931@containerregistry.iam.gserviceaccount.com\",\"user:ga.christov@gmail.com\"],\"role\":\"roles/editor\"},{\"members\":[\"serviceAccount:indexer-batcher@moneycol.iam.gserviceaccount.com\",\"serviceAccount:test-account@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/firebase.admin\"},{\"members\":[\"serviceAccount:firebase-service-account@firebase-sa-management.iam.gserviceaccount.com\"],\"role\":\"roles/firebase.managementServiceAgent\"},{\"members\":[\"serviceAccount:firebase-adminsdk-c8avz@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/firebase.sdkAdminServiceAgent\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/firebaseauth.admin\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/firebaseauth.viewer\"},{\"members\":[\"serviceAccount:service-461081581931@firebase-rules.iam.gserviceaccount.com\"],\"role\":\"roles/firebaserules.system\"},{\"members\":[\"serviceAccount:service-461081581931@gcp-sa-firestore.iam.gserviceaccount.com\"],\"role\":\"roles/firestore.serviceAgent\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\",\"serviceAccount:firebase-adminsdk-c8avz@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/iam.serviceAccountTokenCreator\"},{\"members\":[\"serviceAccount:example-moneycol@moneycol.iam.gserviceaccount.com\",\"serviceAccount:moneycol1@moneycol.iam.gserviceaccount.com\",\"user:morenza@gmail.com\"],\"role\":\"roles/owner\"},{\"members\":[\"serviceAccount:gcs-buckets@moneycol.iam.gserviceaccount.com\",\"serviceAccount:indexer-batcher@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/pubsub.publisher\"},{\"members\":[\"serviceAccount:indexer-batcher@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/pubsub.subscriber\"},{\"members\":[\"serviceAccount:service-461081581931@cloud-redis.iam.gserviceaccount.com\"],\"role\":\"roles/redis.serviceAgent\"},{\"members\":[\"serviceAccount:service-461081581931@serverless-robot-prod.iam.gserviceaccount.com\"],\"role\":\"roles/run.serviceAgent\"},{\"members\":[\"serviceAccount:461081581931@cloudbuild.gserviceaccount.com\"],\"role\":\"roles/secretmanager.admin\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\",\"serviceAccount:gcs-buckets@moneycol.iam.gserviceaccount.com\",\"serviceAccount:indexer-batcher@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/storage.admin\"},{\"members\":[\"serviceAccount:collections-api@moneycol.iam.gserviceaccount.com\",\"serviceAccount:gcs-buckets@moneycol.iam.gserviceaccount.com\",\"serviceAccount:indexer-batcher@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/storage.objectAdmin\"},{\"members\":[\"serviceAccount:gcs-buckets@moneycol.iam.gserviceaccount.com\"],\"role\":\"roles/storage.objectViewer\"}]}",
-  project: "moneycol",
-}, {
-  protect: true,
 });
 
 // GKE Custom IAM role with desired permissions for the nodes in the cluster
@@ -204,3 +197,19 @@ users:
 const clusterProvider = new k8s.Provider(name, {
     kubeconfig: kubeconfig,
 });
+
+// This is the Serverless VPC Access to connector to be able to make
+// comms between CloudRun / CloudFunctions and GKE in the default VPC
+const vpcConnectorName = "moneycolvpcconnectordev";
+const serverlessVpcConnector = new gcp.vpcaccess.Connector(vpcConnectorName, {
+  project: projectId,
+  name: vpcConnectorName,
+  region: "europe-west1",
+  ipCidrRange: serverlessVpcCidr,
+  network: serverlessVpcNetwork,
+  machineType: serverlessVpcConnectorMachineType,
+  minInstances: 2,
+  maxInstances: 3
+});
+
+
