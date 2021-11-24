@@ -70,8 +70,13 @@ dependencies {
     implementation("com.google.guava:guava:$guavaVersion")
 
     implementation("org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchVersion")
+
+    // Official Java Kubernetes Client
     implementation("io.kubernetes:client-java:10.0.0")
     implementation("io.kubernetes:client-java-extended:10.0.0")
+
+    // GKE Java Client
+    implementation("com.google.cloud:google-cloud-container:2.2.1")
 
     runtimeOnly("ch.qos.logback:logback-classic")
 
