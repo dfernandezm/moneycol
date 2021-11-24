@@ -45,7 +45,6 @@ public class GkeConnectTest {
         // Note: this file needs to be generated previously using one of the other tests:
         // getClusterInformationToAuthenticateWithoutGcloud
         String kubeConfigPath = "/tmp/kubeconfig.yaml";
-        // String kubeConfigPath = System.getenv("HOME") + "/.kube/config";
 
         // loading the out-of-cluster config, a kubeconfig from file-system
         ApiClient client =
