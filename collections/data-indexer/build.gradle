@@ -54,7 +54,6 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
 
-
     implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
     implementation("io.micronaut:micronaut-inject")
     implementation("io.micronaut:micronaut-runtime")
@@ -71,6 +70,8 @@ dependencies {
     implementation("com.google.guava:guava:$guavaVersion")
 
     implementation("org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchVersion")
+    implementation("io.kubernetes:client-java:10.0.0")
+    implementation("io.kubernetes:client-java-extended:10.0.0")
 
     runtimeOnly("ch.qos.logback:logback-classic")
 
