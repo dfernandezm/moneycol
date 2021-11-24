@@ -14,14 +14,16 @@ It deploys the following:
 
 ## To execute
 
-- For now it's only local, and `pulumi` should be installed in the path and NodeJS v14 selected:
+- For now it's only local, `pulumi` should be installed in the and NodeJS v14 selected (NVM is assumed):
 
 ```
 nvm use v14
 node -v
+brew install pulumi
 pulumi version
 ```
 
+- For now, need to login to Google Cloud via regular `gcloud auth login`
 - Install Stack with change visualization/prompt:
 
 ```
