@@ -23,7 +23,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +35,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Disabled("These tests only work locally as they require GKE and Kubectl")
+//@Disabled("These tests only work locally as they require GKE and Kubectl")
 @Tag("system-gke")
 public class GkeConnectTest {
 
@@ -166,7 +165,6 @@ public class GkeConnectTest {
         // loading the out-of-cluster config, a kubeconfig from file-system
         ApiClient client =
                 ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
-
         Configuration.setDefaultApiClient(client);
 
         CoreV1Api api = new CoreV1Api();
