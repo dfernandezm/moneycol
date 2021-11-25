@@ -1,6 +1,5 @@
 package com.moneycol.indexer.infra.connectivity;
 
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
 import io.kubernetes.client.openapi.ApiClient;
@@ -16,14 +15,11 @@ import io.kubernetes.client.util.KubeConfig;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -33,14 +29,12 @@ public class GkeClient {
     //TODO: use DI
 
     private static final String KUBECONFIG_PATH = "/tmp/kubeconfig.yaml";
-
-
-    //TODO: ongoing put the token and expiry to +1h in the templated file, this should work
     private static final String KUBECONFIG_TEMPLATE = "apiVersion: v1\n" +
             "kind: Config\n" +
             "current-context: my-cluster\n" +
             "contexts: [{name: my-cluster, context: {cluster: cluster-1, user: user-1}}]\n" +
-            "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
+            //"users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
+            "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {}}}}]\n" +
             "clusters:\n" +
             "- name: cluster-1\n" +
             "  cluster:\n" +
@@ -60,9 +54,6 @@ public class GkeClient {
             log.info("Authenticating against GKE using stored credentials");
             // this should use the default credentials depending on where it runs
             ClusterManagerClient client = ClusterManagerClient.create();
-
-            GoogleCredentials googleCredentials = GoogleCredentials.getApplicationDefault();
-            log.info("Token: {}", googleCredentials.getAccessToken());
 
             String projectId = clusterDetails.projectId();
             String zone = clusterDetails.zone();
@@ -99,37 +90,21 @@ public class GkeClient {
             log.info("Getting service details from {} for service {} in namespace {}",
                     kubeConfigPath, serviceName, namespace);
 
-            //TODO: the problem here is the kubeconfig file does not have a token
-            // when ran with kubectl the token gets appended to the file so it works
-            // but when run programmatically only, this does not happen
-            // loading the out-of-cluster config, a kubeconfig from file-system
+            // this client lib has an issue here: the kubeconfig file does not have a token
+            // and when ran with kubectl the token gets appended to the file so it works,
+            // but when run programmatically only, this does not happen and there's a
+            // 403 Forbidden error.
+            //
+            // This can be fixed by using GCP Auth lib to get application
+            // default credentials from the underlying service account. This solution
+            // has now been implemented in the GkeAuthenticator class, that extends/overrides
+            // the existing GCP Authenticator
 
-           // KubeConfig.registerAuthenticator(new GCPAuthenticator());
-
-            //LOG.debug("Trying to update information using Kubernetes client SDK.");
-
-            File f = new File("/tmp/gke-resizer.json ");
-            if (f.exists()) {
-                log.info("File exists {}", f.getAbsolutePath());
-            }
-
-            if (f.canRead()) {
-                log.info("File can be read {}", f.getAbsolutePath());
-            }
-            GoogleCredentials creds = GoogleCredentials.fromStream(new FileInputStream("/tmp/gke-resizer.json"));
-            creds = creds.createScoped("https://www.googleapis.com/auth/cloud-platform");
-            //GoogleCredentials creds = GoogleCredentials.getApplicationDefault();
-            creds.refreshIfExpired();
-            log.info("User dir: " + System.getProperty("user.dir"));
-            log.info("Token: " + creds.getAccessToken().getTokenValue());
-
-
-            ApiClient client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
-            //client.setApiKey(creds.getAccessToken().getTokenValue());
-            //client.setAccessToken(creds.getAccessToken().getTokenValue());
-
-            // set the global default api-client to the in-cluster one from above
-           // Configuration.setDefaultApiClient(client);
+           KubeConfig.registerAuthenticator(new GkeAuthenticator());
+           KubeConfig kubeConfig = KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath));
+           ApiClient client = ClientBuilder
+                                .kubeconfig(kubeConfig)
+                                .build();
 
             CoreV1Api api = new CoreV1Api(client);
             V1Service v1Service = api.readNamespacedService(serviceName, namespace, null, true, false);
@@ -203,15 +178,7 @@ public class GkeClient {
     private void generateKubeConfigFile(Cluster clusterResponse) throws IOException {
         String endpoint = clusterResponse.getEndpoint();
         String caCertificateBase64 = clusterResponse.getMasterAuth().getClusterCaCertificate();
-
-        GoogleCredentials creds = GoogleCredentials.fromStream(new FileInputStream("/tmp/gke-resizer.json"));
-        creds = creds.createScoped("https://www.googleapis.com/auth/cloud-platform");
-        //GoogleCredentials creds = GoogleCredentials.getApplicationDefault();
-        creds.refreshIfExpired();
-
-        String token = creds.getAccessToken().getTokenValue();
-        String expiry = Instant.now().plusSeconds(3600).toString();
-        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, token, expiry, endpoint, caCertificateBase64);
+        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, endpoint, caCertificateBase64);
         Path kubeConfigFilePath = Path.of(KUBECONFIG_PATH);
         Files.write(kubeConfigFilePath, kubeConfigYaml.getBytes(StandardCharsets.UTF_8));
     }
