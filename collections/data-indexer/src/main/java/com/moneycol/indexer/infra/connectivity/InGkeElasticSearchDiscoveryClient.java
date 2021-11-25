@@ -1,5 +1,8 @@
 package com.moneycol.indexer.infra.connectivity;
 
+import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.authenticators.GCPAuthenticator;
+
 public class InGkeElasticSearchDiscoveryClient implements ElasticSearchDiscoveryClient {
 
     //TODO: use DI
@@ -12,6 +15,7 @@ public class InGkeElasticSearchDiscoveryClient implements ElasticSearchDiscovery
                         .zone("europe-west1-b")
                         .build();
 
+        KubeConfig.registerAuthenticator(new GCPAuthenticator());
         GkeClient gkeClient = GkeClient.builder().build();
         GkeKubeConfig kubeConfig = gkeClient.authenticate(gkeClusterDetails);
 

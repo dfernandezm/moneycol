@@ -5,7 +5,6 @@ import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeAddress;
@@ -17,11 +16,14 @@ import io.kubernetes.client.util.KubeConfig;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -31,11 +33,14 @@ public class GkeClient {
     //TODO: use DI
 
     private static final String KUBECONFIG_PATH = "/tmp/kubeconfig.yaml";
+
+
+    //TODO: ongoing put the token and expiry to +1h in the templated file, this should work
     private static final String KUBECONFIG_TEMPLATE = "apiVersion: v1\n" +
             "kind: Config\n" +
             "current-context: my-cluster\n" +
             "contexts: [{name: my-cluster, context: {cluster: cluster-1, user: user-1}}]\n" +
-            "users: [{name: user-1, user: {auth-provider: {name: gcp}}}]\n" +
+            "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
             "clusters:\n" +
             "- name: cluster-1\n" +
             "  cluster:\n" +
@@ -99,11 +104,34 @@ public class GkeClient {
             // but when run programmatically only, this does not happen
             // loading the out-of-cluster config, a kubeconfig from file-system
 
-            ApiClient client =
-                    ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
-            Configuration.setDefaultApiClient(client);
+           // KubeConfig.registerAuthenticator(new GCPAuthenticator());
 
-            CoreV1Api api = new CoreV1Api();
+            //LOG.debug("Trying to update information using Kubernetes client SDK.");
+
+            File f = new File("/tmp/gke-resizer.json ");
+            if (f.exists()) {
+                log.info("File exists {}", f.getAbsolutePath());
+            }
+
+            if (f.canRead()) {
+                log.info("File can be read {}", f.getAbsolutePath());
+            }
+            GoogleCredentials creds = GoogleCredentials.fromStream(new FileInputStream("/tmp/gke-resizer.json"));
+            creds = creds.createScoped("https://www.googleapis.com/auth/cloud-platform");
+            //GoogleCredentials creds = GoogleCredentials.getApplicationDefault();
+            creds.refreshIfExpired();
+            log.info("User dir: " + System.getProperty("user.dir"));
+            log.info("Token: " + creds.getAccessToken().getTokenValue());
+
+
+            ApiClient client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
+            //client.setApiKey(creds.getAccessToken().getTokenValue());
+            //client.setAccessToken(creds.getAccessToken().getTokenValue());
+
+            // set the global default api-client to the in-cluster one from above
+           // Configuration.setDefaultApiClient(client);
+
+            CoreV1Api api = new CoreV1Api(client);
             V1Service v1Service = api.readNamespacedService(serviceName, namespace, null, true, false);
 
             // find the port from NodePort
@@ -176,7 +204,14 @@ public class GkeClient {
         String endpoint = clusterResponse.getEndpoint();
         String caCertificateBase64 = clusterResponse.getMasterAuth().getClusterCaCertificate();
 
-        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, endpoint, caCertificateBase64);
+        GoogleCredentials creds = GoogleCredentials.fromStream(new FileInputStream("/tmp/gke-resizer.json"));
+        creds = creds.createScoped("https://www.googleapis.com/auth/cloud-platform");
+        //GoogleCredentials creds = GoogleCredentials.getApplicationDefault();
+        creds.refreshIfExpired();
+
+        String token = creds.getAccessToken().getTokenValue();
+        String expiry = Instant.now().plusSeconds(3600).toString();
+        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, token, expiry, endpoint, caCertificateBase64);
         Path kubeConfigFilePath = Path.of(KUBECONFIG_PATH);
         Files.write(kubeConfigFilePath, kubeConfigYaml.getBytes(StandardCharsets.UTF_8));
     }
