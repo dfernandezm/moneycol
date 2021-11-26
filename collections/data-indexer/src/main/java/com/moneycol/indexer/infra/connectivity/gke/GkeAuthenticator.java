@@ -1,4 +1,4 @@
-package com.moneycol.indexer.infra.connectivity;
+package com.moneycol.indexer.infra.connectivity.gke;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import io.kubernetes.client.util.KubeConfig;
@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.Map;
 
 public class GkeAuthenticator extends GCPAuthenticator {
+
     static {
         KubeConfig.registerAuthenticator(new GkeAuthenticator());
     }

@@ -1,5 +1,7 @@
 package com.moneycol.indexer.indexing.index;
 
+import com.moneycol.indexer.infra.connectivity.ElasticSearchDiscoveryClient;
+import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +16,14 @@ import javax.inject.Singleton;
 public class ElasticClientFactory {
 
     private final ElasticSearchProperties elasticsearchProperties;
+    private final ElasticSearchDiscoveryClient elasticSearchDiscoveryClient;
 
     @Bean
     @Singleton
     public ElasticSearchClient elasticSearchClient() {
+        ElasticSearchEndpoint elasticSearchEndpoint = elasticSearchDiscoveryClient.obtainEndpoint();
         RestHighLevelClient elasticClient = new RestHighLevelClient(
-                RestClient.builder(HttpHost.create(elasticsearchProperties.getHostAddress())));
+                RestClient.builder(HttpHost.create(elasticSearchEndpoint.getEndpoint())));
         return new ElasticSearchClient(elasticsearchProperties, elasticClient);
     }
 }

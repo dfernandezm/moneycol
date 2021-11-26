@@ -1,4 +1,4 @@
-package com.moneycol.indexer.infra.connectivity;
+package com.moneycol.indexer.infra.connectivity.gke.data;
 
 public enum IpAddressType {
 

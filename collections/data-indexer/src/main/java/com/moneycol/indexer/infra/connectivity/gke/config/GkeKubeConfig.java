@@ -1,4 +1,4 @@
-package com.moneycol.indexer.infra.connectivity;
+package com.moneycol.indexer.infra.connectivity.gke.config;
 
 import lombok.Builder;
 import lombok.Data;

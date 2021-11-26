@@ -1,7 +1,7 @@
-package com.moneycol.indexer.infra.connectivity;
+package com.moneycol.indexer.infra.connectivity.gke;
 
-import com.google.cloud.container.v1.ClusterManagerClient;
-import com.google.container.v1.Cluster;
+import com.moneycol.indexer.infra.connectivity.gke.data.IpAddressType;
+import com.moneycol.indexer.infra.connectivity.gke.data.KubeServiceDetails;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -10,67 +10,19 @@ import io.kubernetes.client.openapi.models.V1NodeAddress;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
-import io.kubernetes.client.util.ClientBuilder;
-import io.kubernetes.client.util.KubeConfig;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import javax.inject.Singleton;
 import java.util.List;
 
 @Slf4j
-@Builder
+@Singleton
 public class GkeClient {
 
-    //TODO: use DI
+    private final ApiClient apiClient;
 
-    private static final String KUBECONFIG_PATH = "/tmp/kubeconfig.yaml";
-    private static final String KUBECONFIG_TEMPLATE = "apiVersion: v1\n" +
-            "kind: Config\n" +
-            "current-context: my-cluster\n" +
-            "contexts: [{name: my-cluster, context: {cluster: cluster-1, user: user-1}}]\n" +
-            //"users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
-            "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {}}}}]\n" +
-            "clusters:\n" +
-            "- name: cluster-1\n" +
-            "  cluster:\n" +
-            "    server: \"https://%s\"\n" +
-            "    certificate-authority-data: \"%s\"";
-
-    /**
-     *  String projectId = "moneycol";
-     *  String zone = "europe-west1-b";
-     *  String clusterId = "cluster-dev2";
-     *
-     * @param clusterDetails
-     */
-    public GkeKubeConfig authenticate(GkeClusterDetails clusterDetails) {
-        try {
-
-            log.info("Authenticating against GKE using stored credentials");
-            // this should use the default credentials depending on where it runs
-            ClusterManagerClient client = ClusterManagerClient.create();
-
-            String projectId = clusterDetails.projectId();
-            String zone = clusterDetails.zone();
-            String clusterName = clusterDetails.clusterName();
-
-            Cluster clusterResponse = client.getCluster(projectId, zone, clusterName);
-            generateKubeConfigFile(clusterResponse);
-
-            log.info("Kubeconfig file generated");
-            return GkeKubeConfig
-                    .builder()
-                    .kubeConfigFilePath(KUBECONFIG_PATH)
-                    .build();
-
-        } catch(Throwable t) {
-            throw new RuntimeException("Error authenticating against GKE", t);
-        }
+    public GkeClient(ApiClient apiClient) {
+        this.apiClient = apiClient;
     }
 
     /**
@@ -85,38 +37,23 @@ public class GkeClient {
      * @param namespace
      * @return
      */
-    public GkeServiceDetails getServiceDetails(String kubeConfigPath, String serviceName, String namespace) {
+    public KubeServiceDetails getServiceDetails(String serviceName, String namespace) {
         try {
-            log.info("Getting service details from {} for service {} in namespace {}",
-                    kubeConfigPath, serviceName, namespace);
+            log.info("Getting service details for service {} in namespace {}", serviceName, namespace);
 
-            // this client lib has an issue here: the kubeconfig file does not have a token
-            // and when ran with kubectl the token gets appended to the file so it works,
-            // but when run programmatically only, this does not happen and there's a
-            // 403 Forbidden error.
-            //
-            // This can be fixed by using GCP Auth lib to get application
-            // default credentials from the underlying service account. This solution
-            // has now been implemented in the GkeAuthenticator class, that extends/overrides
-            // the existing GCP Authenticator
-
-           KubeConfig.registerAuthenticator(new GkeAuthenticator());
-           KubeConfig kubeConfig = KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath));
-           ApiClient client = ClientBuilder
-                                .kubeconfig(kubeConfig)
-                                .build();
-
-            CoreV1Api api = new CoreV1Api(client);
-            V1Service v1Service = api.readNamespacedService(serviceName, namespace, null, true, false);
+            CoreV1Api api = new CoreV1Api(apiClient);
+            V1Service v1Service = api.readNamespacedService(serviceName, namespace,
+                    null, true, false);
 
             // find the port from NodePort
             String nodePort = readNodePort(v1Service);
 
-            // get the IP address of any node - it should be internal, but for the test we pick the external one
+            // get the IP address of any node - it should be internal, but for the test we pick the
+            // external one
             String internalIp = getNodeIpByType(api, IpAddressType.INTERNAL_IP);
 
             log.info("Found internal IP {} and port {}", internalIp, nodePort);
-            return GkeServiceDetails.builder()
+            return KubeServiceDetails.builder()
                     .port(nodePort)
                     .internalIp(internalIp)
                     .build();
@@ -173,13 +110,5 @@ public class GkeClient {
                         .findFirst()
                         .orElse(null);
         return nodePort;
-    }
-
-    private void generateKubeConfigFile(Cluster clusterResponse) throws IOException {
-        String endpoint = clusterResponse.getEndpoint();
-        String caCertificateBase64 = clusterResponse.getMasterAuth().getClusterCaCertificate();
-        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, endpoint, caCertificateBase64);
-        Path kubeConfigFilePath = Path.of(KUBECONFIG_PATH);
-        Files.write(kubeConfigFilePath, kubeConfigYaml.getBytes(StandardCharsets.UTF_8));
     }
 }

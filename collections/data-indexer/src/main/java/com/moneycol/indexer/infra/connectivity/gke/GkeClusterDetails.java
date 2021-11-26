@@ -1,15 +1,19 @@
-package com.moneycol.indexer.infra.connectivity;
+package com.moneycol.indexer.infra.connectivity.gke;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import io.micronaut.context.annotation.ConfigurationProperties;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Accessors(fluent = true)
-@Builder
+@ConfigurationProperties("gke")
+@Getter
+@Setter
+//Important: cannot use this Lombok annotation or properties cannot be populated in test
+//@Accessors(fluent = true)
 public class GkeClusterDetails {
 
-    private final String projectId;
-    private final String zone;
-    private final String clusterName;
+    private String projectId;
+    private String zone;
+    private String clusterName;
+    private String elasticsearchServiceName;
+    private String elasticsearchServiceNamespace;
 }
