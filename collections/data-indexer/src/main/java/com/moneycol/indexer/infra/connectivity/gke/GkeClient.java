@@ -28,11 +28,7 @@ public class GkeClient {
     /**
      * Obtain basic details from a Service in K8s, knowing its name and namespace.
      *
-     * The `kubeConfigPath` points to the location of a valid kubeconfig, already populated to talk
-     * to Kube API.
-     *
      *  Solution is based off: https://ahmet.im/blog/authenticating-to-gke-without-gcloud/
-     * @param kubeConfigPath
      * @param serviceName
      * @param namespace
      * @return

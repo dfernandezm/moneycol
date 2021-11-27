@@ -43,6 +43,8 @@ public class GkeKubeAccessConfigurer {
             String zone = clusterDetails.getZone();
             String clusterName = clusterDetails.getClusterName();
 
+            log.info("Reading properties projectId {}, cluster {}, zone {}", projectId, clusterName, zone);
+
             Cluster clusterResponse = client.getCluster(projectId, zone, clusterName);
             generateKubeConfigFile(clusterResponse);
 

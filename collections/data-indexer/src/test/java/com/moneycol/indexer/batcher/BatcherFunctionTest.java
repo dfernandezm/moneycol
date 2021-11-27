@@ -1,4 +1,4 @@
-package com.moneycol.indexer;
+package com.moneycol.indexer.batcher;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.PageImpl;
@@ -6,10 +6,6 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.events.cloud.pubsub.v1.Message;
-import com.moneycol.indexer.batcher.BatcherFunctionExecutor;
-import com.moneycol.indexer.batcher.FileBatcher;
-import com.moneycol.indexer.batcher.FilesBatch;
-import com.moneycol.indexer.batcher.Inventory;
 import com.moneycol.indexer.infra.GcsClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.FanOutTracker;

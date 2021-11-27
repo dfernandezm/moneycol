@@ -50,16 +50,18 @@ echo "Deploying Indexer Worker function from $PWD"
 gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
 --trigger-topic $WORKER_TRIGGER_TOPIC \
 --memory 2048MB \
+--region europe-west1 \
 --env-vars-file ../../.env.yaml \
 --service-account $SERVICE_ACCOUNT \
 --timeout 540s
 
-########### Indexing Function - subscriber #############
+######### Indexing Function - subscriber #############
 
-# indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
-# the sink topic
+ indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
+ the sink topic
 
 cd ../../..
+## Edit the function to use the connector
 #cd ..
 echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
 ./gradlew :data-indexer:clean :data-indexer:shadowJar \
@@ -71,9 +73,11 @@ cd build/libs
 echo "Deploying Indexer Indexing function from $PWD"
 gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
 --trigger-topic $PROCESSING_DONE_TOPIC \
+--region europe-west1 \
 --memory 2048MB \
 --service-account $SERVICE_ACCOUNT \
 --env-vars-file ../../.env.yaml \
+--vpc-connector moneycolvpcconnectordev \
 --timeout 540s
 
 # Logs: gcloud functions logs read --limit 50
