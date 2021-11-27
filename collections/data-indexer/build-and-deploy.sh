@@ -57,8 +57,8 @@ gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS -
 
 ######### Indexing Function - subscriber #############
 
- indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
- the sink topic
+# indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
+# the sink topic
 
 cd ../../..
 ## Edit the function to use the connector
