@@ -43,7 +43,6 @@ public class ElasticSearchClient {
                                     jsonMap.get("catalogCode") + "-" + UUID.randomUUID();
                             return new IndexRequest(indexName)
                                     .id(id)
-                                    .setPipeline("add-current-time")
                                     // this seems to be required in elasticsearch 6.5
                                     .type(BANKNOTES_TYPE)
                                     .source(jsonMap);

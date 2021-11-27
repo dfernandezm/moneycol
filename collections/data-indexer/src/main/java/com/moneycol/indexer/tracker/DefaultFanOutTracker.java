@@ -12,8 +12,8 @@ import javax.inject.Singleton;
 
 @Slf4j
 @RequiredArgsConstructor
-@Singleton
 @Primary
+@Singleton
 public class DefaultFanOutTracker implements FanOutTracker {
 
     private final TaskListRepository taskListRepo;
@@ -58,6 +58,7 @@ public class DefaultFanOutTracker implements FanOutTracker {
     @Override
     public <T> void publishIntermediateResult(T resultData) {
         String sinkTopicName = fanOutConfigurationProperties.getPubSub().getSinkTopicName();
+        log.info("Publishing intermediate to topic {}, result {}", sinkTopicName, resultData);
         pubSubClient.publishMessage(sinkTopicName, resultData);
     }
 

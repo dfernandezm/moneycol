@@ -49,12 +49,15 @@ public class WorkerFunctionExecutor {
         batch.getFilenames().forEach(filename -> {
             BanknotesDataSet banknotesDataSet = readJsonFileToBanknotesDataSet(filename);
             banknotesDataSet.setFilename(filename);
-
             Integer banknotesAmount = banknotesDataSet.getBanknotes().size();
-            fanOutTracker.publishIntermediateResult(banknotesDataSet);
-            fanOutTracker.updatePendingItemsToProcessCount(taskListId, banknotesAmount);
 
-            log.info("Published message with {} document from contents of {} as {}", banknotesAmount, filename, banknotesDataSet);
+            if (banknotesAmount > 0) {
+                fanOutTracker.publishIntermediateResult(banknotesDataSet);
+                fanOutTracker.updatePendingItemsToProcessCount(taskListId, banknotesAmount);
+                log.info("Published message with {} document from contents of {} as {}", banknotesAmount, filename, banknotesDataSet);
+            } else {
+                log.info("No documents found in dataset in {}, hence not publishing to sink", filename);
+            }
         });
     }
 

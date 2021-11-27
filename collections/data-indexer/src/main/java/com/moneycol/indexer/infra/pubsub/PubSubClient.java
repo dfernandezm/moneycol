@@ -124,6 +124,7 @@ public class PubSubClient {
             do {
                 // Pull the batch of numOfMessages
                 receivedMessages = pullMessages(numOfMessages, subscriber, subscriptionName);
+                log.info("Received {} messages from batch of {} from subscription {}", receivedMessages.size(), 250, subscriptionName);
 
                 if (receivedMessages.size() == 0) {
                     return true;
