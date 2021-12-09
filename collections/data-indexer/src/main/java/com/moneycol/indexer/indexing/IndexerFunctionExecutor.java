@@ -36,7 +36,7 @@ public class IndexerFunctionExecutor  {
 
     public void execute(Message message, Context context) {
 
-        //TODO: should trigger here the ElasticConfig only, not at the boot of the
+        // should trigger here the Elastic endpoint discovery only, not at the boot of the
         // app or this will affect the other functions
 
         functionTimeoutChecker.startTimer();

@@ -35,7 +35,9 @@ public class KubeApiClientFactory {
         // This can be fixed by using GCP Auth lib to get application
         // default credentials from the underlying service account. This solution
         // has now been implemented in the GkeAuthenticator class, that extends/overrides
-        // the existing GCP Authenticator
+        // the existing GCP Authenticator.
+        // Another more 'crude' approach is getting the token and add it to the templated
+        // kubeconfig.yaml file, populating 'access-token' and 'expiry'
         KubeConfig.registerAuthenticator(new GkeAuthenticator());
         KubeConfig kubeConfig;
         try {

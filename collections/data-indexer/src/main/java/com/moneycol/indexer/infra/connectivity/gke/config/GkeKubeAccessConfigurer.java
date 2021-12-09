@@ -14,11 +14,24 @@ import java.nio.file.Path;
 public class GkeKubeAccessConfigurer {
 
     private static final String KUBECONFIG_PATH = "/tmp/kubeconfig.yaml";
+
+    /**
+     * This is the templated kubeconfig.yaml usually created by GKE so 'kubectl'
+     * can access the cluster. For that to work it requires:
+     *
+     * - clusterEndpoint
+     * - CA Certificate
+     * - Access Token (kubectl adds this)
+     * - Expiry (kubectl adds this)
+     *
+     * The block with user data is:
+     * "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
+     *
+     */
     private static final String KUBECONFIG_TEMPLATE = "apiVersion: v1\n" +
             "kind: Config\n" +
             "current-context: my-cluster\n" +
             "contexts: [{name: my-cluster, context: {cluster: cluster-1, user: user-1}}]\n" +
-            //"users: [{name: user-1, user: {auth-provider: {name: gcp, config: {access-token: \"%s\", expiry: \"%s\"}}}}]\n" +
             "users: [{name: user-1, user: {auth-provider: {name: gcp, config: {}}}}]\n" +
             "clusters:\n" +
             "- name: cluster-1\n" +
@@ -26,27 +39,22 @@ public class GkeKubeAccessConfigurer {
             "    server: \"https://%s\"\n" +
             "    certificate-authority-data: \"%s\"";
 
-    /**
-     *  String projectId = "moneycol";
-     *  String zone = "europe-west1-b";
-     *  String clusterId = "cluster-dev2";
-     *
-     * @param clusterDetails
-     */
+
+
     public GkeKubeConfig authenticate(GkeClusterDetails clusterDetails) {
         try (ClusterManagerClient client = ClusterManagerClient.create()) {
 
             log.info("Authenticating against GKE using stored credentials");
-            // this should use the default credentials depending on where it runs
-
             String projectId = clusterDetails.getProjectId();
             String zone = clusterDetails.getZone();
             String clusterName = clusterDetails.getClusterName();
 
             log.info("Reading properties projectId {}, cluster {}, zone {}", projectId, clusterName, zone);
-
             Cluster clusterResponse = client.getCluster(projectId, zone, clusterName);
-            generateKubeConfigFile(clusterResponse);
+            String endpoint = clusterResponse.getEndpoint();
+            String caCertificate = clusterResponse.getMasterAuth().getClusterCaCertificate();
+
+            writeKubeConfigFile(endpoint, caCertificate);
 
             log.info("Kubeconfig file generated");
             return GkeKubeConfig
@@ -60,10 +68,8 @@ public class GkeKubeAccessConfigurer {
         }
     }
 
-    private void generateKubeConfigFile(Cluster clusterResponse) throws IOException {
-        String endpoint = clusterResponse.getEndpoint();
-        String caCertificateBase64 = clusterResponse.getMasterAuth().getClusterCaCertificate();
-        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, endpoint, caCertificateBase64);
+    private void writeKubeConfigFile(String endpoint, String caCertificate) throws IOException {
+        String kubeConfigYaml = String.format(KUBECONFIG_TEMPLATE, endpoint, caCertificate);
         Path kubeConfigFilePath = Path.of(KUBECONFIG_PATH);
         Files.write(kubeConfigFilePath, kubeConfigYaml.getBytes(StandardCharsets.UTF_8));
     }
