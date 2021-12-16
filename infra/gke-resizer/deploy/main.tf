@@ -1,3 +1,5 @@
+# WIP - it does not currently work at all
+
 # Bucket needs to exist previously
 
 terraform {
