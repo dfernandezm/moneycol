@@ -1,0 +1,15 @@
+{
+  "name": "data-collector",
+  "version": "0.1.0",
+  "description": "data-collector",
+  "main": "banknotesCrawler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crawler": "^1.3.0",
+    "csv-writer": "^1.6.0"
+  }
+}
