@@ -1,10 +1,10 @@
 /**
  * Responds to any HTTP request.
- *
+ * 
  * @param {!express:Request} req HTTP request context.
  * @param {!express:Response} res HTTP response context.
  */
-
+//TODO: automate deployment
  const container = require("@google-cloud/container");
  const client = new container.v1.ClusterManagerClient();
  
