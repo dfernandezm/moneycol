@@ -1,8 +1,6 @@
 let Crawler = require("crawler");
 const csvWriter = require("./csvWriter")
 
-let userAgentStringOld1 = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5"
-let userAgentString = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5"
 let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
 
 let total = 0;
@@ -166,11 +164,11 @@ const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
 
-let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
-let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
-let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
-let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
-aCrawler.queue(usaUrl2);
+// let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
+// let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
+// let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
+// let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
+// aCrawler.queue(usaUrl2);
 
-//let mainCountriesUrl = "https://colnect.com/es/banknotes/countries";
-//countriesCrawler.queue(mainCountriesUrl);
+let mainCountriesUrl = "https://colnect.com/es/banknotes/countries";
+countriesCrawler.queue(mainCountriesUrl);
