@@ -1,10 +1,13 @@
 let Crawler = require("crawler");
 const csvWriter = require("./csvWriter")
+const Banknote = require("./banknote")
+const BankNoteDataSet = require("./banknoteDataset")
 
 let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
 
 let total = 0;
 let fs = require('fs');
+const BanknoteDataset = require("./banknoteDataset");
 
 const colnectUrl = "https://colnect.com";
 
@@ -43,6 +46,7 @@ let aCrawler = new Crawler({
             let bankNoteDetails = $("div.pl-it")
             let countryName = extractCountryName($);
 
+            // banknote found
             if (bankNoteDetails.length > 0) {
                 let banknotesList = [];
                 bankNoteDetails.each(function(i, elem) {
@@ -71,17 +75,23 @@ let aCrawler = new Crawler({
                                     }
                                 });
                             }
-                            let banknote = {};
-                            banknote.banknoteName = valueName;
+                            //let banknote = {};
+                            const banknote = new Banknote();
+                            banknote.name = valueName;
                             banknote.country = countryName;
                             banknote.year = year;
+
+                            //TODO: catalogCode is wrong for link
+                            // https://colnect.com/en/banknotes/banknote/79878-1_Pound-Specialized_Issues-Antigua_and_Barbuda
                             banknote.catalogCode = catalogCode;
-                            banknote.desc = desc;
-                            banknote.link = banknoteLink;
+                            banknote.description = desc;
+                            banknote.originalLink = banknoteLink;
                             banknote.imageLinkFront = imageLinkFront;
                             banknote.imageLinkBack = imageLinkBack;
+                            
                             banknotesList.push(banknote);
-                            console.log(valueName + " - " + year + " - " + catalogCode + " - " + banknoteLink + " - " + desc) ;
+                            console.log("Parsed banknote");
+                            console.log(`${JSON.stringify(banknote)}`)
                         });
 
                 //csvWriter.writeCsvRecords(banknotesList);
@@ -110,7 +120,6 @@ let aCrawler = new Crawler({
                 let linkUrl = $(elem).attr('href')
                 aCrawler.queue(colnectUrl + linkUrl)
             });
-
         }
 
         done();
@@ -155,7 +164,7 @@ const extractCountryName = ($) => {
     let countryName = "";
     if (countryNameHtml.length > 0) {
         countryName = countryNameHtml.eq(1).text();
-        console.log("Countryname: " + countryName);
+        console.log("Countryname: " + countryName); //TODO: returns x
     }
     return countryName;
 }
@@ -163,12 +172,6 @@ const extractCountryName = ($) => {
 const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
-
-// let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
-// let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
-// let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
-// let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
-// aCrawler.queue(usaUrl2);
 
 let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
 countriesCrawler.queue(mainCountriesUrl);
@@ -178,4 +181,9 @@ countriesCrawler.queue(mainCountriesUrl);
 // c.queue([{
 //    html: '<p>This is a <strong>test</strong></p>'
 // }]);
-//TODO: create class Banknote // BanknoteDataSet with exact same structure as the json in GCS
+
+// let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
+// let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
+// let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
+// let afgUrl = "https://colnect.com/en/banknotes/series/country/3953-Afghanistan";
+// aCrawler.queue(usaUrl2);
