@@ -2,7 +2,7 @@
  const fs = require('fs');
  var pathUtil = require('path');
 
- const PATH = "/Users/david/Desktop/banknotes/colnect/10-01-2022";
+ const PATH = "/Users/david/Desktop/banknotes/colnect/11-01-2022";
 
  class BanknotesWriter {
 

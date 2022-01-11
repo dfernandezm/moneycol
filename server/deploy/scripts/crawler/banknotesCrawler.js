@@ -48,55 +48,147 @@ let mainCrawler = new Crawler({
         } else {
             const $ = res.$;
 
+            // series links
             let links = $("div.pl_list a");
-            let bankNoteDetails = $("div.pl-it")
-            let countryName = extractCountryName($);
+
+            // banknote detail (list with pages)
+            let bankNoteDetails = $("#plist_items div.pl-it")
+
 
             // banknote found
             if (bankNoteDetails.length > 0) {
+
                 let banknotesList = [];
+                let countryName = extractCountryName($);
+
                 bankNoteDetails.each(function(i, elem) {
 
-                            let valueName = $("h2.item_header a",$(elem)).text()
-                            let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
-                            let issueYearLinks = $("div.i_d dl dd a",$(elem))
-                            let bankNoteData = $("div.i_d dl dd",$(elem))
+                    const map = new Map();
+                    let group;
 
-                            let catalogCode = bankNoteData.eq(0).text()
-                            let desc = bankNoteData.eq(6).text()
+                    // console.log(">>> HTML <<<< ");
+                    // console.log($(elem).html());
 
-                            // Images
-                            let imageLinkEl = $("div.item_thumb a img",$(elem))
-                            let imageLinkFront = imageLinkEl.length > 0 ? "https:" + imageLinkEl.eq(0).attr("data-src") : "No-front-img";
-                            let imageLinkBack = imageLinkEl.length > 1 ? "https:" + imageLinkEl.eq(1).attr("data-src") : "No-back-img";
-                            imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
-                            imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
 
-                            // year
-                            let year = readYear(issueYearLinks, $);
+                    $('div.i_d dl',$(elem)).children().each((i, dlElem) => {
+                        console.log(`${i} - ${dlElem.name}`);
+                        switch (dlElem.name.toLowerCase()) {
+                            case "dt":
+                            // start a list for this <dt>
+                            //console.log($(dlElem).html());
+                            map.set($(dlElem).text(), group = []);
+                            break;
 
-                            const banknote = new Banknote();
-                            banknote.name = valueName;
-                            banknote.country = countryName;
-                            banknote.year = year;
+                            case "dd":
+                            // add <dd> to the list for the current <dt>; if there is one.
+                            group?.push($(dlElem).text());
+                            group = [];
+                            break;
 
-                            //TODO: catalogCode is wrong for link
-                            // https://colnect.com/en/banknotes/banknote/79878-1_Pound-Specialized_Issues-Antigua_and_Barbuda
-                            banknote.catalogCode = catalogCode;
-                            banknote.description = desc;
-                            banknote.originalLink = banknoteLink;
-                            banknote.imageLinkFront = imageLinkFront;
-                            banknote.imageLinkBack = imageLinkBack;
-                            
-                            banknotesList.push(banknote);
+                            default:
+                            // just in case; 
+                            // anyways, where would <dd>s belong that are after something else than a <dt>?
+                            // ignore them
+                            group = null;
+                        }
+                    });
 
-                            console.log("Parsed banknote");
-                            console.log(`${JSON.stringify(banknote)}`)
-                        });
+                    // console.log(">>Parsed DL<<");
+                    // console.log(...map.entries());
+
+                    let hasVariants = false;
+                    if (map.get("Variants")) {
+                        hasVariants = true;
+                    }
+
+                    let faceValue = "";
+                    let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
+                    let year = "";
+                    let composition;
+                    let size= "";
+                    let catalogCode= "";
+                    let desc= "";
+
+                    map.forEach((value, key) => {
+                        console.log(key + " -> " + value);
+
+                        if (key === 'Catalog codes:') {
+                            catalogCode = value;
+                        }
+
+                        if (key === 'Issued on:') {
+                            year = value;
+                        }
+
+                        if (key === 'Composition:') {
+                            composition = value;
+                        }
+
+                        if (key === 'Face value:') {
+                            faceValue = value;
+                        }
+
+                        if (key === 'Score:') {
+                            score = value;
+                        }
+
+                        if (key === 'Description:') {
+                            description = value;
+                        }
+
+                        if (key === 'Size:') {
+                            size = value;
+                        }
+                    })
+                    
+                    let valueName = $("h2.item_header a",$(elem)).text()
+                    // let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
+                    // let issueYearLinks = $("div.i_d dl dd a",$(elem))
+                    // let bankNoteData = $("div.i_d dl dd",$(elem))
+
+                    // let catalogCode = bankNoteData.eq(0).text()
+                    // let desc = bankNoteData.eq(6).text()
+
+                    // Images
+                    let imageLinkEl = $("div.item_thumb a img",$(elem))
+                    let imageLinkFront = imageLinkEl.length > 0 ? "https:" + imageLinkEl.eq(0).attr("data-src") : "No-front-img";
+                    let imageLinkBack = imageLinkEl.length > 1 ? "https:" + imageLinkEl.eq(1).attr("data-src") : "No-back-img";
+                    imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
+                    imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
+
+                    // year
+                    //let year = readYear(issueYearLinks, $);
+
+                    const banknote = new Banknote();
+                    banknote.country = countryName;
+                    banknote.series = "To be parsed";
+                    banknote.name = valueName;
+                    banknote.year = year;
+
+                    banknote.faceValue = faceValue;
+                    banknote.score = score;
+                    banknote.size = size;
+                    banknote.composition = composition;
+                  
+
+                    //TODO: catalogCode is wrong for link
+                    // https://colnect.com/en/banknotes/banknote/79878-1_Pound-Specialized_Issues-Antigua_and_Barbuda
+                    banknote.catalogCode = catalogCode;
+                    banknote.description = desc;
+                    banknote.originalLink = banknoteLink;
+                    banknote.imageLinkFront = imageLinkFront;
+                    banknote.imageLinkBack = imageLinkBack;
+                    
+                    banknotesList.push(banknote);
+
+                    console.log("Parsed banknote");
+                    console.log(`${JSON.stringify(banknote)}`)
+                });
 
                 total++;
                 const banknoteDataset = new BanknoteDataset(countryName, total, "en", banknotesList);
                 banknotesWriter.writeJson(banknoteDataset);
+                console.log(">>>Banknotes batch written to json<<<<");
 
                 // navigate page if required
                 if (moreThanOnePage($)) {
@@ -164,15 +256,33 @@ const countriesCrawler = new Crawler({
 });
 
 const extractCountryName = ($) => {
-    let countryNameHtml = $("div.filter_one a");
-    let countryName = "";
-    if (countryNameHtml.length > 0) {
-        countryName = countryNameHtml.eq(1).text();
-        console.log("Countryname: " + countryName); //TODO: returns x
+    let countryNameHtml = $("div.filter_one._flt-country").text();
+    //console.log("countrynamehtml " + countryNameHtml);
+    let countryName = countryNameHtml.replace("Country:","");
+    let length = countryName.length;
+    let lastIndex = countryName.lastIndexOf("x");
+    if (countryName.lastIndexOf("x") + 1 == length) {
+        countryName = countryName.substring(0, lastIndex);
     }
+
+    console.log("Countryname: " + countryName);
     return countryName;
 }
 
+//TODO: rename to extractFilterName
+const extractSeries = ($) => {
+    let countryNameHtml = $("div.filter_one._flt-series").text();
+    //console.log("countrynamehtml " + countryNameHtml);
+    let countryName = countryNameHtml.replace("Series:","");
+    let length = countryName.length;
+    let lastIndex = countryName.lastIndexOf("x");
+    if (countryName.lastIndexOf("x") + 1 == length) {
+        countryName = countryName.substring(0, lastIndex);
+    }
+
+    console.log("Series: " + countryName);
+    return countryName;
+}
 const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
@@ -190,8 +300,8 @@ const readYear = (issueYearLinks, $) => {
     return year;
 }
 
-let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
-countriesCrawler.queue(mainCountriesUrl);
+// let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
+// countriesCrawler.queue(mainCountriesUrl);
 
 //TODO: write some tests for:
 // Queue some HTML code directly without grabbing (mostly for tests)
@@ -203,3 +313,6 @@ countriesCrawler.queue(mainCountriesUrl);
 // let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
 // let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
 // let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
+
+let afgUrl = "https://colnect.com/en/banknotes/series/country/1-Afghanistan";
+mainCrawler.queue(afgUrl);
