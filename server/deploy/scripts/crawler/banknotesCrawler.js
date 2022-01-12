@@ -1,29 +1,23 @@
-let Crawler = require("crawler");
-const csvWriter = require("./csvWriter")
+const Crawler = require("crawler");
 
 const Banknote = require("./banknote")
 const BanknoteDataset = require("./banknoteDataset")
 const BanknotesWriter = require("./banknotesWriter");
-const banknotesWriter = new BanknotesWriter();
-
-let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
-
-let total = 0;
 let fs = require('fs');
 
-
-
+const banknotesWriter = new BanknotesWriter();
+let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
+let total = 0;
 const colnectUrl = "https://colnect.com";
 
 // Regex of the country as named on the banknote detail section
 const countryRegex = /<\/strong>\:(.*)<a.*/gm;
-
 let visitedUrls = []
 
 let imgDownloadCrawler = new Crawler({
     rateLimit: 1000,
     encoding:null,
-    jQuery:false,// set false to suppress warning message.
+    jQuery:false, // set false to suppress warning message.
     callback:function(err, res, done){
         if(err){
             console.error(err.stack);
@@ -36,7 +30,7 @@ let imgDownloadCrawler = new Crawler({
 });
 
 let mainCrawler = new Crawler({
-   // maxConnections : 10
+    // maxConnections : 50,
     rateLimit: 1000,
     userAgent: googleUserAgent,
 
@@ -59,16 +53,13 @@ let mainCrawler = new Crawler({
             if (bankNoteDetails.length > 0) {
 
                 let banknotesList = [];
-                let countryName = extractCountryName($);
+                let countryName = extractFromFilter($,"_flt-country");
+                let seriesName = extractFromFilter($,"_flt-series");
 
                 bankNoteDetails.each(function(i, elem) {
 
                     const map = new Map();
                     let group;
-
-                    // console.log(">>> HTML <<<< ");
-                    // console.log($(elem).html());
-
 
                     $('div.i_d dl',$(elem)).children().each((i, dlElem) => {
                         console.log(`${i} - ${dlElem.name}`);
@@ -97,57 +88,61 @@ let mainCrawler = new Crawler({
                     // console.log(...map.entries());
 
                     let hasVariants = false;
-                    if (map.get("Variants")) {
+                    if (map.get("Variants:")) {
                         hasVariants = true;
                     }
 
                     let faceValue = "";
                     let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
                     let year = "";
-                    let composition;
-                    let size= "";
-                    let catalogCode= "";
-                    let desc= "";
+                    let composition = "";
+                    let size = "";
+                    let distribution = "";
+                    let themes = "";
+                    let catalogCode = "";
+                    let desc = "";
 
                     map.forEach((value, key) => {
                         console.log(key + " -> " + value);
 
                         if (key === 'Catalog codes:') {
-                            catalogCode = value;
+                            catalogCode = value[0];
                         }
 
                         if (key === 'Issued on:') {
-                            year = value;
+                            year = value[0];
                         }
 
                         if (key === 'Composition:') {
-                            composition = value;
+                            composition = value[0];
                         }
 
                         if (key === 'Face value:') {
-                            faceValue = value;
+                            faceValue = value[0];
                         }
 
                         if (key === 'Score:') {
-                            score = value;
+                            score = value[0];
                         }
 
                         if (key === 'Description:') {
-                            description = value;
+                            description = value[0];
                         }
 
                         if (key === 'Size:') {
-                            size = value;
+                            size = value[0];
+                        }
+
+                        if (key === 'Distribution:') {
+                            distribution = value[0];
+                        }
+
+                        if (key === 'Themes:') {
+                            themes = value[0];
                         }
                     })
                     
                     let valueName = $("h2.item_header a",$(elem)).text()
-                    // let banknoteLink = colnectUrl + $("h2.item_header a",$(elem)).attr('href')
-                    // let issueYearLinks = $("div.i_d dl dd a",$(elem))
-                    // let bankNoteData = $("div.i_d dl dd",$(elem))
-
-                    // let catalogCode = bankNoteData.eq(0).text()
-                    // let desc = bankNoteData.eq(6).text()
 
                     // Images
                     let imageLinkEl = $("div.item_thumb a img",$(elem))
@@ -161,7 +156,7 @@ let mainCrawler = new Crawler({
 
                     const banknote = new Banknote();
                     banknote.country = countryName;
-                    banknote.series = "To be parsed";
+                    banknote.series = seriesName;
                     banknote.name = valueName;
                     banknote.year = year;
 
@@ -169,7 +164,7 @@ let mainCrawler = new Crawler({
                     banknote.score = score;
                     banknote.size = size;
                     banknote.composition = composition;
-                  
+                    banknote.hasVariants = hasVariants;
 
                     //TODO: catalogCode is wrong for link
                     // https://colnect.com/en/banknotes/banknote/79878-1_Pound-Specialized_Issues-Antigua_and_Barbuda
@@ -187,7 +182,7 @@ let mainCrawler = new Crawler({
 
                 total++;
                 const banknoteDataset = new BanknoteDataset(countryName, total, "en", banknotesList);
-                banknotesWriter.writeJson(banknoteDataset);
+                banknotesWriter.writeToGcs(banknoteDataset);
                 console.log(">>>Banknotes batch written to json<<<<");
 
                 // navigate page if required
@@ -211,8 +206,8 @@ let mainCrawler = new Crawler({
             }
 
             links.each(function(i, elem) {
-                let linkUrl = $(elem).attr('href')
-                mainCrawler.queue(colnectUrl + linkUrl)
+                let linkUrl = $(elem).attr('href');
+                mainCrawler.queue(colnectUrl + linkUrl);
             });
         }
 
@@ -257,16 +252,15 @@ const countriesCrawler = new Crawler({
 
 const extractCountryName = ($) => {
     let countryNameHtml = $("div.filter_one._flt-country").text();
-    //console.log("countrynamehtml " + countryNameHtml);
     let countryName = countryNameHtml.replace("Country:","");
     let length = countryName.length;
     let lastIndex = countryName.lastIndexOf("x");
+
     if (countryName.lastIndexOf("x") + 1 == length) {
         countryName = countryName.substring(0, lastIndex);
     }
 
-    console.log("Countryname: " + countryName);
-    return countryName;
+    return countryName.trim();
 }
 
 //TODO: rename to extractFilterName
@@ -282,6 +276,19 @@ const extractSeries = ($) => {
 
     console.log("Series: " + countryName);
     return countryName;
+}
+
+const extractFromFilter = ($, filterClass) => {
+    let filterNameHtml = $(`div.filter_one.${filterClass}`).text();
+    //console.log("countrynamehtml " + countryNameHtml);
+    let filterName = filterNameHtml.replace("Series:","");
+    filterName = filterName.replace("Country:","");
+    let length = filterName.length;
+    let lastIndex = filterName.lastIndexOf("x");
+    if (filterName.lastIndexOf("x") + 1 == length) {
+        filterName = filterName.substring(0, lastIndex);
+    }
+    return filterName.trim();
 }
 const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
