@@ -30,25 +30,26 @@
 
     writeToGcs(banknoteDataset) {
         const jsonData = JSON.stringify(banknoteDataset);
-        //console.log(jsonData);
         const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}.json`;
+
+        //TODO: date of today
         const dataUri = process.env.DATA_URI || `colnect/13-01-2022`;
         const filePath = `${dataUri}/${filename}`;
 
-        // const bucket = this.storage.bucket("moneycol-import");
-        // const file = bucket.file(filePath);
+        const bucket = this.storage.bucket("moneycol-import");
+        const file = bucket.file(filePath);
 
-        // file.save(jsonData, {
-        //     metadata: { contentType: "application/json" },
-        //     validation: 'md5'
-        // }, (error) => {
+        file.save(jsonData, {
+            metadata: { contentType: "application/json" },
+            validation: 'md5'
+        }, (error) => {
         
-        //     if (error) {
-        //         console.log(`Error uploading ${filePath}`, error)
-        //     }
+            if (error) {
+                console.log(`Error uploading ${filePath}`, error)
+            }
         
-        //     return true;
-        // });
+            return true;
+        });
     }
 
     
