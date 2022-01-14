@@ -8,6 +8,7 @@ let fs = require('fs');
 const banknotesWriter = new BanknotesWriter();
 let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
 let total = 0;
+let totalBanknotes = 0;
 const colnectUrl = "https://colnect.com";
 
 // Regex of the country as named on the banknote detail section
@@ -82,9 +83,6 @@ let mainCrawler = new Crawler({
                             group = null;
                         }
                     });
-
-                    // console.log(">>Parsed DL<<");
-                    // console.log(...map.entries());
 
                     let hasVariants = false;
                     if (map.get("Variants:")) {
@@ -172,7 +170,7 @@ let mainCrawler = new Crawler({
                     
                     banknotesList.push(banknote);
 
-                    console.log("Parsed banknote");
+                    console.log(`Parsed banknote, total is ${++totalBanknotes}`);
                     console.log(`${JSON.stringify(banknote)}`)
                 });
 
