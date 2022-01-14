@@ -62,7 +62,6 @@ let mainCrawler = new Crawler({
                     let group;
 
                     $('div.i_d dl',$(elem)).children().each((i, dlElem) => {
-                        console.log(`${i} - ${dlElem.name}`);
                         switch (dlElem.name.toLowerCase()) {
                             case "dt":
                             // start a list for this <dt>
@@ -151,9 +150,6 @@ let mainCrawler = new Crawler({
                     imageLinkFront = imageLinkFront.replace(/\/t\//g,'/b/'); // replacing thumbnails with big imgs
                     imageLinkBack = imageLinkBack.replace(/\/t\//g,'/b/');
 
-                    // year
-                    //let year = readYear(issueYearLinks, $);
-
                     const banknote = new Banknote();
                     banknote.country = countryName;
                     banknote.series = seriesName;
@@ -237,7 +233,6 @@ const countriesCrawler = new Crawler({
         } else {
             let $ = res.$;
             console.log("Crawling main list");
-            //let countriesLinks = $("div.pl_list a");
             let countriesLinks = $("div.country a")
             console.log("countries " + countriesLinks.length)
             countriesLinks.each(function(i, el) {
@@ -250,40 +245,22 @@ const countriesCrawler = new Crawler({
      }
 });
 
-const extractCountryName = ($) => {
-    let countryNameHtml = $("div.filter_one._flt-country").text();
-    let countryName = countryNameHtml.replace("Country:","");
-    let length = countryName.length;
-    let lastIndex = countryName.lastIndexOf("x");
-
-    if (countryName.lastIndexOf("x") + 1 == length) {
-        countryName = countryName.substring(0, lastIndex);
-    }
-
-    return countryName.trim();
-}
-
-//TODO: rename to extractFilterName
-const extractSeries = ($) => {
-    let countryNameHtml = $("div.filter_one._flt-series").text();
-    //console.log("countrynamehtml " + countryNameHtml);
-    let countryName = countryNameHtml.replace("Series:","");
-    let length = countryName.length;
-    let lastIndex = countryName.lastIndexOf("x");
-    if (countryName.lastIndexOf("x") + 1 == length) {
-        countryName = countryName.substring(0, lastIndex);
-    }
-
-    console.log("Series: " + countryName);
-    return countryName;
-}
-
+/**
+ * Country and Series from named filters
+ * 
+ */
 const extractFromFilter = ($, filterClass) => {
     let filterNameHtml = $(`div.filter_one.${filterClass}`).text();
     //console.log("countrynamehtml " + countryNameHtml);
+
     let filterName = filterNameHtml.replace("Series:","");
     filterName = filterName.replace("Country:","");
     let length = filterName.length;
+
+    if (filterNameHtml.indexOf("Series")!= -1) {
+        console.log("Series: " + filterName);
+    }
+
     let lastIndex = filterName.lastIndexOf("x");
     if (filterName.lastIndexOf("x") + 1 == length) {
         filterName = filterName.substring(0, lastIndex);
@@ -321,5 +298,8 @@ const readYear = (issueYearLinks, $) => {
 // let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
 // let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
 
-let afgUrl = "https://colnect.com/en/banknotes/series/country/1-Afghanistan";
-mainCrawler.queue(afgUrl);
+let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
+mainCrawler.queue(countryUrl);
+
+// let afgUrl = "https://colnect.com/en/banknotes/series/country/1-Afghanistan";
+// mainCrawler.queue(afgUrl);
