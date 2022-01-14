@@ -284,8 +284,11 @@ const readYear = (issueYearLinks, $) => {
     return year;
 }
 
-// let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
-// countriesCrawler.queue(mainCountriesUrl);
+let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
+countriesCrawler.queue(mainCountriesUrl);
+
+// let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
+// mainCrawler.queue(countryUrl);
 
 //TODO: write some tests for:
 // Queue some HTML code directly without grabbing (mostly for tests)
@@ -298,8 +301,7 @@ const readYear = (issueYearLinks, $) => {
 // let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
 // let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
 
-let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
-mainCrawler.queue(countryUrl);
+
 
 // let afgUrl = "https://colnect.com/en/banknotes/series/country/1-Afghanistan";
 // mainCrawler.queue(afgUrl);
