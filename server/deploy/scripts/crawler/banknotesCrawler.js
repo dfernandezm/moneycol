@@ -170,6 +170,7 @@ let mainCrawler = new Crawler({
                     
                     banknotesList.push(banknote);
 
+                    //TODO: map with country -> total of banknotes
                     console.log(`Parsed banknote, total is ${++totalBanknotes}`);
                     console.log(`${JSON.stringify(banknote)}`)
                 });
