@@ -2,7 +2,6 @@
  const { PubSub } = require('@google-cloud/pubsub');
  const dayjs = require('dayjs')
 
-
  const RESIZER_FUNCTION_URL = process.env.RESIZER_FUNCTION_URL || 
  "https://europe-west1-moneycol.cloudfunctions.net/gke-resize"
  
@@ -21,7 +20,7 @@ const WEBSITE_NAME = process.env.WEBSITE_NAME || "colnect";
         this.pubsubClient = new PubSub(); 
     }
 
-    async resize() {
+    async resizeClusterNodePool() {
         const endpoint = RESIZER_FUNCTION_URL;
         const targetAudience = RESIZER_FUNCTION_URL  
         console.info(`request ${endpoint} with target audience ${targetAudience} for resizing crawler`);

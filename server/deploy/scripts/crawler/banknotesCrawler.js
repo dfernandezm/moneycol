@@ -10,6 +10,7 @@ let googleUserAgent = "APIs-Google (+https://developers.google.com/webmasters/AP
 let total = 0;
 let totalBanknotes = 0;
 const colnectUrl = "https://colnect.com";
+const banknotesMap = new Map();
 
 // Regex of the country as named on the banknote detail section
 const countryRegex = /<\/strong>\:(.*)<a.*/gm;
@@ -31,8 +32,8 @@ let imgDownloadCrawler = new Crawler({
 });
 
 let mainCrawler = new Crawler({
-    // maxConnections : 50,
-    rateLimit: 1000,
+    maxConnections : 10,
+    rateLimit: 2000,
     userAgent: googleUserAgent,
 
     // This will be called for each country link
@@ -42,13 +43,17 @@ let mainCrawler = new Crawler({
             console.log(error);
         } else {
             const $ = res.$;
+            console.log(`Visiting: ${res.options.uri}`);
 
             // series links
             let links = $("div.pl_list a");
 
             // banknote detail (list with pages)
-            let bankNoteDetails = $("#plist_items div.pl-it")
+            let bankNoteDetails = $("#plist_items div.pl-it");
 
+            if (links.length == 0 && bankNoteDetails.length == 0) {
+                console.log(`Cannot find data in url ${res.options.uri}`);
+            }
 
             // banknote found
             if (bankNoteDetails.length > 0) {
@@ -57,10 +62,18 @@ let mainCrawler = new Crawler({
                 let countryName = extractFromFilter($,"_flt-country");
                 let seriesName = extractFromFilter($,"_flt-series");
 
+                if (res.options.uri.indexOf("Promissory")!=-1) {
+                    console.log("CountryName: " + seriesName);
+                }
+    
                 bankNoteDetails.each(function(i, elem) {
 
                     const map = new Map();
                     let group;
+
+                    if (res.options.uri.indexOf("Promissory")!=-1) {
+                        console.log("details: " + elem);
+                    }
 
                     $('div.i_d dl',$(elem)).children().each((i, dlElem) => {
                         switch (dlElem.name.toLowerCase()) {
@@ -100,7 +113,6 @@ let mainCrawler = new Crawler({
                     let desc = "";
 
                     map.forEach((value, key) => {
-                        console.log(key + " -> " + value);
 
                         if (key === 'Catalog codes:') {
                             catalogCode = value[0];
@@ -153,6 +165,8 @@ let mainCrawler = new Crawler({
                     banknote.series = seriesName;
                     banknote.name = valueName;
                     banknote.year = year;
+                    banknote.distribution = distribution;
+                    banknote.themes = themes;
 
                     banknote.faceValue = faceValue;
                     banknote.score = score;
@@ -170,28 +184,38 @@ let mainCrawler = new Crawler({
                     
                     banknotesList.push(banknote);
 
-                    //TODO: map with country -> total of banknotes
+                    //TODO: need atomic change here
+                    let banknotesPerCountryCount = banknotesMap.get(banknote.country);
+                    if (banknotesPerCountryCount) {
+                        banknotesMap.set(banknote.country, ++banknotesPerCountryCount)
+                    } else {
+                        banknotesMap.set(banknote.country, 1);
+                    }
+
+                    console.log(`Series: ${banknote.series}, ${res.options.uri} -> ${banknote.name}`);
+                    console.log(`Banknotes for country ${banknote.country}: ${banknotesMap.get(banknote.country)}`)
                     console.log(`Parsed banknote, total is ${++totalBanknotes}`);
-                    console.log(`${JSON.stringify(banknote)}`)
+                    console.log(`Country ${banknote.country}: ${JSON.stringify(banknote)}`)
                 });
 
-                total++;
                 const banknoteDataset = new BanknoteDataset(countryName, total, "en", banknotesList);
                 banknotesWriter.writeToGcs(banknoteDataset);
-                console.log(">>>Banknotes batch written to json<<<<");
+                console.log(">>>Banknotes batch written<<<<");
 
                 // navigate page if required
                 if (moreThanOnePage($)) {
                     $("div.navigation_box div a.pager_page").each(function(i, el) {
                         let href = $(el).attr('href');
+                        
                         // control pagelink are the > and >> to go one page more or to the end
                         let notControl = $('.pager_control',$(el)).length == 0
                         let url = colnectUrl + href;
+                        //console.log("Page: " + url);
                         let notFirstPage = !url.endsWith('/page/1');
-
+                        console.log("Checking url " + url);
                         if (!visitedUrls.includes(url)) {
                             if (notControl && notFirstPage) {
-                                console.log("New page within list: " + url);
+                                console.log("Added to url list: " + url);
                                 visitedUrls.push(url);
                                 mainCrawler.queue(url);
                             }   
@@ -210,19 +234,8 @@ let mainCrawler = new Crawler({
     }
 });
 
-const extractLinks = (banknotesLinks) => {
-    banknotesLinks.each(function(i, elem) {
-        let linkUrl = $(elem).attr('href')
-        if (linkUrl) {
-            if (linkUrl.indexOf("/banknote/") != -1) {
-                console.log("Link: " + linkUrl);
-            }   
-        }   
-    });
-}
-
 const countriesCrawler = new Crawler({
-    // maxConnections : 10
+     maxConnections : 10,
      rateLimit: 500,
      userAgent: googleUserAgent,
      // This will be called for each crawled page
@@ -250,8 +263,6 @@ const countriesCrawler = new Crawler({
  */
 const extractFromFilter = ($, filterClass) => {
     let filterNameHtml = $(`div.filter_one.${filterClass}`).text();
-    //console.log("countrynamehtml " + countryNameHtml);
-
     let filterName = filterNameHtml.replace("Series:","");
     filterName = filterName.replace("Country:","");
     let length = filterName.length;
@@ -270,24 +281,13 @@ const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
 
-const readYear = (issueYearLinks, $) => {
-    let year = "";
-    if (issueYearLinks.length > 0) {
-        issueYearLinks.each(function (i, el) {
-            let href = $(el).attr('href');
-            if (href.indexOf("/year/") !== -1) {
-                year = $(el).text();
-            }
-        });
-    }
-    return year;
-}
+// let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
+// countriesCrawler.queue(mainCountriesUrl);
 
-let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
-countriesCrawler.queue(mainCountriesUrl);
-
-// let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
-// mainCrawler.queue(countryUrl);
+let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
+mainCrawler.queue(countryUrl);
+// let seriesUrl = "https://colnect.com/en/banknotes/list/country/104-Ireland/series/319062-Promissory_National_Bonds";
+// mainCrawler.queue(seriesUrl);
 
 //TODO: write some tests for:
 // Queue some HTML code directly without grabbing (mostly for tests)
