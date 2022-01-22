@@ -32,7 +32,6 @@
         const jsonData = JSON.stringify(banknoteDataset);
         const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}.json`;
 
-        //TODO: date of today
         const dataUri = process.env.DATA_URI || `colnect/13-01-2022`;
         const filePath = `${dataUri}/${filename}`;
 
