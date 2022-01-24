@@ -277,30 +277,10 @@ const extractFromFilter = ($, filterClass) => {
     }
     return filterName.trim();
 }
+
 const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
 
-// let mainCountriesUrl = "https://colnect.com/en/banknotes/countries";
-// countriesCrawler.queue(mainCountriesUrl);
-
 let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
 mainCrawler.queue(countryUrl);
-// let seriesUrl = "https://colnect.com/en/banknotes/list/country/104-Ireland/series/319062-Promissory_National_Bonds";
-// mainCrawler.queue(seriesUrl);
-
-//TODO: write some tests for:
-// Queue some HTML code directly without grabbing (mostly for tests)
-// c.queue([{
-//    html: '<p>This is a <strong>test</strong></p>'
-// }]);
-
-// Individual countries or series
-// let albaniaUrl = "https://colnect.com/en/banknotes/series/country/3954-Albania";
-// let usaUrl = "https://colnect.com/en/banknotes/series/country/3985-United_States_of_America";
-// let usaUrl2 = "https://colnect.com/en/banknotes/list/country/3985-United_States_of_America/series/103988-Specialized_Issues_-_Continental_Congress";
-
-
-
-// let afgUrl = "https://colnect.com/en/banknotes/series/country/1-Afghanistan";
-// mainCrawler.queue(afgUrl);
