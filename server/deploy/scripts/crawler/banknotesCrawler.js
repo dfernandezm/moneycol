@@ -78,8 +78,6 @@ let mainCrawler = new Crawler({
                     $('div.i_d dl',$(elem)).children().each((i, dlElem) => {
                         switch (dlElem.name.toLowerCase()) {
                             case "dt":
-                            // start a list for this <dt>
-                            //console.log($(dlElem).html());
                             map.set($(dlElem).text(), group = []);
                             break;
 
@@ -90,9 +88,6 @@ let mainCrawler = new Crawler({
                             break;
 
                             default:
-                            // just in case; 
-                            // anyways, where would <dd>s belong that are after something else than a <dt>?
-                            // ignore them
                             group = null;
                         }
                     });

@@ -6,7 +6,7 @@ This is the crawler to parse data from websites into raw json stored in GCS read
 The process is:
 
 - There's a Kubernetes Job `data-collector-colnect`/`data-collector-colnect-cron` deployed in a GKE Node Pool `indexing-pool`, with size 0 (see `charts/data-collector`)
-- The cronjob requires a Service Account with GCS and Cloud Function Invoker role (`moneycol-gcs.json` key for `gcs-buckets@moneycol.iam.gserviceaccount.com`)
+- The cronjob requires a Service Account with GCS and Cloud Function Invoker role (`moneycol-gcs.json` key for `gcs-buckets@moneycol.iam.gserviceaccount.com`) - changed to `data-collector@moneycol.iam.gserviceaccount.com`
 - Once a week, a Cloud Scheduler `start-crawler` launches `gke-resizer` HTTP function which resizes the node pool to 1 (at `01:00 am`, `0 1 * * 0`). This happens 15 minutes before the cronjob scheduled time (at `15 1 * * 0`, `01:15am`)
 - The payload of the Cloud Scheduler is:
 ```
