@@ -41,6 +41,7 @@ const WEBSITE_NAME = process.env.WEBSITE_NAME || "colnect";
         // Publishes the message as a string, e.g. "Hello, world!" or JSON.stringify(someObject)
         const topicName = process.env.CRAWLER_DONE_TOPIC_NAME;
         const data = this.buildDoneNotification(GCS_BUCKET);
+        //TODO: publishing DONE here should also trigger resizing the node pool back to 0
         const dataBuffer = Buffer.from(data);
 
         try {

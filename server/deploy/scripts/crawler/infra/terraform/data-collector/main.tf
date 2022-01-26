@@ -75,15 +75,12 @@ resource "local_file" "gke_resize_key" {
     filename = "/tmp/gke-resize.json"
 }
 
-data "google_compute_default_service_account" "default" {
-}
-
 resource "google_cloud_scheduler_job" "start_crawler_job" {
   name             = "start-crawler"
   description      = "Call GKE Resize to get Crawler Cronjob started"
   schedule         = var.crawler_resize_job_schedule
   time_zone        = "Europe/Madrid"
-  attempt_deadline = "320s"
+  attempt_deadline = "300s"
 
   http_target {
     http_method = "POST"
@@ -94,4 +91,16 @@ resource "google_cloud_scheduler_job" "start_crawler_job" {
       service_account_email = google_service_account.gke_resize_main_service_account.email
     }
   }
+}
+
+resource "kubernetes_secret" "data_collector_key_secret" {
+  metadata {
+    name = "data-collector-key"
+  }
+
+  data = {
+    "data-collector-key.json" = base64decode(google_service_account_key.data_collector_sa_key.private_key)
+  }
+
+  type = "generic"
 }
