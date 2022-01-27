@@ -2,7 +2,10 @@
  const fs = require('fs');
  var pathUtil = require('path');
  const { Storage } = require('@google-cloud/storage');
- const PATH = "/Users/david/Desktop/banknotes/colnect/13-01-2022";
+ const dayjs = require('dayjs');
+
+ const PATH = "/tmp";
+
 
  class BanknotesWriter {
 
@@ -32,7 +35,7 @@
         const jsonData = JSON.stringify(banknoteDataset);
         const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}.json`;
 
-        const dataUri = process.env.DATA_URI || `colnect/13-01-2022`;
+        const dataUri = this.dateOfToday();
         const filePath = `${dataUri}/${filename}`;
 
         const bucket = this.storage.bucket("moneycol-import");
@@ -49,7 +52,13 @@
         
             return true;
         });
-    }    
+    }
+    
+    dateOfToday() {
+        const now = dayjs();
+        const dateOfToday = now.format("DD-MM-YYYY");
+        console.info(`Date of today is ${dateOfToday}`);
+    }
 }
 
 

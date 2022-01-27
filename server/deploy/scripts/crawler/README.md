@@ -10,9 +10,24 @@ docker build . -t eu.gcr.io/moneycol/data-collector-node:0.0.1
 docker run -v /Users/david/development/repos:/tmp -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/moneycol-gcs.json -it  eu.gcr.io/moneycol/data-collector-node:0.0.1
 ```
 
-## Deployment
+## Build and deploy
 
-Deploy in GKE using Helm from charts repository `data-collector`.
+Build the Docker image locally:
+
+- Get commit hash `git rev-parse HEAD | cut -c1-7`
+- Build Docker
+```
+docker build . -t eu.gcr.io/moneycol/data-collector-node:0.0.4-commitHash
+docker push eu.gcr.io/moneycol/data-collector-node:0.0.4-commitHash
+```
+
+Deploy in GKE using Helm from charts repository `data-collector`:
+
+- The `indexing-pool` should be 1 before deploying
+- Ensure the secret `data-collector-key` is present in GKE (see `infra/terraform`)
+- Edit `values.yaml` and put the new image tag, ensure `deployCron: true` too
+- Run `helm install data-collector data-collector` in the `charts/data-collector`
+- This should install a Cron job in K8s that runs crawling at `1:15 am` every Sunday
 
 
 ## Crawling specifics
