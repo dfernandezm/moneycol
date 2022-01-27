@@ -193,7 +193,7 @@ let mainCrawler = new Crawler({
                     console.log(`Country ${banknote.country}: ${JSON.stringify(banknote)}`)
                 });
 
-                const banknoteDataset = new BanknoteDataset(countryName, total, "en", banknotesList);
+                const banknoteDataset = new BanknoteDataset(countryName, totalBanknotes, "en", banknotesList);
                 banknotesWriter.writeToGcs(banknoteDataset);
                 console.log(">>>Banknotes batch written<<<<");
 
