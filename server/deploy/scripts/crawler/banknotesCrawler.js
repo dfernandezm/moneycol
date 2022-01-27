@@ -1,4 +1,5 @@
 const Crawler = require("crawler");
+import { v4 as uuidv4 } from 'uuid';
 
 const Banknote = require("./banknote")
 const BanknoteDataset = require("./banknoteDataset")
@@ -194,7 +195,9 @@ let mainCrawler = new Crawler({
                 });
 
                 const banknoteDataset = new BanknoteDataset(countryName, totalBanknotes, "en", banknotesList);
-                banknotesWriter.writeToGcs(banknoteDataset);
+                const fileGuid = uuidv4();
+
+                banknotesWriter.writeToGcs(banknoteDataset, fileGuid);
                 console.log(">>>Banknotes batch written<<<<");
 
                 // navigate page if required

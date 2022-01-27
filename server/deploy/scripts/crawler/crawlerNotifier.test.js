@@ -1,4 +1,5 @@
 const CrawlerNotifier = require('./crawlerNotifier');
+import { BanknotesWriter } from './banknotesWriter';
 
 test('builds message for notification', () => {
    const crawlerNotifier = new CrawlerNotifier();
@@ -8,4 +9,13 @@ test('builds message for notification', () => {
     "bucketName": "moneycol-import",
     "dataUri": "colnect/19-01-2022"
    })
+});
+
+test('write file with correct name', () => {
+   const writer = new BanknotesWriter();
+   const storageMock = jest.mock()
+   //storageMock.
+   //writer.storage = jest.mock()
+
+
 });

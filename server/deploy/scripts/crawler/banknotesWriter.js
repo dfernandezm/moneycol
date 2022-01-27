@@ -6,8 +6,7 @@
 
  const PATH = "/tmp";
 
-
- class BanknotesWriter {
+ export class BanknotesWriter {
 
     constructor() {
         this.storage = new Storage();
@@ -31,9 +30,9 @@
         fs.writeFileSync(filePath, jsonData);
     }
 
-    writeToGcs(banknoteDataset) {
+    writeToGcs(banknoteDataset, fileGuid) {
         const jsonData = JSON.stringify(banknoteDataset);
-        const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}.json`;
+        const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}-${fileGuid}.json`;
 
         const dataUri = `colnect/${this.dateOfToday()}`;
         const filePath = `${dataUri}/${filename}`;
@@ -52,7 +51,7 @@
         
             return true;
         });
-        
+
         console.log(`Written to filePath: ${filePath}`);
     }
     
