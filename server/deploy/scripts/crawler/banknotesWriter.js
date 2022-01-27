@@ -35,7 +35,7 @@
         const jsonData = JSON.stringify(banknoteDataset);
         const filename = `${banknoteDataset.language}-${banknoteDataset.country}-p-${banknoteDataset.pageNumber}.json`;
 
-        const dataUri = this.dateOfToday();
+        const dataUri = `colnect/${this.dateOfToday()}`;
         const filePath = `${dataUri}/${filename}`;
 
         const bucket = this.storage.bucket("moneycol-import");
@@ -52,12 +52,15 @@
         
             return true;
         });
+        
+        console.log(`Written to filePath: ${filePath}`);
     }
     
     dateOfToday() {
         const now = dayjs();
         const dateOfToday = now.format("DD-MM-YYYY");
         console.info(`Date of today is ${dateOfToday}`);
+        return dateOfToday;
     }
 }
 
