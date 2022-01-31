@@ -6,7 +6,7 @@
 
  const PATH = "/tmp";
 
- export class BanknotesWriter {
+class BanknotesWriter {
 
     constructor() {
         this.storage = new Storage();
@@ -62,6 +62,5 @@
         return dateOfToday;
     }
 }
-
 
 module.exports = BanknotesWriter;

@@ -30,6 +30,16 @@ Deploy in GKE using Helm from charts repository `data-collector`:
 - This should install a Cron job in K8s that runs crawling at `1:15 am` every Sunday
 
 
+### Parameters and environment variables
+
+- `RESIZER_FUNCTION_URL`: URL of the GKE resizer function
+- `PROJECT_ID`: the GCP project where the crawler is hosted
+- `ZONE`
+- `CLUSTER_ID` 
+- `NODE_POOL_ID` 
+- `GCS_BUCKET`
+- `WEBSITE_NAME`
+
 ## Crawling specifics
 
 If you want to crawl just one country or series, this can be configured:

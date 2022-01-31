@@ -12,6 +12,7 @@ const NODE_POOL_ID =  process.env.NODE_POOL_ID || "indexing-pool";
 
 const GCS_BUCKET =  process.env.GCS_BUCKET || "moneycol-import";
 const WEBSITE_NAME = process.env.WEBSITE_NAME || "colnect";
+const TOPIC_NAME = process.env.CRAWLER_DONE_TOPIC_NAME || "dev.crawler.events";
 
  class CrawlerNotifier {
 
@@ -20,7 +21,8 @@ const WEBSITE_NAME = process.env.WEBSITE_NAME || "colnect";
         this.pubsubClient = new PubSub(); 
     }
 
-    async resizeClusterNodePool() {
+    //This can be done as a trigger of the pubsub dev.crawler.events and not here
+    async resizeClusterNodePoolToZero() {
         const endpoint = RESIZER_FUNCTION_URL;
         const targetAudience = RESIZER_FUNCTION_URL  
         console.info(`request ${endpoint} with target audience ${targetAudience} for resizing crawler`);
@@ -39,14 +41,14 @@ const WEBSITE_NAME = process.env.WEBSITE_NAME || "colnect";
 
     async notifyDone() {
         // Publishes the message as a string, e.g. "Hello, world!" or JSON.stringify(someObject)
-        const topicName = process.env.CRAWLER_DONE_TOPIC_NAME;
-        const data = this.buildDoneNotification(GCS_BUCKET);
+        const topicName = TOPIC_NAME;
+        const data = JSON.stringify(this.buildDoneNotification(GCS_BUCKET));
+
         //TODO: publishing DONE here should also trigger resizing the node pool back to 0
         const dataBuffer = Buffer.from(data);
 
         try {
-            //TODO: add pubsub permission to the service account `gcs-buckets@moneycol.iam.gserviceaccount.com`
-            const messageId = await pubsubClient.topic(topicName).publish(dataBuffer);
+            const messageId = await this.pubsubClient.topic(topicName).publish(dataBuffer);
             console.log(`Message ${messageId} published.`);
         } catch (error) {
             console.error(`Received error while publishing: ${error.message}`);
