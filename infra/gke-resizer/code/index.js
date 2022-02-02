@@ -9,20 +9,33 @@
  const client = new container.v1.ClusterManagerClient();
  
  exports.resizeCluster = async (req, res) => {
-   console.log(`Request Body`, JSON.stringify(req.body));
+
+   // If the function is triggered by pubsub
+   // req = message, res = context
+   // ---
+   // If the function is triggered via HTTP
+   // req is the request and JSON is at req.body
+   // res is regular response with status() and other functions
+   let payload = req.body ? req.body : req;
+   
+   console.log(`Request Body`, JSON.stringify(payload));
    
    const request = {
-     projectId:  req.body.projectId,
-     zone:       req.body.zone,
-     clusterId:  req.body.clusterId,
-     nodePoolId: req.body.nodePoolId,
-     nodeCount:  req.body.nodeCount,
+     projectId:  payload.projectId,
+     zone:       payload.zone,
+     clusterId:  payload.clusterId,
+     nodePoolId: payload.nodePoolId,
+     nodeCount:  payload.nodeCount,
    };
  
    const result = await client.setNodePoolSize(request);
    const operation = result[0];
  
    console.log(operation);
-   res.status(200).send('Success');
+
+   if (res.status) {
+      res.status(200).send('Success');
+   }
+   
  };
  

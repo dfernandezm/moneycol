@@ -104,3 +104,69 @@ resource "kubernetes_secret" "data_collector_key_secret" {
 
   type = "generic"
 }
+
+
+# Deploy the resizer function with PubSub Trigger on dev.crawler.events topic
+# This way when crawler is done, GKE resizes indexer node pool back to 0
+
+locals {
+    index_resizer_function_name = "resize-down-indexer"
+    index_resizer_function_code_path = "/Users/david/development/repos/moneycol/infra/gke-resizer/code"
+    function_trigger_topic_name = "dev.crawling.done"
+}
+
+resource "google_pubsub_topic" "function_topic" {
+  name = local.function_trigger_topic_name
+}
+
+resource "google_storage_bucket" "functions_bucket" {
+  name     = "moneycol-functions"
+  location = "EU"
+}
+
+data "archive_file" "function_archive" {
+  type         = "zip"
+  source_dir   = local.index_resizer_function_code_path
+  output_path  = "${local.index_resizer_function_name}.zip"
+}
+
+resource "google_storage_bucket_object" "archive" {
+  name   = "${local.index_resizer_function_name}.zip#${data.archive_file.function_archive.output_md5}"
+  bucket = google_storage_bucket.functions_bucket.name
+  source = data.archive_file.function_archive.output_path
+}
+
+resource "google_cloudfunctions_function" "resize_function" {
+  name        = "${local.index_resizer_function_name}"
+  #name        = format("%s#%s", google_storage_bucket_object.archive.name, data.archive_file.function_archive.output_md5)
+
+  description = "Resize indexer node pool to 0"
+  runtime     = "nodejs14"
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.archive.name
+  timeout               = 60
+  entry_point = "resizeCluster"
+  environment_variables = {
+    PAYLOAD = "my-env-var-value"
+  }
+
+  event_trigger  {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = "${google_pubsub_topic.function_topic.name}"
+  }
+
+  lifecycle {
+      create_before_destroy = true
+  }
+}
+
+# # IAM entry for a single user to invoke the function
+# resource "google_cloudfunctions_function_iam_member" "invoker" {
+#   project        = google_cloudfunctions_function.function.project
+#   region         = google_cloudfunctions_function.function.region
+#   cloud_function = google_cloudfunctions_function.function.name
+
+#   role   = "roles/cloudfunctions.invoker"
+#   member = "user:myFunctionInvoker@example.com"
+# }

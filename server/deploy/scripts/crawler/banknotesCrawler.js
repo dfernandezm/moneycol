@@ -1,5 +1,7 @@
 const Crawler = require("crawler");
 const { v4: uuidv4 } = require('uuid');
+const Mutex = require('async-mutex').Mutex;
+const mutex = new Mutex();
 
 const Banknote = require("./banknote")
 const BanknoteDataset = require("./banknoteDataset")
@@ -176,28 +178,31 @@ let mainCrawler = new Crawler({
                 let countryName = extractFromFilter($,"_flt-country");
                 let seriesName = extractFromFilter($,"_flt-series");
     
-                bankNoteDetails.each(function(i, elem) {
+                bankNoteDetails.each(async (i, elem) => {
 
                     const currentUri = res.options.uri;
                     console.log(`About to parse banknote from ${currentUri}`);
                     const banknote = parseBanknoteInfo(elem, $, countryName, seriesName);
                     banknotesList.push(banknote);
 
-                    //TODO: need atomic change here
-                    let banknotesPerCountryCount = banknotesMap.get(banknote.country);
-                    if (banknotesPerCountryCount) {
-                        banknotesMap.set(banknote.country, ++banknotesPerCountryCount)
-                    } else {
-                        banknotesMap.set(banknote.country, 1);
-                    }
-
+                   await mutex.runExclusive(() => {
+                        console.log("Updating banknote counts in mutex section");
+                        totalBanknotes++;
+                        let banknotesPerCountryCount = banknotesMap.get(banknote.country);
+                        if (banknotesPerCountryCount) {
+                            banknotesMap.set(banknote.country, ++banknotesPerCountryCount)
+                        } else {
+                            banknotesMap.set(banknote.country, 1);
+                        }
+                    });
+                    
                     console.log(`Series: ${banknote.series}, ${res.options.uri} -> ${banknote.name}`);
-                    console.log(`Banknotes for country ${banknote.country}: ${banknotesMap.get(banknote.country)}`)
-                    console.log(`Parsed banknote, total is ${++totalBanknotes}`);
+                    console.log(`Banknotes count for country ${banknote.country}: ${banknotesMap.get(banknote.country)}`)
+                    console.log(`Total banknotes is ${totalBanknotes}`);
                     console.log(`Country ${banknote.country}: ${JSON.stringify(banknote)}`)
                 });
 
-                const banknoteDataset = new BanknoteDataset(countryName, totalBanknotes, "en", banknotesList);
+                const banknoteDataset = new BanknoteDataset(countryName, banknotesMap.get(countryName), "en", banknotesList);
                 const fileGuid = uuidv4();
 
                 banknotesWriter.writeToGcs(banknoteDataset, fileGuid);
@@ -249,14 +254,25 @@ const countriesCrawler = new Crawler({
         } else {
             let $ = res.$;
             console.log("Crawling main list");
-            let countriesLinks = $("div.country a")
+            //let countriesLinks = $("div.country a")
+            
+            
+            let countriesLinks = ["/en/banknotes/series/country/550-Germany", "/en/banknotes/series/country/317-French_Antilles", "/en/banknotes/series/country/199-Spain"]
+            let countriesLinks = ["/en/banknotes/series/country/317-French_Antilles"];
             console.log("countries " + countriesLinks.length)
-            countriesLinks.each(function(i, el) {
-                let href = $(el).attr('href');
-                let countryUrl = colnectUrl + href;
+            
+            countriesLinks.forEach(link => {
+                let countryUrl = colnectUrl + link;
                 console.log("Sending for process: " + countryUrl);
                 mainCrawler.queue(countryUrl);
-            });
+            })
+
+            // countriesLinks.each(function(i, el) {
+            //     let href = $(el).attr('href');
+            //     let countryUrl = colnectUrl + href;
+            //     console.log("Sending for process: " + countryUrl);
+            //     mainCrawler.queue(countryUrl);
+            // });
         }
      }
 });
@@ -291,7 +307,7 @@ const moreThanOnePage = ($) => {
 
 countriesCrawler.queue("https://colnect.com/en/banknotes/countries");
 
-countriesCrawler.on('drain', async () => {
+mainCrawler.on('drain', async () => {
     console.log("Terminating crawler for all countries...");
     await crawlerNotifier.notifyDone();
-})
+});
