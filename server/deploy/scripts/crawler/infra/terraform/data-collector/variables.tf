@@ -1,6 +1,22 @@
-variable crawler_resize_job_schedule {
-    default = "0 1 * * 0"
-    description = "The cron schedule to resize the node pool"
+variable gcp_project {
+    default = "moneycol"
+    description = "GCP project"
+}
+
+variable region {
+    default = "europe-west1"
+    description = "Region of the Moneycol GCP project "
+}
+
+variable index_resizer_function_name {
+    default = "resize-down-indexer"
+    description = "The Cloud Function that resizes the node pool in GKE performing crawling (indexing-pool)"
+}
+
+# CI process should place the function in a different location
+variable index_resizer_function_code_path {
+    default = "/Users/david/development/repos/moneycol/infra/gke-resizer/code"
+    description = "Path to the code of the GKE resizer function for the indexing pool"
 }
 
 variable crawler_resize_uri {
@@ -13,17 +29,12 @@ variable crawler_resize_payload {
     description = "The payload to resize"
 }
 
-variable gcp_project {
-    default = "moneycol"
-    description = "GCP project"
+variable crawler_resize_job_schedule {
+    default = "0 1 * * 0"
+    description = "The cron schedule to resize the indexing node pool to 1"
 }
 
-variable region {
-    default = "europe-west1"
-    description = ""
-}
-
-variable data_collector_image {
-    default = ""
-    description = ""
+variable crawling_done_pubsub_topic {
+    default = "dev.crawler.events"
+    description = "The resizer function (back to 0, crawling done) is triggered when message is published to this topic"
 }

@@ -168,7 +168,7 @@ let mainCrawler = new Crawler({
             let bankNoteDetails = $("#plist_items div.pl-it");
 
             if (links.length == 0 && bankNoteDetails.length == 0) {
-                console.log(`Cannot find data in url ${res.options.uri}`);
+                console.log(`[WARNING] Cannot find data in url ${res.options.uri}`);
             }
 
             // banknote found
@@ -185,11 +185,12 @@ let mainCrawler = new Crawler({
                     const banknote = parseBanknoteInfo(elem, $, countryName, seriesName);
                     banknotesList.push(banknote);
 
-                   await mutex.runExclusive(() => {
+                    //TODO: these numbers don't current match with real website
+                    await mutex.runExclusive(() => {
                         console.log("Updating banknote counts in mutex section");
                         totalBanknotes++;
                         let banknotesPerCountryCount = banknotesMap.get(banknote.country);
-                        if (banknotesPerCountryCount) {
+                        if (banknotesPerCountryCount !== null && banknotesPerCountryCount !== undefined) {
                             banknotesMap.set(banknote.country, ++banknotesPerCountryCount)
                         } else {
                             banknotesMap.set(banknote.country, 1);
@@ -216,7 +217,6 @@ let mainCrawler = new Crawler({
                         // control pagelink are the > and >> to go one page more or to the end
                         let notControl = $('.pager_control',$(el)).length == 0
                         let url = colnectUrl + href;
-                        //console.log("Page: " + url);
                         let notFirstPage = !url.endsWith('/page/1');
                         console.log("Checking url " + url);
                         if (!visitedUrls.includes(url)) {
@@ -254,25 +254,14 @@ const countriesCrawler = new Crawler({
         } else {
             let $ = res.$;
             console.log("Crawling main list");
-            //let countriesLinks = $("div.country a")
+            let countriesLinks = $("div.country a")
             
-            
-            let countriesLinks = ["/en/banknotes/series/country/550-Germany", "/en/banknotes/series/country/317-French_Antilles", "/en/banknotes/series/country/199-Spain"]
-            let countriesLinks = ["/en/banknotes/series/country/317-French_Antilles"];
-            console.log("countries " + countriesLinks.length)
-            
-            countriesLinks.forEach(link => {
-                let countryUrl = colnectUrl + link;
+            countriesLinks.each(function(i, el) {
+                let href = $(el).attr('href');
+                let countryUrl = colnectUrl + href;
                 console.log("Sending for process: " + countryUrl);
                 mainCrawler.queue(countryUrl);
-            })
-
-            // countriesLinks.each(function(i, el) {
-            //     let href = $(el).attr('href');
-            //     let countryUrl = colnectUrl + href;
-            //     console.log("Sending for process: " + countryUrl);
-            //     mainCrawler.queue(countryUrl);
-            // });
+            });
         }
      }
 });
