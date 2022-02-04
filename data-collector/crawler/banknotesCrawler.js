@@ -120,7 +120,9 @@ const parseBanknoteInfo = (elem, $, countryName, seriesName) => {
     let imageLinkEl = $("div.item_thumb a img", $(elem));
     let imageLinkFront = imageLinkEl.length > 0 ? "https:" + imageLinkEl.eq(0).attr("data-src") : "No-front-img";
     let imageLinkBack = imageLinkEl.length > 1 ? "https:" + imageLinkEl.eq(1).attr("data-src") : "No-back-img";
-    imageLinkFront = imageLinkFront.replace(/\/t\//g, '/b/'); // replacing thumbnails with big imgs
+
+    // replace thumbnails with big imgs
+    imageLinkFront = imageLinkFront.replace(/\/t\//g, '/b/'); 
     imageLinkBack = imageLinkBack.replace(/\/t\//g, '/b/');
 
     const banknote = new Banknote();

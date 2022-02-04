@@ -1,3 +1,7 @@
+/*
+* Currently unused, should get all images from the banknote
+*
+**/
 const imgDownloadCrawler = new Crawler({
     rateLimit: 1000,
     encoding:null,
