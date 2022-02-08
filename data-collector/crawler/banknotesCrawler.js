@@ -293,12 +293,12 @@ const moreThanOnePage = ($) => {
     return $("div.navigation_box div a.pager_page").length > 0
 }
 
-// let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
-// mainCrawler.queue(countryUrl);
-
 countriesCrawler.queue("https://colnect.com/en/banknotes/countries");
 
 mainCrawler.on('drain', async () => {
     console.log("Terminating crawler for all countries...");
     await crawlerNotifier.notifyDone();
 });
+
+// let countryUrl = "https://colnect.com/en/banknotes/series/country/104-Ireland";
+// mainCrawler.queue(countryUrl);

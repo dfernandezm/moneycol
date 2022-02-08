@@ -10,12 +10,3 @@ test('builds message for notification', () => {
     "dataUri": "colnect/19-01-2022"
    })
 });
-
-test('write file with correct name', () => {
-   const writer = new BanknotesWriter();
-   const storageMock = jest.mock()
-   //storageMock.
-   //writer.storage = jest.mock()
-
-
-});
