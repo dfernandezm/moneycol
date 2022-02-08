@@ -10,6 +10,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -58,7 +59,8 @@ public class ElasticSearchClient {
 
                 if (bulkResponse.hasFailures()) {
                     log.error("There's failures in the bulk operation: {}", bulkResponse.buildFailureMessage());
-                    //Arrays.stream(bulkResponse.getItems()).forEach(item -> item.getResponse().getResult().toString());
+                    Arrays.stream(bulkResponse.getItems()).forEach(it ->
+                            log.error("Bulk response failed: " + it.getFailureMessage()));
                 } else {
                     log.info("Successful bulk index for dataset {} original size {}, indexed {}",
                             banknotesDataSet.getCountry(),
