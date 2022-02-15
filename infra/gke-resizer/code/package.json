@@ -6,5 +6,8 @@
         "@google-cloud/pubsub": "^0.30.2",
         "safe-buffer": "^5.2.0",
         "request": "^2.88.2"
+    },
+    "devDependencies": {
+        "jest": "^27.5.1"
     }
 }
