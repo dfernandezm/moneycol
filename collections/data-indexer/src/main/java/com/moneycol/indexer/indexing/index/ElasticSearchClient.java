@@ -1,13 +1,17 @@
 package com.moneycol.indexer.indexing.index;
 
 import com.moneycol.indexer.infra.JsonWriter;
+import com.moneycol.indexer.infra.connectivity.ElasticSearchDiscoveryClient;
+import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import com.moneycol.indexer.worker.BanknotesDataSet;
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 
 import java.util.Arrays;
@@ -22,17 +26,42 @@ import java.util.stream.Collectors;
 // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.10/java-rest-high-supported-apis.html
 
 @Slf4j
-@RequiredArgsConstructor
+@Builder
 public class ElasticSearchClient {
 
     private final ElasticSearchProperties elasticsearchProperties;
     private final RestHighLevelClient elasticClient;
     private final String BANKNOTES_TYPE = "banknotes";
 
+    public static class ElasticSearchClientBuilder {
+
+        private ElasticSearchProperties elasticsearchProperties;
+        private ElasticSearchDiscoveryClient elasticSearchDiscoveryClient;
+
+        public ElasticSearchClientBuilder elasticSearchDiscoveryClient(ElasticSearchDiscoveryClient elasticSearchDiscoveryClient) {
+            this.elasticSearchDiscoveryClient = elasticSearchDiscoveryClient;
+            return this;
+        }
+
+        public ElasticSearchClientBuilder elasticsearchProperties(ElasticSearchProperties elasticsearchProperties) {
+            this.elasticsearchProperties = elasticsearchProperties;
+            return this;
+        }
+
+        public ElasticSearchClient build() {
+            ElasticSearchEndpoint elasticSearchEndpoint = this.elasticSearchDiscoveryClient.obtainEndpoint();
+            RestHighLevelClient elasticClient = new RestHighLevelClient(
+                    RestClient.builder(HttpHost.create(elasticSearchEndpoint.getEndpoint())));
+            return new ElasticSearchClient(this.elasticsearchProperties, elasticClient);
+        }
+    }
+
     public void index(BanknotesDataSet banknotesDataSet) {
 
         JsonWriter jsonWriter = JsonWriter.builder().build();
         BulkRequest banknotesDatasetBulk = new BulkRequest();
+
+        //TODO: date of today / week of year
         String indexName = elasticsearchProperties.getIndexName();
 
         if (banknotesDataSet.getBanknotes() != null && banknotesDataSet.getBanknotes().size() > 0) {

@@ -2,6 +2,8 @@ package com.moneycol.indexer.infra.connectivity.gke.config;
 
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
+import com.google.container.v1.Operation;
+import com.google.container.v1.SetNodePoolSizeRequest;
 import com.moneycol.indexer.infra.connectivity.gke.GkeClusterDetails;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +47,14 @@ public class GkeKubeAccessConfigurer {
         try (ClusterManagerClient client = ClusterManagerClient.create()) {
 
             log.info("Authenticating against GKE using stored credentials");
+            Operation response = client.setNodePoolSize(SetNodePoolSizeRequest
+                    .newBuilder()
+                    .setName("elasticsearch-pool")
+                    .setNodeCount(1)
+                    .build());
+
+            //TODO: poll for node pool readiness
+
             String projectId = clusterDetails.getProjectId();
             String zone = clusterDetails.getZone();
             String clusterName = clusterDetails.getClusterName();

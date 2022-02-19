@@ -5,11 +5,11 @@ import com.google.common.base.Stopwatch;
 import com.google.events.cloud.pubsub.v1.Message;
 import com.google.pubsub.v1.PubsubMessage;
 import com.moneycol.indexer.indexing.index.IndexingHandler;
-import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.infra.function.FunctionTimeoutTracker;
-import com.moneycol.indexer.tracker.FanOutTracker;
+import com.moneycol.indexer.infra.pubsub.PubSubClient;
 import com.moneycol.indexer.tracker.FanOutProcessStatus;
+import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.TaskListConverter;
 import com.moneycol.indexer.tracker.TaskListStatusReport;
 import com.moneycol.indexer.worker.BanknotesDataSet;
@@ -35,9 +35,6 @@ public class IndexerFunctionExecutor  {
     private static final int MESSAGE_BATCH_SIZE = 250;
 
     public void execute(Message message, Context context) {
-
-        // should trigger here the Elastic endpoint discovery only, not at the boot of the
-        // app or this will affect the other functions
 
         functionTimeoutChecker.startTimer();
         indexingDataReader.logTriggeringMessage(message);
