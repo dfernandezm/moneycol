@@ -1,19 +1,21 @@
 package com.moneycol.indexer.indexing.index;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.moneycol.indexer.infra.JsonWriter;
-import com.moneycol.indexer.infra.connectivity.ElasticSearchDiscoveryClient;
-import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import com.moneycol.indexer.worker.BanknotesDataSet;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -33,36 +35,21 @@ public class ElasticSearchClient {
     private final RestHighLevelClient elasticClient;
     private final String BANKNOTES_TYPE = "banknotes";
 
-    public static class ElasticSearchClientBuilder {
-
-        private ElasticSearchProperties elasticsearchProperties;
-        private ElasticSearchDiscoveryClient elasticSearchDiscoveryClient;
-
-        public ElasticSearchClientBuilder elasticSearchDiscoveryClient(ElasticSearchDiscoveryClient elasticSearchDiscoveryClient) {
-            this.elasticSearchDiscoveryClient = elasticSearchDiscoveryClient;
-            return this;
-        }
-
-        public ElasticSearchClientBuilder elasticsearchProperties(ElasticSearchProperties elasticsearchProperties) {
-            this.elasticsearchProperties = elasticsearchProperties;
-            return this;
-        }
-
-        public ElasticSearchClient build() {
-            ElasticSearchEndpoint elasticSearchEndpoint = this.elasticSearchDiscoveryClient.obtainEndpoint();
-            RestHighLevelClient elasticClient = new RestHighLevelClient(
-                    RestClient.builder(HttpHost.create(elasticSearchEndpoint.getEndpoint())));
-            return new ElasticSearchClient(this.elasticsearchProperties, elasticClient);
-        }
+    public LocalDateTime getTodayDate() {
+        return LocalDateTime.now();
     }
+
+    public String getIndexNameForTodayDate() {
+        String todayDate = getTodayDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        return elasticsearchProperties.getIndexName() + "-" + todayDate;
+    }
+
 
     public void index(BanknotesDataSet banknotesDataSet) {
 
         JsonWriter jsonWriter = JsonWriter.builder().build();
         BulkRequest banknotesDatasetBulk = new BulkRequest();
-
-        //TODO: date of today / week of year
-        String indexName = elasticsearchProperties.getIndexName();
+        String indexName = getIndexNameForTodayDate();
 
         if (banknotesDataSet.getBanknotes() != null && banknotesDataSet.getBanknotes().size() > 0) {
             List<IndexRequest> indexRequestList = banknotesDataSet.getBanknotes().stream()
@@ -105,6 +92,29 @@ public class ElasticSearchClient {
         }
 
             // check for errors in each request?
+    }
 
+    public void updateIndexAlias() {
+        String todayIndexName = getIndexNameForTodayDate();
+        String alias = elasticsearchProperties.getIndexName();
+        log.info("Updating index alias for {} to {}", todayIndexName, alias);
+        executeIndexAliasRequest(todayIndexName, alias);
+    }
+
+    @VisibleForTesting
+    public void executeIndexAliasRequest(String todayIndexName, String alias) {
+        IndicesAliasesRequest request = new IndicesAliasesRequest();
+        IndicesAliasesRequest.AliasActions aliasAction =
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.ADD)
+                        .index(todayIndexName)
+                        .alias(alias);
+        request.addAliasAction(aliasAction);
+        try {
+            AcknowledgedResponse indicesAliasesResponse =
+                    elasticClient.indices().updateAliases(request, RequestOptions.DEFAULT);
+            log.info("Alias updated {}", indicesAliasesResponse.isAcknowledged());
+        } catch (IOException ioe) {
+            log.error("Error updating alias", ioe);
+        }
     }
 }

@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 @RequiredArgsConstructor
 public class ElasticClientFactory {
 
+    //TODO: these may need to be passed in to the method not constructor
     private final ElasticSearchProperties elasticsearchProperties;
     private final ElasticSearchDiscoveryClient elasticSearchDiscoveryClient;
 
@@ -24,6 +25,12 @@ public class ElasticClientFactory {
         ElasticSearchEndpoint elasticSearchEndpoint = elasticSearchDiscoveryClient.obtainEndpoint();
         RestHighLevelClient elasticClient = new RestHighLevelClient(
                 RestClient.builder(HttpHost.create(elasticSearchEndpoint.getEndpoint())));
-        return new ElasticSearchClient(elasticsearchProperties, elasticClient);
+        return ElasticSearchClient
+                .builder()
+                .elasticClient(elasticClient)
+                .elasticsearchProperties(elasticsearchProperties)
+                .build();
+
+        //elasticsearchProperties, elasticClient);
     }
 }

@@ -33,23 +33,23 @@ gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS
 --service-account $SERVICE_ACCOUNT \
 --region europe-west1 \
 --env-vars-file ../../.env.yaml \
---memory 2048MB \
+--memory 1024MB \
 --timeout 540s
 
 ############ Indexer Worker - subscriber #############
 cd ../../..
-
+#
 echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
 ./gradlew :data-indexer:clean :data-indexer:shadowJar \
 -PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
 
 cd data-indexer
 cd build/libs
-
+#
 echo "Deploying Indexer Worker function from $PWD"
 gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
 --trigger-topic $WORKER_TRIGGER_TOPIC \
---memory 2048MB \
+--memory 1024MB \
 --region europe-west1 \
 --env-vars-file ../../.env.yaml \
 --service-account $SERVICE_ACCOUNT \
@@ -61,24 +61,24 @@ gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS -
 # the sink topic
 
 cd ../../..
-## Edit the function to use the connector
+# Edit the function to use the connector
 #cd ..
-echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
-./gradlew :data-indexer:clean :data-indexer:shadowJar \
--PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
-
-cd data-indexer
-cd build/libs
-
-echo "Deploying Indexer Indexing function from $PWD"
-gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
---trigger-topic $PROCESSING_DONE_TOPIC \
---region europe-west1 \
---memory 2048MB \
---service-account $SERVICE_ACCOUNT \
---env-vars-file ../../.env.yaml \
---vpc-connector moneycolvpcconnectordev \
---timeout 540s
+#echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
+#./gradlew :data-indexer:clean :data-indexer:shadowJar \
+#-PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
+#
+#cd data-indexer
+#cd build/libs
+#
+#echo "Deploying Indexer Indexing function from $PWD"
+#gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
+#--trigger-topic $PROCESSING_DONE_TOPIC \
+#--region europe-west1 \
+#--memory 1024MB \
+#--service-account $SERVICE_ACCOUNT \
+#--env-vars-file ../../.env.yaml \
+#--vpc-connector moneycolvpcconnectordev \
+#--timeout 540s
 
 # Logs: gcloud functions logs read --limit 50
 # collect results, fan-in - sink

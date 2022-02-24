@@ -66,6 +66,7 @@ public class IndexerFunctionExecutor  {
                 retriggerFunction(taskListId);
             } else {
                 log.info("Consolidation completed for taskList {}", taskListStatusResult.getTaskListId());
+                indexingHandler.switchIndexAlias();
                 updateStatus(taskListId, FanOutProcessStatus.CONSOLIDATION_COMPLETED);
             }
 
@@ -80,6 +81,8 @@ public class IndexerFunctionExecutor  {
             }
         }
     }
+
+
 
     private void processMessage(String taskListId, PubsubMessage pubsubMessage) {
         log.info("Received message in batch: {}", pubsubMessage);
