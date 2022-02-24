@@ -65,7 +65,7 @@ public class ElasticSearchRestClientTest {
         try {
             ClusterHealthRequest request = new ClusterHealthRequest();
             ClusterHealthResponse response = elasticClient.cluster().health(request, RequestOptions.DEFAULT);
-            assertThat(response.getStatus()).isEqualTo(ClusterHealthStatus.GREEN);
+            assertThat(response.getStatus()).isEqualTo(ClusterHealthStatus.YELLOW);
         } catch (Exception e) {
             fail(e);
         }
@@ -133,6 +133,7 @@ public class ElasticSearchRestClientTest {
                     case INDEX:
                     case CREATE:
                         IndexResponse indexResponse = (IndexResponse) itemResponse;
+                        System.out.println(indexResponse.getResult().toString());
                         break;
                     case UPDATE:
                         UpdateResponse updateResponse = (UpdateResponse) itemResponse;
@@ -141,6 +142,9 @@ public class ElasticSearchRestClientTest {
                         DeleteResponse deleteResponse = (DeleteResponse) itemResponse;
                 }
             }
+
+            // Need to wait for some time as count is not updated immediately
+            Thread.sleep(5000);
 
             CountRequest countRequest = new CountRequest("banknotes-test");
             CountResponse countResponse = elasticClient.count(countRequest, RequestOptions.DEFAULT);
@@ -157,9 +161,5 @@ public class ElasticSearchRestClientTest {
         BanknoteData banknoteData =
                 testHelper.readBanknoteDataFromJsonFile("testdata/single-banknote.json");
         assertThat(banknoteData.getCountry()).isEqualTo("Albania");
-    }
-
-    private BanknoteData readSingleBanknoteData(String file) {
-        return testHelper.readBanknoteDataFromJsonFile(file);
     }
 }

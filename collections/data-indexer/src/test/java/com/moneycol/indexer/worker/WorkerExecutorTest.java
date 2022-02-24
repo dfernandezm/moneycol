@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Disabled("Disabled as the injection requires firestore access")
 @MicronautTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class WorkerExecutorTest implements TestPropertyProvider {

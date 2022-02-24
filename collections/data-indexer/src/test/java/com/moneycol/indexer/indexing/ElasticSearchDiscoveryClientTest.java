@@ -4,6 +4,7 @@ import com.moneycol.indexer.infra.connectivity.ElasticSearchDiscoveryClient;
 import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.micronaut.test.support.TestPropertyProvider;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -13,6 +14,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled("This test will only pass if real GKE is online")
 @MicronautTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElasticSearchDiscoveryClientTest implements TestPropertyProvider {
