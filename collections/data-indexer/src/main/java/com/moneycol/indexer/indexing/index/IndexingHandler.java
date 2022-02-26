@@ -18,4 +18,7 @@ public class IndexingHandler {
         elasticsearchClient.index(banknotesDataSet);
     }
 
+    public void switchIndexAlias() {
+        elasticsearchClient.updateIndexAlias();
+    }
 }

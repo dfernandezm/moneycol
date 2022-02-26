@@ -15,15 +15,17 @@ import javax.inject.Singleton;
 @RequiredArgsConstructor
 public class ElasticClientFactory {
 
-    private final ElasticSearchProperties elasticsearchProperties;
-    private final ElasticSearchDiscoveryClient elasticSearchDiscoveryClient;
-
     @Bean
     @Singleton
-    public ElasticSearchClient elasticSearchClient() {
+    public ElasticSearchClient elasticSearchClient(ElasticSearchProperties elasticsearchProperties,
+    ElasticSearchDiscoveryClient elasticSearchDiscoveryClient) {
         ElasticSearchEndpoint elasticSearchEndpoint = elasticSearchDiscoveryClient.obtainEndpoint();
         RestHighLevelClient elasticClient = new RestHighLevelClient(
                 RestClient.builder(HttpHost.create(elasticSearchEndpoint.getEndpoint())));
-        return new ElasticSearchClient(elasticsearchProperties, elasticClient);
+        return ElasticSearchClient
+                .builder()
+                .elasticClient(elasticClient)
+                .elasticsearchProperties(elasticsearchProperties)
+                .build();
     }
 }

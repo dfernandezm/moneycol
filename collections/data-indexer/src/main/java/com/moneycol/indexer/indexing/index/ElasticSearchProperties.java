@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class ElasticSearchProperties {
 
+    //TODO: should be indexPrefix as it will have date appended
     private String indexName;
     private String hostAddress;
 }

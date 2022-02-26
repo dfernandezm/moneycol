@@ -37,7 +37,7 @@ public class KubeApiClientFactory {
         // has now been implemented in the GkeAuthenticator class, that extends/overrides
         // the existing GCP Authenticator.
         // Another more 'crude' approach is getting the token and add it to the templated
-        // kubeconfig.yaml file, populating 'access-token' and 'expiry'
+        // kubeconfig.yaml file, ensuring 'access-token' and 'expiry' are populated
         KubeConfig.registerAuthenticator(new GkeAuthenticator());
         KubeConfig kubeConfig;
         try {
