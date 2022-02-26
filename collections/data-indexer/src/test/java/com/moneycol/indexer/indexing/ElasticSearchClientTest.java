@@ -1,6 +1,7 @@
 package com.moneycol.indexer.indexing;
 
 import com.moneycol.indexer.TestHelper;
+import com.moneycol.indexer.indexing.index.DateUtil;
 import com.moneycol.indexer.indexing.index.ElasticClientFactory;
 import com.moneycol.indexer.indexing.index.ElasticSearchClient;
 import com.moneycol.indexer.indexing.index.ElasticSearchProperties;
@@ -57,6 +58,13 @@ public class ElasticSearchClientTest implements TestPropertyProvider  {
     @Inject
     private ElasticSearchClient elasticsearchClient;
 
+    public static DateUtil dateUtilSpy() {
+        DateUtil dateUtilSpy = Mockito.spy(DateUtil.builder().build());
+        LocalDateTime fixedDate = LocalDateTime.of(2022, 2, 22, 0, 0);
+        Mockito.doReturn(fixedDate).when(dateUtilSpy).getTodayDate();
+        return dateUtilSpy;
+    }
+
     // https://stackoverflow.com/questions/53132087/overriding-a-dependency-in-a-micronaut-test
     // https://stackoverflow.com/questions/55634575/micronaut-mock-factory-created-beans-in-spock
     @Factory
@@ -69,13 +77,17 @@ public class ElasticSearchClientTest implements TestPropertyProvider  {
             ElasticSearchProperties elasticsearchProperties = new ElasticSearchProperties();
             elasticsearchProperties.setHostAddress(elasticsearchContainer.getHttpHostAddress());
             elasticsearchProperties.setIndexName("banknotes-test");
+
+            DateUtil dateUtilSpy = dateUtilSpy();
             return
                     ElasticSearchClient.builder()
                             .elasticClient(elasticClient)
+                            .dateUtil(dateUtilSpy)
                             .elasticsearchProperties(elasticsearchProperties)
                             .build();
         }
     }
+
 
     @Test
     public void indexDataset() {
@@ -83,8 +95,8 @@ public class ElasticSearchClientTest implements TestPropertyProvider  {
                 testHelper.readBanknoteDataSetFromJsonFile("testdata/banknotesDataset.json");
         ElasticSearchClient elasticsearchClientSpy = Mockito.spy(elasticsearchClient);
 
-        LocalDateTime fixedDate = LocalDateTime.of(2022, 2, 22, 0, 0);
-        Mockito.doReturn(fixedDate).when(elasticsearchClientSpy).getTodayDate();
+       // LocalDateTime fixedDate = LocalDateTime.of(2022, 2, 22, 0, 0);
+       // Mockito.doReturn(fixedDate).when(elasticsearchClientSpy).
 
         String expectedIndexName = "banknotes-test-22-02-2022";
         elasticsearchClientSpy.index(banknoteDataSet);
@@ -98,10 +110,10 @@ public class ElasticSearchClientTest implements TestPropertyProvider  {
                 testHelper.readBanknoteDataSetFromJsonFile("testdata/banknotesDataset.json");
         ElasticSearchClient elasticsearchClientSpy = Mockito.spy(elasticsearchClient);
 
-        LocalDateTime fixedDate = LocalDateTime.of(2022, 2, 22, 0, 0);
+        //LocalDateTime fixedDate = LocalDateTime.of(2022, 2, 22, 0, 0);
         String expectedIndexName = "banknotes-test-22-02-2022";
         String expectedAlias = "banknotes-test";
-        Mockito.doReturn(fixedDate).when(elasticsearchClientSpy).getTodayDate();
+        //Mockito.doReturn(fixedDate).when(elasticsearchClientSpy).getTodayDate();
 
         elasticsearchClientSpy.index(banknoteDataSet);
         elasticsearchClientSpy.updateIndexAlias();

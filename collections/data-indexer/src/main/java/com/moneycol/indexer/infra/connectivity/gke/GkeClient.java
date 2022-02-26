@@ -44,9 +44,8 @@ public class GkeClient {
             // find the port from NodePort
             String nodePort = readNodePort(v1Service);
 
-            // get the IP address of any node - it should be internal, but for the test we pick the
-            // external one
-            String internalIp = getNodeIpByType(api, IpAddressType.EXTERNAL_IP);
+            // get the internal IP address of any node
+            String internalIp = getNodeIpByType(api, IpAddressType.INTERNAL_IP);
 
             log.info("Found internal IP {} and port {}", internalIp, nodePort);
             return KubeServiceDetails.builder()

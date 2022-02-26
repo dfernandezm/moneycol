@@ -14,8 +14,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -33,17 +31,15 @@ public class ElasticSearchClient {
 
     private final ElasticSearchProperties elasticsearchProperties;
     private final RestHighLevelClient elasticClient;
+
+    @Builder.Default
+    private final DateUtil dateUtil = DateUtil.builder().build();
     private final String BANKNOTES_TYPE = "banknotes";
 
-    public LocalDateTime getTodayDate() {
-        return LocalDateTime.now();
-    }
-
-    public String getIndexNameForTodayDate() {
-        String todayDate = getTodayDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    private String getIndexNameForTodayDate() {
+        String todayDate = dateUtil.getTodayDateAsString();
         return elasticsearchProperties.getIndexName() + "-" + todayDate;
     }
-
 
     public void index(BanknotesDataSet banknotesDataSet) {
 
