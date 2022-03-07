@@ -6,11 +6,10 @@ plugins {
 }
 
 version "0.1.0"
-group "server"
+group "collections-api"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 configurations {
