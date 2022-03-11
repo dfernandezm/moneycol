@@ -1,8 +1,8 @@
 package com.moneycol.collections.server.domain.events.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.VisibleForTesting;
 
 @Slf4j
 public class LocalEventPublisher<T extends DomainEvent> implements DomainEventPublisher<T> {

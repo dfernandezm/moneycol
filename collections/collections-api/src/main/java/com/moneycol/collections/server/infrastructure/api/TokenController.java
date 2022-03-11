@@ -11,15 +11,15 @@ import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
-import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.security.annotation.Secured;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
 

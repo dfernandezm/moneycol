@@ -1,6 +1,6 @@
 package com.moneycol.collections.server.infrastructure.repository;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class SourceCredentials {

@@ -10,7 +10,7 @@ import com.moneycol.collections.server.infrastructure.repository.FirestoreProvid
 import io.micronaut.context.annotation.Requires;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;

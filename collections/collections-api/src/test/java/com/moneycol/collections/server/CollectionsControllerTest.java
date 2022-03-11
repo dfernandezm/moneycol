@@ -17,11 +17,11 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.MutableHttpRequest;
-import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
-import io.micronaut.test.annotation.MicronautTest;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,6 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,15 +37,14 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static io.micronaut.http.HttpRequest.POST;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Fail.fail;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+
 
 /**
  * Examples taken from:
@@ -181,8 +179,8 @@ public class CollectionsControllerTest {
         // Then: name/description should be the new values
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getName(), is(newName));
-        assertThat(collectionCreatedResp.getBody().get().getDescription(), is(newDescription));
+        assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(newName);
+        assertThat(collectionCreatedResp.getBody().get().getDescription()).isEqualTo(newDescription);
     }
 
     @Test
@@ -207,9 +205,9 @@ public class CollectionsControllerTest {
         // Then: the result is the expected
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getCollectionId(), is(collectionId));
-        assertThat(collectionCreatedResp.getBody().get().getName(), is(aName));
-        assertThat(collectionCreatedResp.getBody().get().getDescription(), is(aDescription));
+        assertThat(collectionCreatedResp.getBody().get().getCollectionId()).isEqualTo(collectionId);
+        assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(aName);
+        assertThat(collectionCreatedResp.getBody().get().getDescription()).isEqualTo(aDescription);
     }
 
     void delaySecond(int second) {
@@ -373,12 +371,12 @@ public class CollectionsControllerTest {
         HttpResponse removeItemResponse = client.toBlocking().exchange(removeItemEndpoint);
 
         // Then: status is ok
-        assertThat(removeItemResponse.status(), is(HttpStatus.OK));
+        assertThat(removeItemResponse.status()).isEqualTo(HttpStatus.OK);
 
         // And: trying to find a collection with that Id
         Executable s = () -> FirestoreHelper.findCollectionById(aCollectionId);
         Exception e = assertThrows(RuntimeException.class, s);
-        assertThat(e.getMessage(), containsString("not found"));
+        assertThat(e.getMessage()).isEqualTo("not found");
     }
 
     @Test
@@ -406,7 +404,7 @@ public class CollectionsControllerTest {
 
         // Then: the deleted item isn't present and the other is
         List<String> itemIds = FirestoreHelper.findItemsForCollection(aCollectionId);
-        assertThat(removeItemResponse.getStatus(), is(HttpStatus.OK));
+        assertThat(removeItemResponse.getStatus()).isEqualTo(HttpStatus.OK);
         assertThat(itemIds, hasSize(1));
         assertThat(itemIds.contains("item1"), is(true));
         assertThat(itemIds.contains("item2"), is(false));

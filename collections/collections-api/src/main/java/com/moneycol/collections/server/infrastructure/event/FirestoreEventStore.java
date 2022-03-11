@@ -6,9 +6,8 @@ import com.google.cloud.firestore.Firestore;
 import com.moneycol.collections.server.domain.events.EventStore;
 import com.moneycol.collections.server.domain.events.core.DomainEvent;
 import com.moneycol.collections.server.infrastructure.repository.FirestoreProvider;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.inject.Inject;
 
 @Slf4j
 public class FirestoreEventStore implements EventStore {
