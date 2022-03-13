@@ -66,7 +66,7 @@ public class CollectionController {
     }
 
     @Error(exception = CollectionNotFoundException.class)
-    public HttpResponse<Object> onCollectionNotFound(HttpRequest request, CollectionNotFoundException ex) {
+    public HttpResponse<Object> onCollectionNotFound(HttpRequest<Object> request, CollectionNotFoundException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection not found: " + ex.getMessage();
         log.warn(errorMessage);
@@ -75,7 +75,7 @@ public class CollectionController {
     }
 
     @Error(exception = InvalidCollectionException.class)
-    public HttpResponse<Object> onInvalidCollection(HttpRequest request, InvalidCollectionException ex) {
+    public HttpResponse<Object> onInvalidCollection(HttpRequest<Object> request, InvalidCollectionException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection is invalid: " + ex.getMessage();
         log.warn(errorMessage);
@@ -84,7 +84,7 @@ public class CollectionController {
     }
 
     @Error(exception = InvalidCollectionAccessException.class)
-    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest request, InvalidCollectionAccessException ex) {
+    public HttpResponse<Object> onInvalidCollectionAccess(HttpRequest<Object> request, InvalidCollectionAccessException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = ex.getMessage();
         log.warn(errorMessage);
@@ -93,7 +93,7 @@ public class CollectionController {
     }
 
     @Error(exception = DuplicateCollectionNameException.class)
-    public HttpResponse<Object> onDuplicatedCollectionName(HttpRequest request, DuplicateCollectionNameException ex) {
+    public HttpResponse<Object> onDuplicatedCollectionName(HttpRequest<Object> request, DuplicateCollectionNameException ex) {
         Map<String, Object > map = new LinkedHashMap<>();
         String errorMessage = "Collection name duplicated: " + ex.getMessage();
         log.warn(errorMessage);
@@ -106,7 +106,7 @@ public class CollectionController {
      *
      * @param principal the authenticated user
      * @param collectionId the collection Id
-     * @return
+     * @return collection for the given ID
      */
     @Get(uri="/{collectionId}", produces = MediaType.APPLICATION_JSON)
     public Single<CollectionDto> collectionsById(@Nullable Principal principal, @PathVariable String collectionId) {
@@ -119,7 +119,7 @@ public class CollectionController {
      * Create a collection
      *
      * @param collectionDTO the payload of the collection to create
-     * @return
+     * @return result describing the collection created
      */
     @Consumes(MediaType.APPLICATION_JSON)
     @Post
@@ -150,7 +150,7 @@ public class CollectionController {
     }
 
     @Delete(uri="/{collectionId}")
-    public HttpResponse deleteCollection(@Nullable Principal principal, @PathVariable String collectionId) {
+    public HttpResponse<?> deleteCollection(@Nullable Principal principal, @PathVariable String collectionId) {
         log.info("Deleting collection with ID: {}", collectionId);
         collectionApplicationService.deleteCollection(principal.getName(), collectionId);
         return HttpResponse.ok();
@@ -158,7 +158,7 @@ public class CollectionController {
 
     @Consumes(MediaType.APPLICATION_JSON)
     @Post(uri = "/{collectionId}/items")
-    HttpResponse addItemToCollection(@Nullable Principal principal, @PathVariable String collectionId, @Body AddItemsDTO addItemsDTO) {
+    HttpResponse<?> addItemToCollection(@Nullable Principal principal, @PathVariable String collectionId, @Body AddItemsDTO addItemsDTO) {
         log.info("Adding item to collection with ID: {}", collectionId);
         AddItemsToCollectionCommand addItemToCollectionCommand = AddItemsToCollectionCommand.builder()
                                                                     .collectionId(collectionId)
@@ -186,7 +186,7 @@ public class CollectionController {
     }
 
     @Error(status = HttpStatus.NOT_FOUND, global = true)
-    public HttpResponse notFound(HttpRequest request) {
+    public HttpResponse<?> notFound(HttpRequest<?> request) {
         JsonError error = new JsonError("Element Not Found");
 
         return HttpResponse.<JsonError>notFound()
@@ -195,7 +195,7 @@ public class CollectionController {
     }
 
     @Error(status = HttpStatus.INTERNAL_SERVER_ERROR, global = true)
-    public HttpResponse internalServer(HttpRequest request) {
+    public HttpResponse<?> internalServer(HttpRequest<?> request) {
         JsonError error = new JsonError("Internal Server Error");
 
         return HttpResponse.<JsonError>notFound()

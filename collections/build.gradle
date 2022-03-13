@@ -1,7 +1,6 @@
 // https://github.com/micronaut-projects/micronaut-examples/tree/master/petstore
 allprojects {
     apply plugin: 'java'
-    apply plugin: 'groovy'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
  
@@ -14,10 +13,6 @@ allprojects {
 
 }
 
-subprojects {
-    
-}
-
 idea {
     module {
         downloadSources = true
@@ -25,8 +20,3 @@ idea {
         excludeDirs = [file('.gradle'), file(".idea"), file('build')]
     }
 }
-
-project(":collections-api") {
-    
-}
-

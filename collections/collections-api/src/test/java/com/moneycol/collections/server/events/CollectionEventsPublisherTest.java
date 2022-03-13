@@ -80,7 +80,7 @@ public class CollectionEventsPublisherTest {
     public void handleEventIsCalled() {
         final boolean[] called = {false};
         DomainEventRegistry eventBusRegistry = new DomainEventRegistry(new LocalEventPublisher<>(),
-                new LocalEventSubscriber<DomainEvent>() {
+                new LocalEventSubscriber<>() {
                     @Override
                     public void handleEvent(DomainEvent domainEvent) {
                         called[0] = true;

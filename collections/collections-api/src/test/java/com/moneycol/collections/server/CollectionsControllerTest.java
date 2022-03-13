@@ -22,6 +22,8 @@ import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,10 +39,10 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static io.micronaut.http.HttpRequest.POST;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,8 +81,15 @@ public class CollectionsControllerTest {
     public void obtainTokenForTestUser() {
         // Create environment variable or paste API key
         String apiKey = System.getenv("FIREBASE_API_KEY");
+
+        // when running in command line:
+        // export FIREBASE_API_KEY=
+        // apiKey = "";
         String googleAppCredentialsPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
 
+        // when running in command line:
+        // export GOOGLE_APPLICATION_CREDENTIALS=/Users/david/moneycol-collections-api.json
+        // googleAppCredentialsPath = "/Users/david/moneycol-collections-api.json";
         if (StringUtils.isNotEmpty(apiKey)) {
             log.info("Firebase API key has been correctly set");
         } else {
@@ -179,7 +188,7 @@ public class CollectionsControllerTest {
         // Then: name/description should be the new values
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(newName);
+        Assertions.assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(newName);
         assertThat(collectionCreatedResp.getBody().get().getDescription()).isEqualTo(newDescription);
     }
 
@@ -208,10 +217,6 @@ public class CollectionsControllerTest {
         assertThat(collectionCreatedResp.getBody().get().getCollectionId()).isEqualTo(collectionId);
         assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(aName);
         assertThat(collectionCreatedResp.getBody().get().getDescription()).isEqualTo(aDescription);
-    }
-
-    void delaySecond(int second) {
-       delayMilliseconds(second * 1000);
     }
 
     void delayMilliseconds(int millis) {
@@ -348,6 +353,7 @@ public class CollectionsControllerTest {
 
         // Then: result is ok, and collection has the added items
         assertEquals(addItemsToCollectionResponse.getStatus(), HttpStatus.OK);
+        delayMilliseconds(2000);
         assertCollectionHasItems(aCollectionId, items.get(0).getItemId(), items.get(1).getItemId());
     }
 
@@ -368,15 +374,16 @@ public class CollectionsControllerTest {
         String endpoint = "/collections/" + aCollectionId;
         MutableHttpRequest<?> removeItemEndpoint = HttpRequest.DELETE(endpoint);
         removeItemEndpoint.bearerAuth(accessToken);
-        HttpResponse removeItemResponse = client.toBlocking().exchange(removeItemEndpoint);
+        HttpResponse<Object> removeItemResponse = client.toBlocking().exchange(removeItemEndpoint);
 
         // Then: status is ok
-        assertThat(removeItemResponse.status()).isEqualTo(HttpStatus.OK);
+        HttpStatus status = removeItemResponse.status();
+        assertThat((CharSequence) status).isEqualTo(HttpStatus.OK);
 
         // And: trying to find a collection with that Id
         Executable s = () -> FirestoreHelper.findCollectionById(aCollectionId);
         Exception e = assertThrows(RuntimeException.class, s);
-        assertThat(e.getMessage()).isEqualTo("not found");
+        Assertions.assertThat(e.getMessage()).contains("not found");
     }
 
     @Test
@@ -404,10 +411,10 @@ public class CollectionsControllerTest {
 
         // Then: the deleted item isn't present and the other is
         List<String> itemIds = FirestoreHelper.findItemsForCollection(aCollectionId);
-        assertThat(removeItemResponse.getStatus()).isEqualTo(HttpStatus.OK);
-        assertThat(itemIds, hasSize(1));
-        assertThat(itemIds.contains("item1"), is(true));
-        assertThat(itemIds.contains("item2"), is(false));
+        AssertionsForClassTypes.assertThat(removeItemResponse.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(itemIds.size()).isEqualTo(1);
+        assertTrue(itemIds.contains("item1"));
+        assertFalse(itemIds.contains("item2"));
     }
 
     @Test
@@ -432,7 +439,7 @@ public class CollectionsControllerTest {
                         Argument.of(JsonNode.class));
 
         // Then: invalid request error is returned
-        assertThat(createCollectionResp.getStatus(), is(HttpStatus.BAD_REQUEST));
+        AssertionsForClassTypes.assertThat(createCollectionResp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -472,8 +479,8 @@ public class CollectionsControllerTest {
         // Then: name/description are changed and items are left untouched
         assertEquals(collectionCreatedResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionCreatedResp.getBody().isPresent());
-        assertThat(collectionCreatedResp.getBody().get().getName(), is(newName));
-        assertThat(collectionCreatedResp.getBody().get().getDescription(), is(newDescription));
+        assertThat(collectionCreatedResp.getBody().get().getName()).isEqualTo(newName);
+        assertThat(collectionCreatedResp.getBody().get().getDescription()).isEqualTo(newDescription);
         assertCollectionHasItems(collectionId, items.get(0).getItemId(), items.get(1).getItemId());
     }
 
@@ -496,10 +503,9 @@ public class CollectionsControllerTest {
         delayMilliseconds(500);
 
         // When: updating one passing a name that is already in use by a different collection (different collectionId)
-        String newName = anotherName;
 
         UpdateCollectionDataDTO updateCollectionDataDTO = UpdateCollectionDataDTO.builder()
-                                                            .name(newName)
+                                                            .name(anotherName)
                                                             .description(aDescription)
                                                             .build();
 
@@ -513,7 +519,7 @@ public class CollectionsControllerTest {
                         Argument.of(JsonNode.class));
 
         // Then: bad request happens due to duplicated name
-        assertThat(collectionUpdatedResp.getStatus(), is(HttpStatus.BAD_REQUEST));
+        AssertionsForClassTypes.assertThat(collectionUpdatedResp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -551,8 +557,8 @@ public class CollectionsControllerTest {
         // Then: the update of the name should be successful
         assertEquals(collectionUpdateResp.getStatus(), HttpStatus.OK);
         assertTrue(collectionUpdateResp.getBody().isPresent());
-        assertThat(collectionUpdateResp.getBody().get().getName(), is(newName));
-        assertThat(collectionUpdateResp.getBody().get().getDescription(), is(aDescription));
+        assertThat(collectionUpdateResp.getBody().get().getName()).isEqualTo(newName);
+        assertThat(collectionUpdateResp.getBody().get().getDescription()).isEqualTo(aDescription);
     }
 
     //TODO: this is not passing when running from IDEA but passes from Gradle
@@ -577,11 +583,13 @@ public class CollectionsControllerTest {
                         Argument.of(JsonNode.class));
 
         // Then: access denied as 'accessToken' is for a different user
-        assertThat(collectionByIdResponse.getStatus(), is(HttpStatus.FORBIDDEN));
+        AssertionsForClassTypes.assertThat(collectionByIdResponse.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private void assertCollectionHasItems(String collectionId, String... expectedItemIds) {
         List<String> itemIds = FirestoreHelper.findItemsForCollection(collectionId);
-        assertThat(itemIds, Matchers.contains(expectedItemIds));
+        String[] array = expectedItemIds;
+        Assertions.assertThat(itemIds).containsExactly(array);
     }
 }
+
