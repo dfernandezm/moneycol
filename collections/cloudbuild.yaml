@@ -77,8 +77,8 @@ steps:
         export FIREBASE_API_KEY=${_FIREBASE_API_KEY}
         echo "GOOGLE_APPLICATION_CREDENTIALS -> $$GOOGLE_APPLICATION_CREDENTIALS"
         cd collections
-        ./gradlew :server:test
-        ./gradlew :server:jib --image=eu.gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_VERSION}-${SHORT_SHA}
+        ./gradlew :collections-api:test
+        ./gradlew :collections-api:jib --image=eu.gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_VERSION}-${SHORT_SHA}
     volumes:
       - name: user.home
         path: /root

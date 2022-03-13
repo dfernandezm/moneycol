@@ -10,7 +10,6 @@ group "data-collector"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -65,9 +64,9 @@ dependencies {
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.21.0'
     testImplementation("io.specto:hoverfly-java-junit5:0.14.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-    testRuntime("org.junit.platform:junit-platform-launcher:1.0.1")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.1")
-    testRuntime("org.junit.vintage:junit-vintage-engine:4.12.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:4.12.1")
 
     // GCP support
     implementation("io.micronaut.gcp:micronaut-gcp-logging:4.0.0")

@@ -1,6 +1,5 @@
 rootProject.name = 'collections'
 
-include 'app'
-include 'server'
+include 'collections-api'
 include 'data-collector'
 include 'data-indexer'
