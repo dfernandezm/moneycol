@@ -66,6 +66,9 @@ echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $I
 cd data-indexer
 cd build/libs
 
+
+# vpc connector is deployed with Pulumi alongside the GKE cluster
+# where ElasticSearch is see `infra/gke` at the root folder
 echo "Deploying Indexer Indexing function from $PWD"
 gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
 --trigger-topic $PROCESSING_DONE_TOPIC \
