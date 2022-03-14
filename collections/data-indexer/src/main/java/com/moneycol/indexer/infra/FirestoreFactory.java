@@ -41,7 +41,7 @@ public class FirestoreFactory {
 
     @Bean
     @Singleton
-    public TaskListRepository taskListRepository() {
-        return new FirestoreTaskListRepository(firestore());
+    public TaskListRepository taskListRepository(Firestore firestore) {
+        return new FirestoreTaskListRepository(firestore);
     }
 }
