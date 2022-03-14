@@ -1,7 +1,7 @@
-// https://github.com/micronaut-projects/micronaut-examples/tree/master/petstore
-
 plugins {
-    id 'jacoco'
+    id("java")
+    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("jacoco")
 }
 
 allprojects {

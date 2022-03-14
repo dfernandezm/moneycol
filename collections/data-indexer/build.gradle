@@ -1,6 +1,4 @@
 plugins {
-    id "java"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
     id "application"
     id 'com.google.cloud.tools.jib' version '3.0.0'
 }
@@ -109,7 +107,7 @@ dependencies {
 
 test.classpath += configurations.developmentOnly
 
-shadowJar{
+shadowJar {
     archiveBaseName.set(functionName)
     mergeServiceFiles()
 }
