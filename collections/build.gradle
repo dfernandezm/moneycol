@@ -1,20 +1,36 @@
 plugins {
     id("java")
+    id("io.micronaut.application") version "3.2.2"
     id("com.github.johnrengelman.shadow") version "7.1.1"
     id("jacoco")
 }
 
 allprojects {
+
     apply plugin: 'java'
-    apply plugin: 'idea'
+    apply plugin: 'io.micronaut.application'
+    apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'jacoco'
- 
+
     repositories {
         mavenCentral()
     }
 
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
+    java {
+        sourceCompatibility = JavaVersion.toVersion("11")
+        targetCompatibility = JavaVersion.toVersion("11")
+    }
+
+    graalvmNative.toolchainDetection = false
+
+    micronaut {
+        runtime("netty")
+        testRuntime("junit5")
+        processing {
+            incremental(true)
+        }
+    }
+
 
     test {
         finalizedBy jacocoTestReport // report is always generated after tests run
@@ -25,6 +41,8 @@ allprojects {
     }
 
 }
+
+apply plugin: 'idea'
 
 idea {
     module {
