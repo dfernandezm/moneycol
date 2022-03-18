@@ -21,6 +21,12 @@ allprojects {
         targetCompatibility = JavaVersion.toVersion("11")
     }
 
+    dependencies {
+        annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+        implementation "org.projectlombok:lombok:$lombokVersion"
+        testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    }
+
     graalvmNative.toolchainDetection = false
 
     micronaut {

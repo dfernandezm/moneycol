@@ -5,7 +5,7 @@ import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import com.moneycol.indexer.infra.connectivity.gke.data.KubeServiceDetails;
 import io.micronaut.context.annotation.Primary;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Primary
 @Singleton

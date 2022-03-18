@@ -4,9 +4,8 @@ import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.inject.Inject;
 
 /**
  * This function acts as a batcher/ventilator in a fan-out / fan-in

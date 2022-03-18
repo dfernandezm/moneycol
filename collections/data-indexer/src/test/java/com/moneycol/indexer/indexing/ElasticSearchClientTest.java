@@ -29,7 +29,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;

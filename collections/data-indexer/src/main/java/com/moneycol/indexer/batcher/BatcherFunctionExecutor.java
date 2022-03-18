@@ -7,9 +7,9 @@ import com.moneycol.indexer.tracker.FanOutProcessStatus;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.IntermediateTask;
 import com.moneycol.indexer.tracker.tasklist.TaskList;
+import jakarta.inject.Singleton;;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 

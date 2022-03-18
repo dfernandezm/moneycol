@@ -29,8 +29,7 @@ dependencies {
     // and Micronaut should be the last one to not interfere
     // https://docs.micronaut.io/latest/guide/index.html#lombok
     // https://github.com/micronaut-projects/micronaut-core/issues/2559
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    // they are defined in the root project subprojects {} block
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
 
@@ -108,6 +107,7 @@ dependencies {
 }
 
 shadowJar {
+    zip64 = true
     archiveBaseName.set(functionName)
     mergeServiceFiles()
 }

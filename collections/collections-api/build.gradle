@@ -10,7 +10,6 @@ group "collections-api"
 ext {
     logbackVersion = "1.2.11"
     googleCloudFirestoreVersion = "3.0.11"
-    lombokVersion = "1.18.22"
     junitVersion = "5.8.1"
     mockitoJunitJupiterVersion = "4.3.1"
     firebaseSdkVersion = "8.1.0"
@@ -26,7 +25,6 @@ ext {
 
 dependencies {
 
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
 
@@ -37,8 +35,6 @@ dependencies {
     implementation("jakarta.annotation:jakarta.annotation-api")
     implementation("io.micronaut:micronaut-validation")
     implementation("io.micronaut.security:micronaut-security-jwt")
-
-    implementation "org.projectlombok:lombok:$lombokVersion"
 
     implementation ("com.google.firebase:firebase-admin:$firebaseSdkVersion") {
         exclude group: "com.google.cloud", module: "google-cloud-firestore"
@@ -51,7 +47,6 @@ dependencies {
     implementation("com.google.cloud:google-cloud-firestore:$googleCloudFirestoreVersion")
     implementation("com.google.guava:guava:$guavaVersion")
 
-    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api")

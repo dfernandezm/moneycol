@@ -4,9 +4,8 @@ import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
 import com.moneycol.indexer.infra.GcsClient;
 import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
+import jakarta.inject.Singleton;;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.inject.Singleton;
 
 @Singleton
 @Slf4j

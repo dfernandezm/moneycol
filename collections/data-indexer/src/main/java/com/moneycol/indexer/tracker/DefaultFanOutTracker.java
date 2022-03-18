@@ -8,7 +8,7 @@ import io.micronaut.context.annotation.Primary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Slf4j
 @RequiredArgsConstructor

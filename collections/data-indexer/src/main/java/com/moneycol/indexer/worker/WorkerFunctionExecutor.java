@@ -9,10 +9,9 @@ import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.IntermediateTask;
 import com.moneycol.indexer.tracker.TaskListConverter;
+import jakarta.inject.Singleton;;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.inject.Singleton;
 
 @Slf4j
 @Singleton
