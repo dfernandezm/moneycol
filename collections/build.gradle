@@ -1,15 +1,18 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.2.2"
+
+    // See individual plugins
+    // https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/
+    id("io.micronaut.minimal.application") version "3.2.2"
     id("com.github.johnrengelman.shadow") version "7.1.1"
     id("jacoco")
 }
 
-allprojects {
+subprojects {
 
     apply plugin: 'java'
-    apply plugin: 'io.micronaut.application'
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'io.micronaut.minimal.application'
     apply plugin: 'jacoco'
 
     repositories {
@@ -27,16 +30,16 @@ allprojects {
         testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
     }
 
-    graalvmNative.toolchainDetection = false
+    //graalvmNative.toolchainDetection = false
 
     micronaut {
-        runtime("netty")
+        runtime("google_function")
         testRuntime("junit5")
+        enableNativeImage(false)
         processing {
             incremental(true)
         }
     }
-
 
     test {
         finalizedBy jacocoTestReport // report is always generated after tests run

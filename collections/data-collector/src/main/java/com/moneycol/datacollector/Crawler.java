@@ -6,7 +6,7 @@ import io.micronaut.context.env.Environment;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Command;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Slf4j
 @Command(
