@@ -30,30 +30,17 @@ dependencies {
     // https://docs.micronaut.io/latest/guide/index.html#lombok
     // https://github.com/micronaut-projects/micronaut-core/issues/2559
     // they are defined in the root project subprojects {} block
-    annotationProcessor("io.micronaut:micronaut-inject-java")
-    annotationProcessor("io.micronaut:micronaut-http-validation")
 
-    implementation("io.micronaut:micronaut-inject-java")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut:micronaut-runtime")
     implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("io.micronaut:micronaut-validation")
-
     runtimeOnly("ch.qos.logback:logback-classic")
-
-    implementation("io.micronaut:micronaut-jackson-databind")
-    implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut:micronaut-validation")
-
-    implementation("io.micronaut.gcp:micronaut-gcp-common:4.1.1")
-    implementation("io.micronaut.gcp:micronaut-gcp-function:4.1.0")
-    compileOnly("com.google.cloud.functions:functions-framework-api:1.0.1")
 
     implementation platform("com.google.cloud:libraries-bom:$gcpLibrariesBomVersion")
     implementation("com.google.cloud:google-cloud-storage")
 
     implementation("com.google.cloud:google-cloudevent-types:0.3.0")
-    //implementation("com.google.cloud.functions:functions-framework-api:1.0.4")
     implementation("com.google.cloud:google-cloud-pubsub")
     implementation("com.google.firebase:firebase-admin:8.0.0")
     implementation("org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchVersion")
@@ -64,8 +51,6 @@ dependencies {
 
     // GKE Java Client
     implementation("com.google.cloud:google-cloud-container:2.2.1")
-
-    runtimeOnly("ch.qos.logback:logback-classic")
 
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
@@ -92,26 +77,12 @@ dependencies {
 shadowJar {
     zip64 = true
     archiveBaseName.set(functionName)
-
-    minimize {
-        exclude("*.dll")
-    }
-
-
     mergeServiceFiles()
 }
 
 mainClassName = mainClass
 
-// use JUnit 5 platform
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    // Uncomment these lines to get full logging output when running
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = 'full'
-}
+//// use JUnit 5 platform
+//test {
+//
+//}

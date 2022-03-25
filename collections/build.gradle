@@ -30,8 +30,11 @@ subprojects {
         testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
     }
 
-    //graalvmNative.toolchainDetection = false
+    //TODO: only in data-indexer
 
+    // From micronaut 3.x this is required
+    // also disabling Native Image as it is
+    // not used in 1st gen Cloud functions
     micronaut {
         runtime("google_function")
         testRuntime("junit5")
@@ -42,6 +45,16 @@ subprojects {
     }
 
     test {
+        useJUnitPlatform()
+
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+
+        // Uncomment these lines to get full logging output when running
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
+
         finalizedBy jacocoTestReport // report is always generated after tests run
     }
 

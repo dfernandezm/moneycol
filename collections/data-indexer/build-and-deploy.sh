@@ -35,49 +35,49 @@ gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS
 --timeout 540s
 
 ############# Indexer Worker - subscriber #############
-#cd ../../..
-#
-#echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
-#./gradlew :data-indexer:clean :data-indexer:shadowJar \
-#-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
-#
-#cd data-indexer
-#cd build/libs
-#
-#echo "Deploying Indexer Worker function from $PWD"
-#gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
-#--trigger-topic $WORKER_TRIGGER_TOPIC \
-#--memory 1024MB \
-#--region europe-west1 \
-#--env-vars-file ../../.env.yaml \
-#--service-account $SERVICE_ACCOUNT \
-#--timeout 540s
-#
+cd ../../..
+
+echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
+./gradlew :data-indexer:clean :data-indexer:shadowJar \
+-PmainClass=$WORKER_MAIN_CLASS -PfunctionName=$WORKER_FUNCTION_NAME
+
+cd data-indexer
+cd build/libs
+
+echo "Deploying Indexer Worker function from $PWD"
+gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS --runtime java11 \
+--trigger-topic $WORKER_TRIGGER_TOPIC \
+--memory 1024MB \
+--region europe-west1 \
+--env-vars-file ../../.env.yaml \
+--service-account $SERVICE_ACCOUNT \
+--timeout 540s
+
 ########### Indexing Function - subscriber #############
-#
-## indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
-## the sink topic
-##cd ..
-#cd ../../..
-#echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
-#./gradlew :data-indexer:clean :data-indexer:shadowJar \
-#-PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
-#
-#cd data-indexer
-#cd build/libs
-#
-#
-## vpc connector is deployed with Pulumi alongside the GKE cluster
-## where ElasticSearch is see `infra/gke` at the root
-#echo "Deploying Indexer Indexing function from $PWD"
-#gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
-#--trigger-topic $PROCESSING_DONE_TOPIC \
-#--region europe-west1 \
-#--memory 1024MB \
-#--service-account $SERVICE_ACCOUNT \
-#--env-vars-file ../../.env.yaml \
-#--vpc-connector moneycolvpcconnectordev \
-#--timeout 540s
+
+# indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
+# the sink topic
+#cd ..
+cd ../../..
+echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
+./gradlew :data-indexer:clean :data-indexer:shadowJar \
+-PmainClass=$INDEXING_MAIN_CLASS -PfunctionName=$INDEXING_FUNCTION_NAME
+
+cd data-indexer
+cd build/libs
+
+
+# vpc connector is deployed with Pulumi alongside the GKE cluster
+# where ElasticSearch is see `infra/gke` at the root
+echo "Deploying Indexer Indexing function from $PWD"
+gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
+--trigger-topic $PROCESSING_DONE_TOPIC \
+--region europe-west1 \
+--memory 1024MB \
+--service-account $SERVICE_ACCOUNT \
+--env-vars-file ../../.env.yaml \
+--vpc-connector moneycolvpcconnectordev \
+--timeout 540s
 
 # Logs: gcloud functions logs read --limit 50
 # collect results, fan-in - sink
