@@ -1,9 +1,26 @@
 plugins {
+    // See individual plugins
+    // https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/
+    id("io.micronaut.minimal.application") version "3.2.2"
     id("com.google.cloud.tools.jib") version "3.2.0"
 }
 
+apply plugin: 'io.micronaut.minimal.application'
+
 version "0.1.0"
 group "data-indexer"
+
+// From micronaut 3.x this is required
+// also disabling Native Image as it is
+// not used in 1st gen Cloud functions
+micronaut {
+    runtime("google_function")
+    testRuntime("junit5")
+    enableNativeImage(false)
+    processing {
+        incremental(true)
+    }
+}
 
 ext {
     logbackVersion = "1.2.3"

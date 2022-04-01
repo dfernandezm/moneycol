@@ -1,9 +1,5 @@
 plugins {
     id("java")
-
-    // See individual plugins
-    // https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/
-    id("io.micronaut.minimal.application") version "3.2.2"
     id("com.github.johnrengelman.shadow") version "7.1.1"
     id("jacoco")
 }
@@ -12,7 +8,6 @@ subprojects {
 
     apply plugin: 'java'
     apply plugin: 'com.github.johnrengelman.shadow'
-    apply plugin: 'io.micronaut.minimal.application'
     apply plugin: 'jacoco'
 
     repositories {
@@ -28,20 +23,6 @@ subprojects {
         annotationProcessor("org.projectlombok:lombok:$lombokVersion")
         implementation "org.projectlombok:lombok:$lombokVersion"
         testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    }
-
-    //TODO: only in data-indexer
-
-    // From micronaut 3.x this is required
-    // also disabling Native Image as it is
-    // not used in 1st gen Cloud functions
-    micronaut {
-        runtime("google_function")
-        testRuntime("junit5")
-        enableNativeImage(false)
-        processing {
-            incremental(true)
-        }
     }
 
     test {
