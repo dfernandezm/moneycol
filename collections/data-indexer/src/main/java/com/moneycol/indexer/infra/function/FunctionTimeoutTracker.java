@@ -6,7 +6,7 @@ import com.moneycol.indexer.infra.config.FanOutConfigurationProperties;
 import io.micronaut.scheduling.TaskScheduler;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ScheduledFuture;

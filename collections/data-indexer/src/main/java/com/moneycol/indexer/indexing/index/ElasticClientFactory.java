@@ -4,12 +4,11 @@ import com.moneycol.indexer.infra.connectivity.ElasticSearchDiscoveryClient;
 import com.moneycol.indexer.infra.connectivity.ElasticSearchEndpoint;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Singleton;;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-
-import javax.inject.Singleton;
 
 @Factory
 @RequiredArgsConstructor

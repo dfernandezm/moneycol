@@ -1,22 +1,41 @@
-// https://github.com/micronaut-projects/micronaut-examples/tree/master/petstore
-
 plugins {
-    id 'jacoco'
+    id("java")
+    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("jacoco")
 }
 
-allprojects {
+subprojects {
+
     apply plugin: 'java'
-    apply plugin: 'idea'
+    apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'jacoco'
- 
+
     repositories {
         mavenCentral()
     }
 
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
+    java {
+        sourceCompatibility = JavaVersion.toVersion("11")
+        targetCompatibility = JavaVersion.toVersion("11")
+    }
+
+    dependencies {
+        annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+        implementation "org.projectlombok:lombok:$lombokVersion"
+        testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    }
 
     test {
+        useJUnitPlatform()
+
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+
+        // Uncomment these lines to get full logging output when running
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
+
         finalizedBy jacocoTestReport // report is always generated after tests run
     }
 
@@ -25,6 +44,8 @@ allprojects {
     }
 
 }
+
+apply plugin: 'idea'
 
 idea {
     module {

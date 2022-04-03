@@ -1,6 +1,5 @@
 plugins {
     id "java"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
     id "application"
     id 'com.google.cloud.tools.jib' version '2.6.0'
 }
@@ -29,7 +28,6 @@ ext {
     firebaseSdkVersion = "6.12.2"
     micronautJunit5Version = "1.1.5"
     hamcrestVersion = "1.3"
-    micronautVersion = "2.1.3"
     guavaVersion = "30.0-jre"
     assertjVersion = "3.18.1"
     gcpLibrariesBomVersion = "20.8.0"
@@ -43,12 +41,9 @@ dependencies {
     // https://github.com/micronaut-projects/micronaut-core/issues/2559
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-
-    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
-    annotationProcessor("io.micronaut:micronaut-inject-java")
-    annotationProcessor("io.micronaut:micronaut-validation")
+    annotationProcessor('io.micronaut:micronaut-validation')
     annotationProcessor("info.picocli:picocli-codegen:4.2.0")
-    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+
     implementation("io.micronaut:micronaut-inject")
     implementation("io.micronaut:micronaut-validation")
     implementation("io.micronaut:micronaut-runtime")
@@ -56,9 +51,7 @@ dependencies {
     implementation("io.micronaut.picocli:micronaut-picocli")
     developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
     runtimeOnly("ch.qos.logback:logback-classic")
-    testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
-    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
-    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.21.0'

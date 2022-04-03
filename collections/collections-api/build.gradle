@@ -1,8 +1,6 @@
 // See docs and upgrades:
 // https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/
 plugins {
-    id("java")
-    id("com.github.johnrengelman.shadow") version "7.1.1"
     id("io.micronaut.application") version "3.2.2"
     id("com.google.cloud.tools.jib") version "3.2.0"
 }
@@ -10,14 +8,20 @@ plugins {
 version "0.2.0"
 group "collections-api"
 
-repositories {
-    mavenCentral()
+// From micronaut 3.x this is required
+// also disabling Native Image as it is
+// not used in 1st gen Cloud functions
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+    }
 }
 
 ext {
     logbackVersion = "1.2.11"
     googleCloudFirestoreVersion = "3.0.11"
-    lombokVersion = "1.18.22"
     junitVersion = "5.8.1"
     mockitoJunitJupiterVersion = "4.3.1"
     firebaseSdkVersion = "8.1.0"
@@ -35,7 +39,6 @@ dependencies {
 
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-http-client")
@@ -44,8 +47,6 @@ dependencies {
     implementation("jakarta.annotation:jakarta.annotation-api")
     implementation("io.micronaut:micronaut-validation")
     implementation("io.micronaut.security:micronaut-security-jwt")
-
-    implementation "org.projectlombok:lombok:$lombokVersion"
 
     implementation ("com.google.firebase:firebase-admin:$firebaseSdkVersion") {
         exclude group: "com.google.cloud", module: "google-cloud-firestore"
@@ -58,7 +59,6 @@ dependencies {
     implementation("com.google.cloud:google-cloud-firestore:$googleCloudFirestoreVersion")
     implementation("com.google.guava:guava:$guavaVersion")
 
-    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api")
@@ -82,32 +82,8 @@ jib.from.image = "gcr.io/distroless/java:11-debug"
 // - FIREBASE_API_KEY: valid key
 test {
     useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    // Uncomment these lines to get full logging output when running
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = 'full'
-
 }
 
 application {
     mainClass.set("com.moneycol.collections.server.Application")
-}
-
-java {
-    sourceCompatibility = JavaVersion.toVersion("11")
-    targetCompatibility = JavaVersion.toVersion("11")
-}
-
-graalvmNative.toolchainDetection = false
-
-micronaut {
-    runtime("netty")
-    testRuntime("junit5")
-    processing {
-        incremental(true)
-    }
 }

@@ -23,6 +23,31 @@ variables:
 
 These variables can be set in the command line or in IntelliJ IDEA (depending where the tests are run from).
 
+## Building and running locally
+
+The above variables are required in the environment for a full functioning application.
+
+To build the JAR and run locally:
+
+```
+./gradlew :collections-api:clean collections-api:shadowJar
+
+java -jar collections-api/build/libs/collections-api-0.2.0-all.jar
+```
+
+With Docker, using JIB:
+
+```
+./gradlew :collections-api:jib --image=eu.gcr.io/moneycol/collections-api:test-local
+
+docker run -p 8080:8080 eu.gcr.io/moneycol/collections-api:test-local
+```
+
+Check status endpoint:
+
+```
+curl -i http://localhost:8080/_status 
+```
 
 ## Upgrading Micronaut
 

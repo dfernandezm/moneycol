@@ -5,7 +5,7 @@ import com.moneycol.indexer.infra.JsonWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 

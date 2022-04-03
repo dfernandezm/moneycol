@@ -1,9 +1,8 @@
 package com.moneycol.indexer.indexing.index;
 
 import com.moneycol.indexer.worker.BanknotesDataSet;
+import jakarta.inject.Singleton;;
 import lombok.RequiredArgsConstructor;
-
-import javax.inject.Singleton;
 
 /**
  * Given a dataset, build a document from it to index in ES

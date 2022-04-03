@@ -4,9 +4,9 @@ import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.events.cloud.pubsub.v1.Message;
 import io.micronaut.gcp.function.GoogleFunctionInitializer;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
 
 /**
  * This function gets triggered of a result of a PubSub published message containing a batch

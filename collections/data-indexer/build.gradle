@@ -1,23 +1,27 @@
 plugins {
-    id "java"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
-    id "application"
-    id 'com.google.cloud.tools.jib' version '3.0.0'
+    // See individual plugins
+    // https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/
+    id("io.micronaut.minimal.application") version "3.2.2"
+    id("com.google.cloud.tools.jib") version "3.2.0"
 }
+
+// the 'minimal' plugin is used instead of the regular one
+// so that native image is not used - it's not supported in Cloud Functions 1stgen
+apply plugin: 'io.micronaut.minimal.application'
 
 version "0.1.0"
 group "data-indexer"
 
-repositories {
-    mavenCentral()
-}
-
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
-
-configurations {
-    // for dependencies that are needed for development only
-    developmentOnly
+// From micronaut 3.x this is required
+// also disabling Native Image as it is
+// not used in 1st gen Cloud functions
+micronaut {
+    runtime("google_function")
+    testRuntime("junit5")
+    enableNativeImage(false)
+    processing {
+        incremental(true)
+    }
 }
 
 ext {
@@ -28,11 +32,11 @@ ext {
     firebaseSdkVersion = "6.12.2"
     micronautJunit5Version = "1.1.5"
     hamcrestVersion = "1.3"
-    micronautVersion = "2.3.0"
     guavaVersion = "30.0-jre"
     assertjVersion = "3.18.1"
     gcpLibrariesBomVersion = "20.8.0"
     elasticsearchVersion = "6.8.19"
+    rxJava2Version = "1.2.1"
 }
 
 ext.functionName = project.hasProperty("functionName") ? project.getProperty("functionName") : "data-indexer"
@@ -44,30 +48,20 @@ dependencies {
     // and Micronaut should be the last one to not interfere
     // https://docs.micronaut.io/latest/guide/index.html#lombok
     // https://github.com/micronaut-projects/micronaut-core/issues/2559
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    // they are defined in the root project subprojects {} block
 
-    developmentOnly("io.micronaut:micronaut-runtime-osx:$micronautVersion")
-    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
-    annotationProcessor("io.micronaut:micronaut-inject-java")
-    annotationProcessor("io.micronaut:micronaut-validation")
-    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
-
-    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
-    implementation("io.micronaut:micronaut-inject")
+    implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut:micronaut-runtime")
-    implementation "org.projectlombok:lombok:$lombokVersion"
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("io.micronaut:micronaut-validation")
+
     implementation platform("com.google.cloud:libraries-bom:$gcpLibrariesBomVersion")
     implementation("com.google.cloud:google-cloud-storage")
-    implementation("io.micronaut.gcp:micronaut-gcp-tracing:$micronautVersion")
 
-    implementation("io.micronaut.gcp:micronaut-gcp-function")
     implementation("com.google.cloud:google-cloudevent-types:0.3.0")
-    implementation("com.google.cloud.functions:functions-framework-api:1.0.4")
     implementation("com.google.cloud:google-cloud-pubsub")
     implementation("com.google.firebase:firebase-admin:8.0.0")
-    implementation("com.google.guava:guava:$guavaVersion")
-
     implementation("org.elasticsearch.client:elasticsearch-rest-high-level-client:$elasticsearchVersion")
 
     // Official Java Kubernetes Client
@@ -77,19 +71,13 @@ dependencies {
     // GKE Java Client
     implementation("com.google.cloud:google-cloud-container:2.2.1")
 
-    runtimeOnly("ch.qos.logback:logback-classic")
-
-    testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
-    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
-    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
-
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-    testImplementation "io.micronaut.test:micronaut-test-junit5:$micronautVersion"
-    testImplementation "io.micronaut.test:micronaut-test-core:$micronautVersion"
+    testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testImplementation "io.micronaut.test:micronaut-test-core"
     testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoJunitJupiterVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
@@ -103,28 +91,12 @@ dependencies {
     testImplementation("io.specto:hoverfly-java-junit5:0.14.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.1")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:4.12.1")
-
-    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 
-test.classpath += configurations.developmentOnly
-
-shadowJar{
+shadowJar {
+    zip64 = true
     archiveBaseName.set(functionName)
     mergeServiceFiles()
 }
 
 mainClassName = mainClass
-
-// use JUnit 5 platform
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    // Uncomment these lines to get full logging output when running
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = 'full'
-}

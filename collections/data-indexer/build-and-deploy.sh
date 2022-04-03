@@ -24,7 +24,7 @@ echo "Building and deploying function $BATCHER_FUNCTION_NAME with main class $BA
 cd data-indexer
 cd build/libs
 
-# Indexer batcher - publisher
+## Indexer batcher - publisher
 echo "Deploying Indexer Batcher function from $PWD"
 gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS --runtime java11 \
 --trigger-topic $BATCHER_TRIGGER_TOPIC \
@@ -34,7 +34,7 @@ gcloud functions deploy $BATCHER_FUNCTION_NAME --entry-point $BATCHER_MAIN_CLASS
 --memory 1024MB \
 --timeout 540s
 
-############ Indexer Worker - subscriber #############
+############# Indexer Worker - subscriber #############
 cd ../../..
 
 echo "Building and deploying function $WORKER_FUNCTION_NAME with main class $WORKER_MAIN_CLASS from $PWD"
@@ -53,11 +53,11 @@ gcloud functions deploy $WORKER_FUNCTION_NAME --entry-point $WORKER_MAIN_CLASS -
 --service-account $SERVICE_ACCOUNT \
 --timeout 540s
 
-######### Indexing Function - subscriber #############
+########### Indexing Function - subscriber #############
 
 # indexing function reacts to PROCESSING_DONE_TOPIC with synchronous pull from
 # the sink topic
-
+#cd ..
 cd ../../..
 echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $INDEXING_MAIN_CLASS from $PWD"
 ./gradlew :data-indexer:clean :data-indexer:shadowJar \
@@ -66,6 +66,9 @@ echo "Building and deploying function $INDEXING_FUNCTION_NAME with main class $I
 cd data-indexer
 cd build/libs
 
+
+# vpc connector is deployed with Pulumi alongside the GKE cluster
+# where ElasticSearch is see `infra/gke` at the root
 echo "Deploying Indexer Indexing function from $PWD"
 gcloud functions deploy $INDEXING_FUNCTION_NAME --entry-point $INDEXING_MAIN_CLASS --runtime java11 \
 --trigger-topic $PROCESSING_DONE_TOPIC \

@@ -13,10 +13,10 @@ import com.moneycol.indexer.tracker.FanOutTracker;
 import com.moneycol.indexer.tracker.TaskListConverter;
 import com.moneycol.indexer.tracker.TaskListStatusReport;
 import com.moneycol.indexer.worker.BanknotesDataSet;
+import jakarta.inject.Singleton;;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j

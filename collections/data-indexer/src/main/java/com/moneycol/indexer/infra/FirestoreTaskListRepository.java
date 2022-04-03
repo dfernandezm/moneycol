@@ -12,7 +12,7 @@ import com.moneycol.indexer.tracker.tasklist.TaskListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 

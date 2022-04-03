@@ -7,7 +7,7 @@ import io.specto.hoverfly.junit5.HoverflyExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 // The Micronaut annotation changed since v2.1.3 to be the Junit5 extension
 @ExtendWith(HoverflyExtension.class)

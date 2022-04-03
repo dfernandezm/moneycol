@@ -2,7 +2,7 @@ package com.moneycol.datacollector.crawling;
 
 import lombok.RequiredArgsConstructor;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 @RequiredArgsConstructor
