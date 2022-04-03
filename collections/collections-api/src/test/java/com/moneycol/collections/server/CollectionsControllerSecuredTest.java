@@ -66,25 +66,4 @@ public class CollectionsControllerSecuredTest {
         HttpResponse<?> response = client.toBlocking().exchange(getStatus, Argument.of(JsonNode.class), Argument.of(JsonNode.class));
         assertNotEquals(HttpStatus.OK, response);
     }
-
-//    @Replaces(FirebaseTokenValidator.class)
-//    @Singleton
-//    public static class FakeFirebaseTokenValidator extends FirebaseTokenValidator {
-//        @Override
-//        public Publisher<Authentication> validateToken(String token) {
-//            assertEquals(token, FAKE_TOKEN);
-//            return Flowable.just(new Authentication() {
-//                @Nonnull
-//                @Override
-//                public Map<String, Object> getAttributes() {
-//                    return new HashMap<>();
-//                }
-//
-//                @Override
-//                public String getName() {
-//                    return FAKE_UID;
-//                }
-//            });
-//        }
-//    }
 }
