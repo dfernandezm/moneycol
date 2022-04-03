@@ -5,6 +5,8 @@ plugins {
     id("com.google.cloud.tools.jib") version "3.2.0"
 }
 
+// the 'minimal' plugin is used instead of the regular one
+// so that native image is not used - it's not supported in Cloud Functions 1stgen
 apply plugin: 'io.micronaut.minimal.application'
 
 version "0.1.0"
@@ -98,8 +100,3 @@ shadowJar {
 }
 
 mainClassName = mainClass
-
-//// use JUnit 5 platform
-//test {
-//
-//}
