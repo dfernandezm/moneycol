@@ -44,6 +44,38 @@ restarts itself every 8m30s (timeout as 9m)
   - VPC serverless access
   - Updates to the GKE cluster (VPC-native, Workload Identity...)
 
+## Invoke process manually via Pubsub
+
+While in trial phase, the GKE cluster will be shutdown to save cost. This means that the final step of the indexing
+process is never completed. The process can be triggered on demand via PubSub.
+
+Publish a message like the following in the `dev.moneycol.indexer.batching.done`:
+```
+{
+  "taskListId": "28031c86-5d8c-40ef-9e79-2bfacef59bfd", 
+  "status": "PROCESSING_COMPLETED"
+}
+```
+
+Ensure the `taskListId` is the correct one by checking logs from `Worker` and `Batcher` functions recently ran. Once 
+the message is published, the `Indexer` function will be triggered and will start indexing the contents of the `sink`
+topic.
+
+In other cases, only the crawling is done and no actual batching/indexing is performed at all (only data collection
+in GCS). From there the fan-in/fan-out can be triggered via Pubsub.
+
+In the PubSub console, publish a message like the following in the `dev.crawler.events` topic:
+```
+{
+"bucketName": "moneycol-import",
+"dataUri": "colnect/20-03-2022"
+}
+```
+
+Change the date in `dataUri` accordingly. The indicated location must contain crawled JSON files which will
+be batched, processed and indexed.
+
+
 
 ## Automatically add timestamp to Elasticsearch
 

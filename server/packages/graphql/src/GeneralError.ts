@@ -6,5 +6,7 @@ export class GeneralError extends Error {
 
     constructor(message: string, errorCode = "GENERAL_ERROR") {
         super(message.replace("GraphQL error:", ""));
+        this.message = message.replace("GraphQL error:", "");
+        this.errorCode = errorCode;
     }
 }

@@ -24,7 +24,7 @@ describe('FirebaseUserService', () => {
     jest.clearAllMocks();
 
     createUserWithEmailAndPasswordMock = setupFirebaseCreateUserEmailMock(userId);
-    
+
     updateProfileMock = jest.fn();
     sendEmailVerificationMock = jest.fn();
     persistUserMock = jest.fn();
@@ -46,6 +46,16 @@ describe('FirebaseUserService', () => {
     }
 
   });
+
+  const errorVars = ["code", "errorCode"]
+
+  test.each(errorVars)('coalesces error code %s', async (codeVal) => {
+    const userServiceImpl = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
+    const error = { [codeVal]: "errorCodeValue" }
+    const val = userServiceImpl.coalesceErrorCode(error)
+    expect(val).toBe("errorCodeValue");
+  });
+
 
   test('creates user with email and password without error', async () => {
 
@@ -87,11 +97,11 @@ describe('FirebaseUserService', () => {
 
     // Given an update profile request for an ACTIVE user
     const updateUserCommand = anUpdateUserCommand();
-    
+
     userRepositoryMock.byId = jest.fn((userId: string) => Promise.resolve(aPersistedUser()));
     userRepositoryMock.updateUserData = jest.fn((userData: User) => Promise.resolve({}));
     instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
-    
+
     // When updating user data
     const result: UserProfileResult = await instance.updateUserProfile(updateUserCommand);
 
@@ -109,18 +119,18 @@ describe('FirebaseUserService', () => {
     const updateUserCommand = anUpdateUserCommand();
     const persistedUser = aPersistedUser();
     persistedUser.status = UserStatus.PENDING_VERIFICATION;
-    
+
     userRepositoryMock.byId = jest.fn((userId: string) => Promise.resolve(persistedUser));
     userRepositoryMock.updateUserData = jest.fn((userData: User) => Promise.resolve({}));
     instance = new FirebaseUserService(mockFirebaseConfig, userRepositoryMock, emailServiceMock);
-    
+
     // When updating user data
     // Then an error is thrown
     await expect(instance.updateUserProfile(updateUserCommand)).rejects.toThrow(UserInInvalidStateError);
   });
 
   test('fails to create user when password is too short', async () => {
-    
+
     // Given
     const createUserCommand: CreateUserCommand = aUserCommand();
     createUserCommand.password = "short";
@@ -200,8 +210,8 @@ class FirebaseAuthError implements Error {
   name: string;
   message: string;
   stack?: string;
-  
+
 }
 
 const setupFirebaseCreateUserEmailMock = (userId: string) => jest.fn((email: string, password: string) => Promise.resolve({ user: { uid: userId } }));
-const setupMockedFirebaseCreateUserEmailWithError = (errorCode: string, message: string) => jest.fn((email: string, password: string) => Promise.reject({errorCode, message}));
+const setupMockedFirebaseCreateUserEmailWithError = (errorCode: string, message: string) => jest.fn((email: string, password: string) => Promise.reject({ errorCode, message }));
