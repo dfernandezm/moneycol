@@ -16,7 +16,7 @@
     "compile": "tsc -p tsconfig.build.json",
     "compile:watch": "tsc -p tsconfig.build.json --watch",
     "prepublishOnly": "yarn run build",
-    "test": "jest test/ --passWithNoTests --coverage"
+    "test": "jest test/ --passWithNoTests --coverage --silent"
   },
   "keywords": [],
   "author": "",

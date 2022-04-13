@@ -1,11 +1,8 @@
 on:
-  push:
-    branches: 
-    - 'fix/server-build-tests'
-  # pull_request:
-  #   types: [opened, synchronize]
-  #   paths:
-  #     - 'server/**/**.ts'
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'server/**/**.ts'
 jobs:
   test:
     runs-on: ubuntu-latest

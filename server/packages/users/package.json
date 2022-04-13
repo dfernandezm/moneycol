@@ -13,7 +13,7 @@
     "compile": "tsc -p tsconfig.build.json",
     "compile:watch": "tsc -p tsconfig.build.json --watch",
     "prepublishOnly": "yarn run build",
-    "test": "jest"
+    "test": "jest --silent"
   },
   "keywords": [],
   "author": "",
