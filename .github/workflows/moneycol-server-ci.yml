@@ -1,9 +1,11 @@
 on:
   push:
-  pull_request:
-    types: [opened, synchronize]
-    paths:
-      - 'server/**/**.ts'
+    branches: 
+    - 'fix/server-build-tests'
+  # pull_request:
+  #   types: [opened, synchronize]
+  #   paths:
+  #     - 'server/**/**.ts'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,12 +14,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
+      name: Install Dependencies
       with:
         node-version: '16'
         cache: 'yarn'
-    - name: Install Dependencies
+        cache-dependency-path: server/yarn.lock
+    - name: Build Lerna
       working-directory: server
-      run: yarn
+      run: |
+        yarn
+        yarn build
     - name: Run GraphQL Tests
-      working-directory: packages/graphql
+      working-directory: server/packages/graphql
+      run: yarn test
+    - name: Run Auth Tests
+      working-directory: server/packages/auth
+      run: yarn test
+    - name: Run Users Tests
+      working-directory: server/packages/users
       run: yarn test
