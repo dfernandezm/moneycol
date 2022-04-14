@@ -56,7 +56,7 @@ export type NewCollectionInput = {
 }
 
 export type CollectionCreatedResult = {
-    collectionId: string, //TODO: inconsistent with the above in the API, raised #127 to fix
+    collectionId: string, // TODO: inconsistent with the above in the API, raised #127 to fix
     name: string,
     description: string,
     collectorId: string

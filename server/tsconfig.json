@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
-
-  "compilerOptions": {
+// https://basarat.gitbook.io/typescript/project/compilation-context/
+  "compilerOptions": { 
     "baseUrl": ".",
     "paths": {
       "@moneycol-server/graphql": ["./packages/graphql/src"],
