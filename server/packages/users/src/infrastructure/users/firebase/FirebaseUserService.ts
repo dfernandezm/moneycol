@@ -101,7 +101,7 @@ class FirebaseUserService implements UserService {
 
             return userToPersist;
         } catch (err) {
-            console.log("Error creating user", err)
+            console.log("Error creating user weak -- ", JSON.stringify(err))
             if (err instanceof InvalidValueError) {
                 throw err;
             } else {
@@ -245,13 +245,18 @@ class FirebaseUserService implements UserService {
     }
 
     private wrapErrorWithCode(err: any, defaultMessage: string): AuthError  {
+        const errorCode = this.coalesceErrorCode(err);
         console.log("Error handling", err.errorCode);
-        if (err.errorCode) {
-            if (err.errorCode === WEAK_PASSWORD_ERROR_CODE) {
+        if (errorCode) {
+            if (errorCode === WEAK_PASSWORD_ERROR_CODE) {
                 return new AuthError(WEAK_PASSWORD_ERROR_CODE, WEAK_PASSWORD_ERROR_MESSAGE);
             }
         } 
         return new AuthError("AUTHENTICATION_ERROR", defaultMessage);
+    }
+
+    public coalesceErrorCode(error: any): string {
+        return [error.code, error.errorCode].find(_ => ![null, undefined].includes(_))
     }
 }
 

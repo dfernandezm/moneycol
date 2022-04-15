@@ -11,7 +11,7 @@ const VALID_EXPIRED_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMDBlOGZlNWYyYzg4Y2Y
 
 // to run some tests the real API is required whilst the emulator is not in place 
 // https://github.com/dfernandezm/moneycol/issues/294
-//process.env.FIREBASE_API_KEY = ""
+// process.env.FIREBASE_API_KEY = ""
 
 describe('Mutations', () => {
 
@@ -45,7 +45,7 @@ describe('Mutations', () => {
         const expectedErrorCode = CONNECTION_REFUSED_ERROR;
         const errorMessage = result.errors[0].message
         const errorCode = result.errors[0].extensions.code
-      
+
         expect(errorCode).toBe(expectedErrorCode);
         expect(errorMessage).toContain(expectedErrorMessage);
     });
@@ -75,7 +75,7 @@ describe('Mutations', () => {
   });
 
   it('returns an authentication type error with login fails with too many attempts', async () => {
-    
+
     const server = createApolloTestServer();
     const { mutate } = createTestClient(server);
     let result;
@@ -122,7 +122,7 @@ mutation signUp($userInput: SignUpUserInput!) {
     username
     email
     firstName
-    lastName  	
+    lastName
   }
 }
 `;

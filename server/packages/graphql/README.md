@@ -1,6 +1,8 @@
-#  Server for MoneyCol
+# Server for MoneyCol
 
-##  Run locally
+## Run locally
+
+The code requires NodeJS v14 to run. Package manager is Yarn.
 
 ### Directly
 
@@ -10,7 +12,8 @@ Start Elasticsearch:
 yarn start:elasticsearch
 ```
 
-For this script to work, edit `package.json` and set your Elasticsearch installation directory. Restore a backup to have data.
+For this script to work, edit `package.json` and set your Elasticsearch installation directory. 
+Restore a backup to have data.
 
 Start GraphQL server in dev mode:
 ```
@@ -18,6 +21,7 @@ FIREBASE_API_KEY=XXXX ELASTICSEARCH_ENDPOINT_WITH_PORT=localhost:9200 COLLECTION
 ```
 
 Visit the playground for GraphQL at http://localhost:4000/graphql.
+
 
 ### GQL query for search
 
@@ -47,6 +51,14 @@ with parameters
   "searchTerm": "ireland" 
 }
 ```
+
+## Running tests with emulator
+
+Firebase emulator is required:
+```
+curl -sL firebase.tools | bash
+```
+
 ## Kubernetes proxied services
 
 Through traefik:
@@ -264,8 +276,7 @@ It should run with `yarn start` (compiled) and `yarn start:dev` (nodemon).
 
 ### Nodemon 
 
-For `nodemon` to reflect latest changes, a hardcoded watch has been added for `users` and `auth` modules:
-
+For `nodemon` to reflect latest changes, a hardcoded 'watch' has been added explicitly for `users` and `auth` modules:
 
 ```
 ...
@@ -273,12 +284,12 @@ For `nodemon` to reflect latest changes, a hardcoded watch has been added for `u
 ...
 ```
 
-`nodemon` will watch the folders for changes. For this to complete, incremental compilation should be started in 
-the modules. This way changes will be picked up as the source files are saved. Move to the folder where the module
-is (`auth` or `users` at this point) and run:
+`nodemon` will watch the folders for changes. For this to complete succesfully and be able have auto-reloaded application, incremental compilation should be started in each of the modules folders themselves. This way changes will be picked up as the source files change. 
+
+Move to the folder where the module is (`auth` or `users` at this point) and run:
 
 ```
 yarn compile:watch
 ```
 
-This way, the TS files will be compiled, the folder will pick the changes and `nodemon` will restart the GraphQL server and the changes will be reflected.
+This way, the TS files will be compiled, the folder will pick the changes and `nodemon` will restart the GraphQL server and with changes reflected.

@@ -1,0 +1,32 @@
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'server/**/**.ts'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY_TEST }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      name: Install Dependencies
+      with:
+        node-version: '16'
+        cache: 'yarn'
+        cache-dependency-path: server/yarn.lock
+    - name: Build Lerna
+      working-directory: server
+      run: |
+        yarn
+        yarn build
+    - name: Run GraphQL Tests
+      working-directory: server/packages/graphql
+      run: yarn test
+    - name: Run Auth Tests
+      working-directory: server/packages/auth
+      run: yarn test
+    - name: Run Users Tests
+      working-directory: server/packages/users
+      run: yarn test

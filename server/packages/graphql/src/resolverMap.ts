@@ -1,5 +1,5 @@
-//Consider: https://typegraphql.ml/
-//https://www.compose.com/articles/use-all-the-databases-part-2/#elasticsearch
+// Consider: https://typegraphql.ml/
+// https://www.compose.com/articles/use-all-the-databases-part-2/#elasticsearch
 
 import { IResolvers } from 'graphql-tools';
 import { SearchService } from './infrastructure/search/SearchService';
@@ -32,24 +32,24 @@ const searchService: SearchService = new ElasticSearchService();
 
 const resolverMap: IResolvers = {
     Query: {
-        
+
         async search(_: void, args: { term: string, from: number, to: number }, ctx): Promise<SearchResult> {
             return searchService.search("en", args.term, args.from, args.to);
         },
 
         async collectionData(_: void, args: { collectionId: string }, ctx): Promise<BankNoteCollection> {
-            let col: CollectionApiResult = await ctx.dataSources.collectionsAPI.getCollectionById(args.collectionId);
+            const col: CollectionApiResult = await ctx.dataSources.collectionsAPI.getCollectionById(args.collectionId);
             // These collections are returned without items
             return new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []);
         },
 
         async collectionsForCollector(_: void, args: { collectorId: string }, { dataSources: { collectionsAPI }}): Promise<BankNoteCollection[]> {
             try {
-                
-                let collections: CollectionApiResult[] = await collectionsAPI.getCollectionsForCollector(args.collectorId);
+
+                const collections: CollectionApiResult[] = await collectionsAPI.getCollectionsForCollector(args.collectorId);
                 console.log("Collections returned", collections);
                 // These collections are returned without items
-                let bankNoteCollections = collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, [])); 
+                const bankNoteCollections = collections.map(col => new BankNoteCollection(col.id, col.name, col.description, col.collectorId, []));
                 console.log("Resolver: collectionsForCollector\n", collections);
                 return bankNoteCollections;
             } catch (err) {
@@ -76,31 +76,31 @@ const resolverMap: IResolvers = {
 
         async addCollection(_: void, args: { collection: NewCollectionInput }, { dataSources }): Promise<BankNoteCollection | null> {
             try {
-                let { collection } = args
+                const { collection } = args
                 console.log(`About to create collection: ${collection.name}, ${collection.description}`);
-                let { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
-                return new BankNoteCollection(collectionId, name, description, collectorId, []);     
+                const { collectionId, name, description, collectorId } = await dataSources.collectionsAPI.createCollection(collection);
+                return new BankNoteCollection(collectionId, name, description, collectorId, []);
             } catch (err) {
                 throw handleErrors(err, "addCollection")
             }
         },
 
         async addBankNoteToCollection(_: void, args: { data: AddBankNoteToCollection }, { dataSources }): Promise<BankNoteCollection> {
-            let { data: { collectionId, collectorId, bankNoteCollectionItem: { id } } } = args;
+            const { data: { collectionId, collectorId, bankNoteCollectionItem: { id } } } = args;
             console.log(`Adding banknote to collection: ${collectionId}`);
 
             await dataSources.collectionsAPI.addItemsToCollection(collectionId, [id]);
 
-            //TODO: the API should return the collection back (1st page or so): issue #133
-            let fetchedCollection: CollectionApiResult = await dataSources.collectionsAPI.getCollectionById(collectionId);
-            let bankNotes: BankNote[] = await decorator.decorateItems("en", fetchedCollection.items);
+            // TODO: the API should return the collection back (1st page or so): issue #133
+            const fetchedCollection: CollectionApiResult = await dataSources.collectionsAPI.getCollectionById(collectionId);
+            const bankNotes: BankNote[] = await decorator.decorateItems("en", fetchedCollection.items);
             return new BankNoteCollection(collectionId, fetchedCollection.name,
                 fetchedCollection.description, collectorId, bankNotes);
         },
 
         async updateCollection(_: void, args: { collectionId: string, data: UpdateCollectionInput }, { dataSources: { collectionsAPI } }): Promise<BankNoteCollection> {
-            let { name, description } = args.data;
-            let bankNoteCollection = await collectionsAPI.updateCollection(args.collectionId, name, description);
+            const { name, description } = args.data;
+            const bankNoteCollection = await collectionsAPI.updateCollection(args.collectionId, name, description);
             return new BankNoteCollection(
                 bankNoteCollection.collectionId,
                 bankNoteCollection.name,
@@ -108,7 +108,7 @@ const resolverMap: IResolvers = {
                 bankNoteCollection.collectorId, []);
         },
 
-        async deleteCollection(_: void, args: { collectionId: string }, { dataSources }): Promise<Boolean> {
+        async deleteCollection(_: void, args: { collectionId: string }, { dataSources }): Promise<boolean> {
             console.log(`Deleting collection ${args.collectionId}`);
             await dataSources.collectionsAPI.deleteCollection(args.collectionId);
             return true;
@@ -122,7 +122,7 @@ const resolverMap: IResolvers = {
         // Authentication
         async loginWithEmail(_: void, { email, password }): Promise<AuthenticationResult> {
             try {
-                let authResult: AuthenticationResult = await authenticationService.loginWithEmailPassword(email, password);
+                const authResult: AuthenticationResult = await authenticationService.loginWithEmailPassword(email, password);
                 return authResult;
             } catch (err) {
                 console.log("Authentication error in login", err);
@@ -132,7 +132,7 @@ const resolverMap: IResolvers = {
 
         async loginWithGoogle(_: void, { googleAuthMaterial }, ctx): Promise<AuthenticationResult> {
             try {
-                let authResult: AuthenticationResult = await authenticationService.loginWithGoogle(googleAuthMaterial);
+                const authResult: AuthenticationResult = await authenticationService.loginWithGoogle(googleAuthMaterial);
                 console.log("Resolver: authResult", authResult);
                 return authResult;
             } catch (err) {
@@ -183,14 +183,16 @@ const resolverMap: IResolvers = {
                     email: result.email,
                     comebackUrl: result.comebackUrl,
                 }
-            } catch (err) {
-                throw new Error("Error verifying email: " + err.message);
+            } catch (err: unknown) {
+                console.log("Error verifying email", err);
+                const errWithMessage: Record<string, string> = err as Record<string, string>; 
+                throw new Error("Error verifying email: " + errWithMessage.message);
             }
         },
 
         async updateUserProfile(_: void, args: { updateUserProfileInput: UpdateUserProfileCommand}, ctx): Promise<UserProfileResult> {
             try {
-                await resolverHelper.validateRequestToken(ctx.token, "updateUserProfile");    
+                await resolverHelper.validateRequestToken(ctx.token, "updateUserProfile");
                 const updatedUserProfileResult = await userService.updateUserProfile(args.updateUserProfileInput);
                 console.log("Resolver: user updated", updatedUserProfileResult);
                 return updatedUserProfileResult;
@@ -201,7 +203,7 @@ const resolverMap: IResolvers = {
 
         async changePassword(_: void, args: { changePasswordInput: ChangePasswordCommand}, ctx): Promise<ChangePasswordResult> {
             try {
-                await resolverHelper.validateRequestToken(ctx.token, "changeUserPassword");    
+                await resolverHelper.validateRequestToken(ctx.token, "changeUserPassword");
                 const changeUserPasswordResult = await authenticationService.changePassword(args.changePasswordInput);
                 console.log("Resolver: password change", changeUserPasswordResult);
                 return changeUserPasswordResult;
@@ -211,7 +213,7 @@ const resolverMap: IResolvers = {
         },
 
         async requestPasswordReset(_: void, args: { email: string}, ctx): Promise<ChangePasswordResult> {
-            try {    
+            try {
                 const resetPasswordResult = await authenticationService.resetPasswordRequest(args.email);
                 console.log("Resolver: reset password", resetPasswordResult);
                 return { result: "ok"};
@@ -226,7 +228,7 @@ const resolverMap: IResolvers = {
                 const resetPasswordResult = await authenticationService.completeResetPassword(cmd);
                 console.log("Resolver: complete reset password", resetPasswordResult);
                 return { result: "ok"};
-            } catch (err) {
+            } catch (err: unknown) {
                 throw handleErrors(err, "completeResetPassword");
             }
         },
@@ -235,7 +237,7 @@ const resolverMap: IResolvers = {
 
 const decorateBanknoteCollection =
     async (collectionId: string, collectionsAPI: CollectionsRestDatasource): Promise<BankNoteCollection> => {
-        let collection: CollectionApiResult = await collectionsAPI.getItemsForCollection(collectionId);
+        const collection: CollectionApiResult = await collectionsAPI.getItemsForCollection(collectionId);
         let bankNotes = new Array<BankNote>();
         if (collection.items) {
             console.log("Items in collection:", collection.items);
@@ -253,34 +255,41 @@ export const WEAK_PASSWORD_ERROR_MESSAGE = "Weak password detected";
 export const TOO_MANY_LOGIN_ATTEMPTS_ERROR = "TOO_MANY_LOGIN_ATTEMPTS_ERROR";
 export const TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE = "Too many login attempts";
 
-const handleErrors = (err: ApolloError, request: string): Error => {
+export const handleErrors = (err: unknown, request: string): Error => {
+
     console.log(`Error received for ${request} request`, err);
+    
     if (err instanceof InvalidValueError) {
         return new ValidationError(`Parameters invalid for ${request}: ${err.message}`);
-    } else if (err.code === ErrorCodes.INVALID_PASSWORD_ERROR_CODE) {
-        return new InvalidPasswordError("Invalid credentials provided");
-     } else if (err.code === ErrorCodes.WEAK_PASSWORD_ERROR_CODE) {
-        // should extend ApolloError
-        throw new ApolloError(WEAK_PASSWORD_ERROR_MESSAGE, ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
-    } else if (err.code && err.code === ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS) {
-        return new ApolloError(TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE, ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS);
     } else if (err instanceof ApolloError && err instanceof AuthenticationError) {
         console.log(`Authentication required for ${request}`);
         return err;
-    } else if (err.code && err.code.indexOf("auth") > -1) {
-        return new AuthenticationError("Authentication error in login");
     } else if (err instanceof ForbiddenError) {
         console.log(`Forbidden access during operation ${request}`);
         return err;
-    } else {
-        const message = `General error during operation ${request}`;
-        let newErr = new GeneralError(message, err["code"]);
-        if (err["code"] === "ECONNREFUSED") {
-            return new ApolloError("Connection error", CONNECTION_REFUSED_ERROR);
-        } else {
-            return newErr;
-        }
     }
+
+    const codedError = err as Record<string, string>;
+    
+    if (codedError.code === ErrorCodes.INVALID_PASSWORD_ERROR_CODE) {
+        return new InvalidPasswordError("Invalid credentials provided");
+    } else if (codedError.code === ErrorCodes.WEAK_PASSWORD_ERROR_CODE) {
+        // should extend ApolloError
+        return new ApolloError(WEAK_PASSWORD_ERROR_MESSAGE, ErrorCodes.WEAK_PASSWORD_ERROR_CODE);
+    } else if (codedError.code && codedError.code === ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS) {
+        return new ApolloError(TOO_MANY_LOGIN_ATTEMPTS_ERROR_MESSAGE, ErrorCodes.TOO_MANY_LOGIN_ATTEMPTS);
+    } else if (codedError.code && codedError.code.indexOf("auth") > -1) {
+        return new AuthenticationError("Authentication error in login");
+    } 
+    
+    const message = `General error during operation ${request}`;
+    const newErr = new GeneralError(message, codedError.code);
+    if (codedError.code === "ECONNREFUSED") {
+        return new ApolloError("Connection error", CONNECTION_REFUSED_ERROR);
+    } else {
+        return newErr;
+    }
+    
 }
 
 export default resolverMap;

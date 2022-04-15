@@ -8,6 +8,7 @@ import schema from './schema';
 import { CollectionsRestDatasource } from './infrastructure/collections/CollectionsRestDatasource';
 import { tokenHelper } from './tokenHelper';
 
+
 const app = express();
 const collectionsApiDatasource = new CollectionsRestDatasource();
 const PLAYGROUND_INTROSPECTION_QUERY = "IntrospectionQuery";
@@ -33,7 +34,7 @@ const server = new ApolloServer({
   validationRules: [depthLimit(7)],
 });
 
-app.use('*', cors());
+app.use(cors());
 app.use(compression());
 
 server.applyMiddleware({ app, path: '/graphql' });

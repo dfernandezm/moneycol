@@ -13,7 +13,7 @@
     "compile": "tsc -p tsconfig.build.json",
     "compile:watch": "tsc -p tsconfig.build.json --watch",
     "prepublishOnly": "yarn run build",
-    "test": "jest"
+    "test": "jest --silent"
   },
   "keywords": [],
   "author": "",
@@ -40,7 +40,7 @@
     "cors": "^2.8.5",
     "elasticsearch": "^16.3.0",
     "express": "^4.17.1",
-    "firebase": "7.14.3",
+    "firebase": "7.21.1",
     "firebase-admin": "8.12.1",
     "http": "0.0.0",
     "jsonwebtoken": "^8.5.1",

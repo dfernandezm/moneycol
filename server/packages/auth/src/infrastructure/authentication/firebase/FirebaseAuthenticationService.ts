@@ -82,7 +82,7 @@ export default class FirebaseAuthenticationService implements AuthenticationServ
                         console.log(`Cannot find user object in userCredential for user with email ${email}`, userCredential);
                         reject(new Error("Authentication error: user not found in userCredential"));
                     }
-                }).catch((error) => {
+                }).catch((error: Error) => {
                     console.log("Authentication error login with email/password: ", error);
                     reject(error);
                 })

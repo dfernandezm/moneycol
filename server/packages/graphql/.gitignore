@@ -1,3 +1,4 @@
 .do_token
 dist
 node_modules
+coverage
