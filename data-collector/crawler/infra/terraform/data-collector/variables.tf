@@ -30,11 +30,17 @@ variable crawler_resize_payload {
 }
 
 variable crawler_resize_job_schedule {
-    default = "0 1 * * 0"
+    # Indexing only happens on 1st of each month for now
+    default = "0 1 1 * *"
     description = "The cron schedule to resize the indexing node pool to 1"
 }
 
 variable crawling_done_pubsub_topic {
     default = "dev.crawler.events"
     description = "The resizer function (back to 0, crawling done) is triggered when message is published to this topic"
+}
+
+variable indexer_sink_pubsub_topic {
+    default = "dev.moneycol.indexer.sink"
+    description = "The Pub/Sub topic/subscription where data ready to index is pushed by batcher/worker functions"
 }

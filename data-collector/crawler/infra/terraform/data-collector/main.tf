@@ -1,8 +1,8 @@
 resource "google_service_account" "data_collector_main_service_account" {
-    account_id   = "data-collector"
-    description  = "Data Collector (aka Crawler)"
-    disabled     = false
-    display_name = "data-collector"
+  account_id   = "data-collector"
+  description  = "Data Collector (aka Crawler)"
+  disabled     = false
+  display_name = "data-collector"
 }
 
 resource "google_project_iam_custom_role" "data_collector_role" {
@@ -10,13 +10,13 @@ resource "google_project_iam_custom_role" "data_collector_role" {
   title       = "Data Collector"
   description = "Data Collector"
   permissions = [
-      "pubsub.topics.publish",
-      "storage.buckets.create",
-      "storage.objects.create",
-      "storage.objects.delete",
-      "storage.objects.get",
-      "storage.objects.list"
-    ]
+    "pubsub.topics.publish",
+    "storage.buckets.create",
+    "storage.objects.create",
+    "storage.objects.delete",
+    "storage.objects.get",
+    "storage.objects.list"
+  ]
 }
 
 resource "google_project_iam_binding" "data_collector_sa_project_iam_binding" {
@@ -32,10 +32,10 @@ resource "google_service_account_key" "data_collector_sa_key" {
 }
 
 resource "google_service_account" "gke_resize_main_service_account" {
-    account_id   = "gke-resize"
-    description  = "GKE resize"
-    disabled     = false
-    display_name = "gke-resize"
+  account_id   = "gke-resize"
+  description  = "GKE resize"
+  disabled     = false
+  display_name = "gke-resize"
 }
 
 resource "google_project_iam_custom_role" "gke_resize_role" {
@@ -50,7 +50,7 @@ resource "google_project_iam_custom_role" "gke_resize_role" {
     "container.pods.list",
     "container.services.get",
     "cloudfunctions.functions.invoke"
-    ]
+  ]
 }
 
 resource "google_project_iam_binding" "gke_resize_sa_project_iam_binding" {
@@ -75,18 +75,31 @@ resource "google_cloud_scheduler_job" "start_crawler_job" {
   http_target {
     http_method = "POST"
     uri         = var.crawler_resize_uri
-    body = base64encode(var.crawler_resize_payload)
-    headers = { 
-        "Content-Type" = "application/json"
-        "User-Agent" = "Google-Cloud-Scheduler"
+    body        = base64encode(var.crawler_resize_payload)
+    headers = {
+      "Content-Type" = "application/json"
+      "User-Agent"   = "Google-Cloud-Scheduler"
     }
 
     oidc_token {
       service_account_email = google_service_account.gke_resize_main_service_account.email
     }
   }
+
+  retry_config {
+    max_backoff_duration = "3600s"
+    max_doublings        = 5
+    max_retry_duration   = "0s"
+    min_backoff_duration = "5s"
+    retry_count          = 0
+  }
 }
 
+# Add GKE shrink / expand here
+
+
+# for this to work it's needed to auth against GKE
+# gcloud container clusters get-credentials cluster-dev2 --zone europe-west1-b --project moneycol
 resource "kubernetes_secret" "data_collector_key_secret" {
   metadata {
     name = "data-collector-key"
@@ -105,9 +118,9 @@ resource "kubernetes_secret" "data_collector_key_secret" {
 # the function resizes the GKE indexer node pool back to 0
 
 locals {
-    index_resizer_function_name = var.index_resizer_function_name
-    index_resizer_function_code_path = var.index_resizer_function_code_path
-    function_trigger_topic_name = var.crawling_done_pubsub_topic
+  index_resizer_function_name      = var.index_resizer_function_name
+  index_resizer_function_code_path = var.index_resizer_function_code_path
+  function_trigger_topic_name      = var.crawling_done_pubsub_topic
 }
 
 data "google_pubsub_topic" "function_topic" {
@@ -120,9 +133,9 @@ resource "google_storage_bucket" "functions_bucket" {
 }
 
 data "archive_file" "function_archive" {
-  type         = "zip"
-  source_dir   = local.index_resizer_function_code_path
-  output_path  = "${local.index_resizer_function_name}.zip"
+  type        = "zip"
+  source_dir  = local.index_resizer_function_code_path
+  output_path = "${local.index_resizer_function_name}.zip"
 }
 
 resource "google_storage_bucket_object" "archive" {
@@ -132,21 +145,21 @@ resource "google_storage_bucket_object" "archive" {
 }
 
 resource "google_cloudfunctions_function" "resize_function" {
-  name        = "${local.index_resizer_function_name}"
-  description = "Resize indexer node pool to 0"
-  runtime     = "nodejs14"
+  name                  = local.index_resizer_function_name
+  description           = "Resize indexer node pool to 0"
+  runtime               = "nodejs14"
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.functions_bucket.name
   source_archive_object = google_storage_bucket_object.archive.name
   timeout               = 60
-  entry_point = "resizeCluster"
+  entry_point           = "resizeCluster"
 
-  event_trigger  {
+  event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${data.google_pubsub_topic.function_topic.name}"
+    resource   = data.google_pubsub_topic.function_topic.name
   }
 
   lifecycle {
-      create_before_destroy = true
+    create_before_destroy = true
   }
 }
