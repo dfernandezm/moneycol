@@ -15,9 +15,9 @@ const serverlessVpcConnectorMachineType = "f1-micro";
 // Create a GKE cluster
 const engineVersion = gcp.container.getEngineVersions({project: projectId, location: location}).then(v => v.latestMasterVersion);
 const cluster = new gcp.container.Cluster(name, {
-    name: name,
+    name,
     project: projectId,
-    location: location,
+    location,
     initialNodeCount: 1,
     minMasterVersion: engineVersion,
     removeDefaultNodePool: true,
