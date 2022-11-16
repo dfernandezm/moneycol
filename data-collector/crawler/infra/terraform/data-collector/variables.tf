@@ -44,3 +44,15 @@ variable "indexer_sink_pubsub_topic" {
   default     = "dev.moneycol.indexer.sink"
   description = "The Pub/Sub topic/subscription where data ready to index is pushed by batcher/worker functions"
 }
+
+
+variable "indexer_batches_pubsub_topic" {
+  default     = "dev.moneycol.indexer.batches"
+  description = "Pubsub topic/subscription for batches to index"
+}
+
+
+variable "indexer_batch_done_pubsub_topic" {
+  default     = "dev.moneycol.indexer.batching.done"
+  description = "Pubsub topic/subscription batching completion"
+}
