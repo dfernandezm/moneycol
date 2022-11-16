@@ -1,4 +1,4 @@
-## Resizer function with Cloud Scheduler
+# Resizer function with Cloud Scheduler
 
 This is currently manually deployed in `moneycol` GCP project:
 - 2 Cloud Scheduler jobs
