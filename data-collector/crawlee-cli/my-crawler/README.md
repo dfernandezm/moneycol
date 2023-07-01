@@ -1,5 +1,10 @@
 # Crawlee + CheerioCrawler + TypeScript project
 
+Generated with:
+```
+npx crawlee create my-crawler
+```
+
 This template is a production ready boilerplate for developing with `CheerioCrawler`. Use this to bootstrap your projects using the most up-to-date code.
 
 If you're looking for examples or want to learn more visit:
