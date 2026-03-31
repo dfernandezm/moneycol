@@ -11,9 +11,15 @@ const projectId = "moneycol";
 const serverlessVpcCidr = "10.21.0.0/28";
 const serverlessVpcNetwork = "default";
 const serverlessVpcConnectorMachineType = "f1-micro";
+const engineVersion = "1.21.14-gke.3000";
+
+let config = new pulumi.Config();
+
+
+// https://www.pulumi.com/docs/guides/continuous-delivery/github-actions/
 
 // Create a GKE cluster
-const engineVersion = gcp.container.getEngineVersions({project: projectId, location: location}).then(v => v.latestMasterVersion);
+// const engineVersion = gcp.container.getEngineVersions({project: projectId, location: location}).then(v => v.latestMasterVersion);
 const cluster = new gcp.container.Cluster(name, {
     name,
     project: projectId,
@@ -200,16 +206,22 @@ const clusterProvider = new k8s.Provider(name, {
 
 // This is the Serverless VPC Access to connector to be able to make
 // comms between CloudRun / CloudFunctions and GKE in the default VPC
+
+// pulumi preview -s dev2 -c serverlessVpcConnectorOn=false
+// pulumi up -s dev2 -c serverlessVpcConnectorOn=true -y 
 const vpcConnectorName = "moneycolvpcconnectordev";
-const serverlessVpcConnector = new gcp.vpcaccess.Connector(vpcConnectorName, {
-  project: projectId,
-  name: vpcConnectorName,
-  region: "europe-west1",
-  ipCidrRange: serverlessVpcCidr,
-  network: serverlessVpcNetwork,
-  machineType: serverlessVpcConnectorMachineType,
-  minInstances: 2,
-  maxInstances: 3
-});
+let serverlessVpcConnectorOn = config.getBoolean("serverlessVpcConnectorOn");
+if (serverlessVpcConnectorOn) {
+  const serverlessVpcConnector = new gcp.vpcaccess.Connector(vpcConnectorName, {
+    project: projectId,
+    name: vpcConnectorName,
+    region: "europe-west1",
+    ipCidrRange: serverlessVpcCidr,
+    network: serverlessVpcNetwork,
+    machineType: serverlessVpcConnectorMachineType,
+    minInstances: 2,
+    maxInstances: 3
+  });
+}
 
 
